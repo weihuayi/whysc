@@ -7,11 +7,8 @@
 #include <cassert>
 #include <string>
 
-#endif // end of CSRMatrix_h
-
 namespace WHYSC {
 namespace AlgebraObject {
-
 
 template<typename F=double, typename I=int>
 struct CSRMatrix
@@ -25,7 +22,7 @@ struct CSRMatrix
     I shape[2]; // 矩阵的阶数
     I nnz; // 非零元的个数
 
-    static std::string format;
+    static std::string format; // format = "csr"
 
     CSRMatrix()
     {
@@ -162,3 +159,5 @@ std::ostream& operator << (std::ostream & os, const CSRMatrix<F, I> & m)
 
 } // end of namespace AlgebraObject
 } // end of namespace WHYSC
+
+#endif // end of CSRMatrix_h

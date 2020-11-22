@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 
     auto SM = CSRMatrix(M);
     std::cout << SM << std::endl;
+    std::cout << SM.format << std::endl;
     std::cout << SM*v0 << std::endl;
     return 0;
 }

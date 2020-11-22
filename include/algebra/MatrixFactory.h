@@ -17,15 +17,28 @@ namespace AlgebraObject {
 
 class MatrixFactory
 {
+public:
 
 template<class MatrixType>
 static void laplace_1d(MatrixType & m)
 {
-    auto type = MatrixType::format;
+    auto type = m.format;
     if(type == "full")
     {
     }
-    else if(type == 'csr')
+    else if(type == "csr")
+    {
+    }
+}
+
+template<class MatrixType>
+static void laplace_2d(MatrixType & m)
+{
+    auto type = m.format;
+    if(type == "full")
+    {
+    }
+    else if(type == "csr")
     {
     }
 }
