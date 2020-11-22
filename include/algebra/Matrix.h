@@ -1,9 +1,12 @@
 #ifndef Matrix_h
 #define Matrix_h
 
-#include <iostream>
 #include <cmath>
+#include <cassert>
+
+#include <iostream>
 #include <initializer_list>
+#include <string>
 
 namespace WHYSC {
 namespace AlgebraObject {
@@ -15,6 +18,8 @@ struct Matrix
     typedef I Int;
     F ** data;
     I shape[2];
+
+    static std::string format;
 
     /*
      * 默认构造函数
@@ -29,7 +34,13 @@ struct Matrix
     {
         shape[0] = nr;
         shape[1] = nc;
-        init(val);
+        data = new F*[shape[0]];
+        for(I i=0; i < shape[0]; i++)
+        {
+            data[i] = new F[shape[1]];
+            for(I j = 0; j < shape[1]; j++)
+                data[i][j] = val;
+        }
     }
 
 
@@ -53,14 +64,59 @@ struct Matrix
         }
     }
 
-    void init(F val=0.0)
+
+    /*
+     *
+     * Notes
+     * -----
+     *  填充矩阵的对角线元素, 为一固定的值 val.
+     *
+     *  目前假设矩阵是方阵
+     *
+     */
+    void fill_diag(const F val, const I diag=0)
     {
-        data = new F*[shape[0]];
-        for(I i=0; i < shape[0]; i++)
+        I i=0;
+        I j=0;
+
+        if(diag >= 0)
         {
-            data[i] = new F[shape[1]];
-            for(I j = 0; j < shape[1]; j++)
+            j = diag;
+            for(; j < shape[1]; i++, j++)
+            {
                 data[i][j] = val;
+            }
+        }
+        else
+        {
+            i = std::abs(diag);
+            for(; i < shape[0]; i++, j++)
+            {
+                data[i][j] = val;
+            }
+        }
+    }
+
+    void fill_diag(const F val[], const I diag=0)
+    {
+        I i=0;
+        I j=0;
+
+        if(diag >= 0)
+        {
+            j = diag;
+            for(; j < shape[1]; i++, j++)
+            {
+                data[i][j] = val;
+            }
+        }
+        else
+        {
+            i = std::abs(diag);
+            for(; i < shape[0]; i++, j++)
+            {
+                data[i][j] = val;
+            }
         }
     }
 
@@ -96,11 +152,13 @@ struct Matrix
         for(auto i=0; i < shape[0]; i++)
             for(auto j=0; j < shape[1]; j++)
                 sum += data[i][j]*data[i][j];
-
         return std::sqrt(sum);
     }
 
 };
+
+template<typename F, typename I>
+std::string Matrix<F, I>::format = "full";
 
 template<typename F, typename I>
 inline Matrix<F, I> operator * (const Matrix<F, I> & m0, 

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <initializer_list>
 #include <cassert>
+#include <string>
 
 #endif // end of CSRMatrix_h
 
@@ -18,11 +19,13 @@ struct CSRMatrix
     typedef F Float;
     typedef I Int;
 
-    F *data; // 非零元数组
-    I *indices; // 非零元对应列指标数组
-    I *indptr; // 非零元行起始位置数组
+    F * data; // 非零元数组
+    I * indices; // 非零元对应列指标数组
+    I * indptr; // 非零元行起始位置数组
     I shape[2]; // 矩阵的阶数
     I nnz; // 非零元的个数
+
+    static std::string format;
 
     CSRMatrix()
     {
@@ -117,6 +120,10 @@ struct CSRMatrix
             delete [] indptr;
     }
 };
+
+template<typename F, typename I>
+std::string CSRMatrix<F, I>::format = "csr";
+
 
 template<typename F, typename I, typename Vector>
 inline Vector operator * (const CSRMatrix<F, I> & m, 

@@ -48,23 +48,6 @@ struct Matrix
         return data[i*shape[0] + j];
     }
 
-    void print()
-    {
-        std::cout << "Matrix("<< shape[0] << ","
-            << shape[1] << "):" << std::endl;
-
-        for(int i = 0; i < shape[0]; i++)
-        {
-            for(int j = 0; j < shape[1]; j++)
-            {
-                std::cout << data[i*shape[0] + j] << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "\n";
-        
-    }
-
 };
 
 template<typename F, typename I>
