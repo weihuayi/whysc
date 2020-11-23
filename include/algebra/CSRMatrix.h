@@ -96,13 +96,6 @@ struct CSRMatrix
         }
         indptr[shape[0]] = nnz;
 
-        for(I i = 0; i < shape[0]+1; i++)
-        {
-            std::cout << indptr[i] << " ";
-        }
-        std::cout << std::endl;
-
-
         for(I n = 0; n < nnz; n++)
         {
             I i = row[n];
@@ -158,7 +151,7 @@ struct CSRMatrix
         }
     }
 
-    F operator() (const I i, const I j)
+    const F operator() (const I i, const I j) const
     {
         for(auto k = indptr[i]; k < indptr[i+1]; k++)
         {
@@ -196,6 +189,41 @@ struct CSRMatrix
         if(indptr != NULL)
             delete [] indptr;
     }
+
+    template<typename Vector>
+    void jacobi(Vector & b, Vector & x, I maxit=100, F tol=1e-8)
+    {
+        F d = 0.0;
+        F bnorm = b.norm();
+        Vector x1(x.size);
+        for(I m=0; m < maxit; m++)
+        {
+            for(I i=0; i < x.size; i++)
+            {
+                x1[i] = b[i];
+                for(I k=indptr[i]; k < indptr[i+1]; k++)
+                {
+                    if(indices[k] == i)
+                        d = data[k];
+                    else
+                        x1[i] -= data[k]*x[indices[k]];
+                }
+                x1[i] /= d;
+            }
+
+            for(I i=0; i< x.size; i++)
+            {
+                x[i] = x1[i];
+            }
+
+            Vector r = b - (*this)*x;
+            F rnorm = r.norm();
+            std::cout << m << ": " << rnorm << std::endl;
+            if( rnorm < tol*bnorm)
+                break;
+
+        }
+    }
 };
 
 template<typename F, typename I>
@@ -220,7 +248,8 @@ inline Vector operator * (const CSRMatrix<F, I> & m,
 }
 
 template<typename F, typename I>
-std::ostream& operator << (std::ostream & os, const CSRMatrix<F, I> & m)
+std::ostream& operator << (std::ostream & os, 
+        const CSRMatrix<F, I> & m)
 {
     std::cout << "CSRMatrix("<< m.shape[0] << ","
         << m.shape[1] << "):" << std::endl;

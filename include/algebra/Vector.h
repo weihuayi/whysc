@@ -62,8 +62,16 @@ struct Vector
         F sum = 0.0;
         for(I i=0; i < size; i++)
             sum += data[i]*data[i];
-
         return std::sqrt(sum);
+    }
+
+    F maxnorm()
+    {
+        F r = 0.0;
+        for(I i=0; i < size; i++)
+            if( r < std::abs(data[i]))
+                r = std::abs(data[i]);
+        return r;
     }
 
     F & operator[](const I i) 
@@ -77,6 +85,18 @@ struct Vector
     }
 
 };
+
+template<typename F, typename I>
+inline Vector<F, I> operator - (const Vector<F, I> & v0, 
+        const Vector<F, I> & v1)
+{
+    Vector<F, I> r(v0.size);
+    for(auto i=0; i < v0.size; i++)
+    {
+        r[i] = v0[i] - v1[i];
+    }
+    return r;
+}
 
 template<typename F, typename I>
 std::ostream& operator << (std::ostream & os, const Vector<F, I> & v)
