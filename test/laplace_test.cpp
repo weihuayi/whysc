@@ -23,8 +23,9 @@ int main(int argc, char **argv)
     double data[3] = {4, 6, 5};
     int row[3] = {0, 0, 2};
     int col[3] = {0, 2, 2};
-    CSRMatrix SM1(3, 3, 3, row, col, data);
+    CSRMatrix SM1;
 
+    Kernel::laplace_1d(10, SM1);
     std::cout << SM1 << std::endl;
 
     return 0;

@@ -5,6 +5,7 @@
 #include "CSRMatrix.h"
 #include "Vector.h"
 #include "linalg.h"
+#include "MatrixFactory.h"
 
 namespace WHYSC {
 
@@ -21,6 +22,11 @@ public:
     static void lu(Matrix & A, Matrix & L, Matrix & U)
     {
         return AlgebraAlgrithom::lu<Matrix>(A, L, U);
+    }
+
+    static void laplace_1d(const I n, CSRMatrix & m)
+    {
+        return AlgebraObject::laplace_1d(n, m);
     }
 
 };

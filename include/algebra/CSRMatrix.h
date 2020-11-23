@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <cassert>
 #include <string>
+#include <algorithm>
 
 namespace WHYSC {
 namespace AlgebraObject {
@@ -24,6 +25,13 @@ struct CSRMatrix
 
     static std::string format; // format = "csr"
 
+    /*
+     *
+     * Notes
+     * -----
+     *  生成一个空稀疏矩阵.
+     *
+     */
     CSRMatrix()
     {
         data = NULL;
@@ -34,26 +42,83 @@ struct CSRMatrix
         nnz = 0;
     }
 
-    template<typename Vector> 
-    CSRMatrix(Vector & d, Vector & idx, Vector & idxp, I nrow, I ncol)
+    /*
+     *
+     * Notes
+     * -----
+     *  生成一个有 n 个非零元的稀疏矩阵, 形状为 (nrow, ncol)
+     *  
+     */
+
+    CSRMatrix(
+            const I nrow, 
+            const I ncol, 
+            const I nnz_, 
+            const I row[], 
+            const I col[], 
+            const F data_[])
     {
+        from_coo(nrow, ncol, nnz_, row, col, data_);
+    }
+
+    void from_coo(
+            const I nrow,
+            const I ncol,
+            const I nnz_,
+            const I row[],
+            const I col[],
+            const F data_[])
+    {
+        clear();
+        nnz = nnz_;
         shape[0] = nrow;
         shape[1] = ncol;
-        nnz = d.size();
 
+        // 分配内存空间
         data = new F[nnz];
         indices = new I[nnz];
-        indptr = new I[nrow + 1];
+        indptr = new I[shape[0] + 1];
 
-        for(auto i=0; i < nnz; i++)
+        std::fill(indptr, indptr + shape[0], 0);
+
+        // 计算每一行非零元的个数 
+        for(I n = 0; n < nnz; n++)
         {
-            data[i] = d[i];
-            indices[i] = idx[i];
+            indptr[row[n]]++;
         }
 
-        for(auto i=0; i < nrow+1; i++)
+
+        for(I i=0, cumsum =0; i < shape[0]; i++)
         {
-            indptr[i] = idxp[i];
+            I temp = indptr[i];
+            indptr[i] = cumsum;
+            cumsum += temp;
+        }
+        indptr[shape[0]] = nnz;
+
+        for(I i = 0; i < shape[0]+1; i++)
+        {
+            std::cout << indptr[i] << " ";
+        }
+        std::cout << std::endl;
+
+
+        for(I n = 0; n < nnz; n++)
+        {
+            I i = row[n];
+            I k = indptr[i];
+
+            indices[k] = col[n];
+            data[k] = data_[n];
+
+            indptr[i]++;
+        }
+
+        for(I i = 0, last = 0; i <= shape[0]; i++)
+        {
+            I temp = indptr[i];
+            indptr[i] = last;
+            last = temp;
         }
     }
 
@@ -103,6 +168,21 @@ struct CSRMatrix
             }
         }
         return 0.0;
+    }
+
+    void clear()
+    {
+        shape[0] = 0;
+        shape[1] = 0;
+        nnz = 0;
+        if(data != NULL)
+            delete [] data;
+
+        if(indices != NULL)
+            delete [] indices;
+
+        if(indptr != NULL)
+            delete [] indptr;
     }
 
     ~CSRMatrix()

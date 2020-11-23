@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath>
 #include <initializer_list>
+#include <vector>
+#include <algorithm>
 
 /*
  *
@@ -15,35 +17,80 @@
 namespace WHYSC {
 namespace AlgebraObject {
 
-class MatrixFactory
+template<typename I, typename SparseMatrix>
+void laplace_1d(const I n, SparseMatrix & m)
 {
-public:
+    typedef typename SparseMatrix::Float  F;
+    std::vector<F> data(3*n-2, 0.0);
+    std::vector<I> row(3*n-2, 0);
+    std::vector<I> col(3*n-2, 0);
 
-template<class MatrixType>
-static void laplace_1d(MatrixType & m)
-{
-    auto type = m.format;
-    if(type == "full")
+    std::fill(data.begin(), data.begin() + n, 2.0);
+    std::fill(data.begin() + n, data.end(), -1.0);
+
+
+    for(I i = 0; i < n; i++)
     {
+        row[i] = i;
+        col[i] = i;
     }
-    else if(type == "csr")
+
+    for(I i = 0; i < n-1; i++)
     {
+        row[n+i] = i;
+        col[n+i] = i+1;
+
+        row[2*n-1+i] = i+1;
+        col[2*n-1+i] = i;
     }
+
+    for(I i =0; i < 3*n-2; i++)
+    {
+        std::cout <<  row[i] << ", " << col[i] << ", " << data[i] << std::endl;
+    }
+
+    m.from_coo(n, n, 3*n-2, row.data(), col.data(), data.data());
+    return;
 }
 
-template<class MatrixType>
-static void laplace_2d(MatrixType & m)
+template<typename I, typename SparseMatrix>
+void laplace_2d(const I N, SparseMatrix & m)
 {
-    auto type = m.format;
-    if(type == "full")
-    {
-    }
-    else if(type == "csr")
-    {
-    }
-}
+    typedef typename SparseMatrix::Float  F;
+    I n = std::sqrt(N);
+    I nnz = 4*(n-1)*n;
+    std::vector<F> data(nnz, 0.0);
+    std::vector<I> row(nnz, 0);
+    std::vector<I> col(nnz, 0);
 
-}; // end of class MatrixFactory
+    std::fill(data.begin(), data.begin() + N, 4.0);
+    std::fill(data.begin() + n, data.end(), -1.0);
+
+
+    for(I i = 0; i < n; i++)
+    {
+        row[i] = i;
+        col[i] = i;
+    }
+
+    for(I i = 0; i < n-1; i++)
+    {
+        row[n+i] = i;
+        col[n+i] = i+1;
+
+        row[2*n-1+i] = i+1;
+        col[2*n-1+i] = i;
+    }
+
+    for(I i =0; i < 3*n-2; i++)
+    {
+        std::cout <<  row[i] << ", " << col[i] << ", " << data[i] << std::endl;
+    }
+
+    m.from_coo(n, n, 3*n-2, row.data(), col.data(), data.data());
+    return;
+
+}
 
 } // end of namespace AlgebraObject
 
