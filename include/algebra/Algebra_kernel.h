@@ -29,6 +29,15 @@ public:
         return AlgebraObject::laplace_1d(n, m);
     }
 
+    static void laplace_2d(const I N, CSRMatrix & m)
+    {
+        return AlgebraObject::laplace_2d(N, m);
+    }
+
+    static void laplace_3d(const I M, CSRMatrix & m)
+    {
+        return AlgebraObject::laplace_3d(M, m);
+    }
 };
 
 } // end of namespace WHYSC
