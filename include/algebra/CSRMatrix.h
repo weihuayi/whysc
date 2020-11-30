@@ -224,6 +224,66 @@ struct CSRMatrix
 
         }
     }
+
+    template<typename Vector>
+    void gauss_seidel_forward(Vector & b, Vector & x, I maxit=100, F tol=1e-8)
+    {
+        F d = 0.0;
+        F bnorm = b.norm();
+        for(I m=0; m < maxit; m++)
+        {
+             for(I i=0; i < x.size; i++)
+             {
+                x[i] = b[i];
+                for(I k = indptr[i]; k < indptr[i+1]; k++)
+                {
+                    if (indices[k]==i)
+                        d = data[k];
+                    else
+                       x[i] -= data[k]*x[indices[k]];
+                }
+
+                x[i] /= d;
+            }
+
+
+            Vector r = b - (*this)*x;
+            F rnorm = r.norm();
+            std::cout << m << ": " << rnorm << std::endl;
+            if( rnorm < tol*bnorm)
+                break;
+        }
+    }
+
+    template<typename Vector>
+    void gauss_seidel_backward(Vector & b, Vector & x, I maxit=100, F tol=1e-8)
+    {
+        F d = 0.0;
+        F bnorm = b.norm();
+        for(I m=0; m < maxit; m++)
+        {
+             for(I i = x.size-1; i > -1; i--)
+             {
+                x[i] = b[i];
+                for(I k = indptr[i]; k < indptr[i+1]; k++)
+                {
+                    if (indices[k]==i)
+                        d = data[k];
+                    else
+                       x[i] -= data[k]*x[indices[k]];
+                }
+
+                x[i] /= d;
+            }
+
+
+            Vector r = b - (*this)*x;
+            F rnorm = r.norm();
+            std::cout << m << ": " << rnorm << std::endl;
+            if( rnorm < tol*bnorm)
+                break;
+        }
+    }
 };
 
 template<typename F, typename I>
