@@ -122,6 +122,62 @@ void lu_kij(Matrix & A, Matrix & L, Matrix & U)
 }
 
 
+template<typename Matrix>
+void qr_gs(Matrix & A, Matrix & Q, Matrix & R)
+{
+    typedef typename Matrix::Float  F;
+    typedef typename Matrix::Int  I;
+    I m = A.shape[0];
+    I n = A.shape[1];
+
+    for(I i = 0; i < m; i++)
+        R[0][0] += A[i][0]*A[i][0];
+    R[0][0] = std::sqrt(R[0][0]);
+
+    for(I i = 0; i < m; i++)
+        Q[i][0] = A[i][0]/R[0][0];
+
+    for(I j = 1; j < n; j++)
+    {
+        for(I k =0; k < j; k++)
+        {
+            for(I i = 0; i < m; i++)
+            {
+                Q[i][j] = A[i][j];
+                R[k][j] += Q[i][k]*A[i][j];
+            }
+
+            for(I i = 0; i < m; i++)
+                Q[i][j] -= R[k][j]*Q[i][k]; 
+
+        }
+
+        for(I i = 0; i < m; i++)
+            R[j][j] += Q[i][j]*Q[i][j];
+        R[j][j] = std::sqrt(R[j][j]); 
+
+        for(I i = 0; i < m; i++)
+            Q[i][j] /= R[j][j];
+    }
+}
+
+template<typename Matrix>
+void qr_gs(Matrix & A)
+{
+}
+
+template<typename Matrix>
+void qr_mgs(Matrix & A, Matrix & Q, Matrix & R)
+{
+
+}
+
+template<typename Matrix>
+void qr_mgs(Matrix & A)
+{
+
+}
+
 } // end of AlgebraAlgrithom
 } // end of WHYSC
 #endif // end of linalg_h

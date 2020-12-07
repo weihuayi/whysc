@@ -24,6 +24,11 @@ public:
         return AlgebraAlgrithom::lu<Matrix>(A, L, U);
     }
 
+    static void qr_gs(Matrix & A, Matrix & Q, Matrix & R)
+    {
+        return AlgebraAlgrithom::qr_gs<Matrix>(A, Q, R);
+    }
+
     static void laplace_1d(const I n, CSRMatrix & m)
     {
         return AlgebraObject::laplace_1d(n, m);
