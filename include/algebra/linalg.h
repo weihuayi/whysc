@@ -130,31 +130,28 @@ void qr_gs(Matrix & A, Matrix & Q, Matrix & R)
     I m = A.shape[0];
     I n = A.shape[1];
 
-    for(I i = 0; i < m; i++)
-        R[0][0] += A[i][0]*A[i][0];
-    R[0][0] = std::sqrt(R[0][0]);
+    R[0][0] = A.col_norm_l2(0);
 
     for(I i = 0; i < m; i++)
         Q[i][0] = A[i][0]/R[0][0];
 
     for(I j = 1; j < n; j++)
     {
+        for(I i = 0; i < m; i++)
+            Q[i][j] = A[i][j];
+
         for(I k =0; k < j; k++)
         {
             for(I i = 0; i < m; i++)
             {
-                Q[i][j] = A[i][j];
-                R[k][j] += Q[i][k]*A[i][j];
+                R[k][j] += Q[i][k]*Q[i][j];
             }
 
             for(I i = 0; i < m; i++)
                 Q[i][j] -= R[k][j]*Q[i][k]; 
-
         }
 
-        for(I i = 0; i < m; i++)
-            R[j][j] += Q[i][j]*Q[i][j];
-        R[j][j] = std::sqrt(R[j][j]); 
+        R[j][j] = Q.col_norm_l2(j);
 
         for(I i = 0; i < m; i++)
             Q[i][j] /= R[j][j];

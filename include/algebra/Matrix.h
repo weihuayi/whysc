@@ -120,6 +120,24 @@ struct Matrix
         }
     }
 
+    inline F row_norm_l2(const I i)
+    {
+        F r = 0.0;
+        for(I j = 0; j < shape[1]; j++)
+            r += data[i][j]*data[i][j];
+        r = std::sqrt(r);
+        return r;
+    }
+
+    inline F col_norm_l2(const I j)
+    {
+        F c = 0.0;
+        for(I i = 0; i < shape[0]; i++)
+            c += data[i][j]*data[i][j];
+        c = std::sqrt(c);
+        return c;
+    }
+
     ~Matrix()
     {
         if(data != NULL)
