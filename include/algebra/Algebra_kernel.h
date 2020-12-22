@@ -29,6 +29,24 @@ public:
         return AlgebraAlgrithom::qr_gs<Matrix>(A, Q, R);
     }
 
+    static void householder(Vector & x, Vector & v, F & beta)
+    {
+        return AlgebraAlgrithom::householder(x, v, beta);
+    }
+
+    static void givens(F x0, F x1, F & c, F & s)
+    {
+        return AlgebraAlgrithom::givens(x0, x1, c, s);
+    }
+
+    static void randn_matrix(Matrix & M, 
+            int low=0, 
+            int upper=10,
+            int seed=0)
+    {
+        return AlgebraObject::randn_matrix(M, low, upper, seed);
+    }
+
     static void laplace_1d(const I n, CSRMatrix & m)
     {
         return AlgebraObject::laplace_1d(n, m);

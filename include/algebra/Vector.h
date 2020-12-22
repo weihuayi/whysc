@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <initializer_list>
+#include <vector>
 
 namespace WHYSC {
 namespace AlgebraObject {

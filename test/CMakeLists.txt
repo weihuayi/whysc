@@ -13,6 +13,10 @@ add_executable(laplace_test laplace_test.cpp)
 
 add_executable(laplace2d_test laplace2d_test.cpp)
 
+add_executable(random_test random_test.cpp)
+
+add_executable(house_test house_test.cpp)
+
 add_executable(qr_test qr_test.cpp)
 
 add_executable(matplotlib_test matplotlib_test.cpp)

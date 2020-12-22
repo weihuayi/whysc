@@ -17,6 +17,31 @@
 namespace WHYSC {
 namespace AlgebraObject {
 
+template<typename Matrix>
+void randn_matrix(Matrix & M, int low=0, int upper=10, int seed=0)
+{
+    typedef typename Matrix::Float  F;
+    typedef typename Matrix::Int  I;
+    I m = M.shape[0];
+    I n = M.shape[1];
+
+    if( seed == 0)
+        srand((unsigned) time(NULL));
+    else
+        srand((unsigned) seed);
+
+    for(I i = 0; i < m; i++)
+    {
+        for(I j = 0; j < n; j++)
+        {
+            int r = rand();
+            M[i][j] = r%(upper - low) + low; 
+        }
+    }
+
+    return;
+}
+
 template<typename I, typename SparseMatrix>
 void laplace_1d(const I n, SparseMatrix & m)
 {
