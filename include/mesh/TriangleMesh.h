@@ -8,7 +8,7 @@ namespace WHYSC {
 namespace Mesh {
 
 template<typename GK>
-class TriangleMesh_2 
+class TriangleMesh 
 {
 public:
     typedef typename GK::Int I;
@@ -22,19 +22,20 @@ public:
     typedef typename std::array<I, 4> Edge2Cell;
     typedef typename std::array<I, 3> Cell2Edge;
 
-    Mesh()
+    TriangleMesh()
     {
         NN = 0;
         NC = 0;
         NE = 0;
     }
 
-    Mesh(std::vector<F> nodes, std::vector<I> cells)
+    TriangleMesh(std::vector<F> nodes, std::vector<I> cells)
     {
        NN = nodes.size()/2;
        NC = cells.size()/3;
        node.resize(NN);
        cell.resize(NC);
+       cell2edge.resize(NC);
 
        for(I i = 0; i < NN; i++)
        {
@@ -48,6 +49,11 @@ public:
            cell[i][1] = cells[3*i+1];
            cell[i][2] = cells[3*i+2];
        }
+       construct_map();
+    }
+
+    void uniform_refine(std::vector<F> & nodes, std::vector<I> & cells)
+    {
     }
 
     void construct_map()
@@ -57,84 +63,61 @@ public:
         I e1 = 0;
         I s = 0;
         NE = 0;
+        I localEdge[3][2] = {{1, 2}, {2, 0}, {0, 1}};
         for(I i=0; i < NC; i++)
         {
-            // 第 0 条边
             Cell & c = cell[i];
-            e0 = c[1];
-            e1 = c[2];
-            if(e0 < e1)
-            {
-                 s = e0 + e1*(e1+1)/2;
-            }
-            else
-            {
-                s = e1 + e0*(e0+1)/2;
-            }
-            auto it = idxmap.find(s);
-            if(it == idxmap.end())
-            {
-               cell2edge[i][0] = NE;
-               idxmap.insert(std::pair<I, I>(s, NE));
-               NE++;
-            }
-            else
-            {
-                cell2edge[i][0] = it->second;
-            }
 
-
-            // 第 1 条边
-            e0 = c[2];
-            e1 = c[0];
-            if(e0 < e1)
+            for(I j=0; j < 3; j++)
             {
-                s = e0 + e1*(e1+1)/2;
-            }
-            else
-            {
-                s = e1 + e0*(e0+1)/2;
-            }
-            auto it = idxmap.find(s);
-            if(it == idxmap.end())
-            {
-               cell2edge[i][1] = NE;
-               idxmap.insert(std::pair<I, I>(s, NE));
-               NE++;
-            }
-            else
-            {
-                cell2edge[i][1] = it->second;
-            }
-
-            // 第 2 条边
-            e0 = c[0];
-            e1 = c[1];
-            if(e0 < e1)
-            {
-                s = e0 + e1*(e1+1)/2;
-            }
-            else
-            {
-                s = e1 + e0*(e0+1)/2;
-            }
-            auto it = idxmap.find(s);
-            if(it == idxmap.end())
-            {
-               cell2edge[i][2] = NE;
-               idxmap.insert(std::pair<I, I>(s, NE));
-               NE++;
-            }
-            else
-            {
-               cell2edge[i][2] = it->second;
+                Edge e = {c[localEdge[j][0]], c[localEdge[j][1]]};
+                if(e[0] < e[1])
+                {
+                    s = e[0] + e[1]*(e[1]+1)/2;
+                }
+                else
+                {
+                    s = e[1] + e[0]*(e[0]+1)/2;
+                }
+                auto it = idxmap.find(s);
+                if(it == idxmap.end())
+                {
+                   cell2edge[i][j] = NE;
+                   idxmap.insert(std::pair<I, I>(s, NE));
+                   edge.push_back(e);
+                   Edge2Cell e2c = {i, i, j, j};
+                   edge2cell.push_back(e2c);
+                   NE++;
+                }
+                else
+                {
+                    cell2edge[i][j] = it->second;
+                    edge2cell[it->second][1] = i;
+                    edge2cell[it->second][3] = j;
+                }
             }
         }
 
-        edge.resize(NE);
-        edge2cell.resize(NE);
-        for(I i=0; i < NC; i++)
+    }
+
+    void print()
+    {
+        for(I i = 0; i < NN; i++)
         {
+            std::cout<< i << ":" <<  node[i] << std::endl;
+        }
+
+        for(I i = 0; i < NE; i++)
+        {
+            std::cout << i << ":" << edge[i][0] << " " << edge[i][1] << " ";
+            std::cout << edge2cell[i][0] << " " << edge2cell[i][1] << " "
+                << edge2cell[i][2] << " " << edge2cell[i][3] << std::endl;
+        }
+
+        for(I i = 0; i < NC; i++)
+        {
+            std::cout << i << ":" << cell[i][0] << " "<< cell[i][1] << " "
+                << cell[i][2] << std::endl;
         }
     }
 
