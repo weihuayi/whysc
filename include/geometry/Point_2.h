@@ -18,6 +18,7 @@ public:
     typedef typename std::array<F, 2> Base;
     typedef F Float;
     using Base::data;
+    static int dim;
 public:
 
     Point_2()
@@ -68,6 +69,9 @@ public:
 
 
 };
+
+template<typename F> 
+int Point_2<F>::dim = 2;
 
 template<typename F, typename V>
 inline Point_2<F> operator + (const Point_2<F> & p, const V & v)
