@@ -11,8 +11,8 @@ namespace Mesh {
 template<typename I>
 struct Triangle: public std::array<I, 3>
 {
-    typedef std::array<I, 2> Edge;
-    typedef Edge Face;
+    typedef std::array<I, 2> Face;
+    typedef Face Edge;
     typedef std::array<I, 4> Face2Cell;
     typedef std::array<I, 3> Cell2Face;
 

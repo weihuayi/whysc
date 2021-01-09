@@ -11,12 +11,13 @@ namespace WHYSC {
 
 namespace GeometryObject {
 
-template<typename F>
+template<typename F, typename I=int>
 class Point_2 : public std::array<F, 2>
 {
 public:
     typedef typename std::array<F, 2> Base;
     typedef F Float;
+    typedef I Int;
     using Base::data;
     static int dim;
 public:
