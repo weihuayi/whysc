@@ -103,11 +103,11 @@ public:
                    e[k] = c[Cell::face[j][k]];
                }
 
+               std::sort(e.begin(), e.end(), std::greater<int>());
                if(TD==2)
                    s = e[0] + e[1]*(e[1]+1)/2;
                if(TD==3)
                    s = e[0] + e[1]*(e[1]+1)/2 + e[2]*(e[2]+1)*(e[2]+2)/6;
-
 
                auto it = idxmap.find(s);
                if(it == idxmap.end())
