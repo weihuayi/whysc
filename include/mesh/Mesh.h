@@ -103,7 +103,7 @@ public:
                    e[k] = c[Cell::face[j][k]];
                }
 
-               std::sort(e.begin(), e.end(), std::greater<int>());
+               std::sort(e.begin(), e.end(), std::greater<I>());
                if(TD==2)
                    s = e[0] + e[1]*(e[1]+1)/2;
                if(TD==3)
