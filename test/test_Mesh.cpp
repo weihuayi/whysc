@@ -13,8 +13,8 @@
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_2 Node;
 typedef GK::Vector_2 Vector;
-//typedef WHYSC::Mesh::Triangle<int> Cell;
-typedef WHYSC::Mesh::Tetrahedron<int> Cell;
+typedef WHYSC::Mesh::Triangle<int> Cell;
+//typedef WHYSC::Mesh::Tetrahedron<int> Cell;
 typedef WHYSC::Mesh::Mesh<GK, Vector, Node, Cell> Mesh;
 
 int main(int argc, char **argv)
@@ -31,19 +31,8 @@ int main(int argc, char **argv)
     tri.insert(Node{0.0, 1.0});
     
     // 插入两个单元
-    Cell a;
-    a[0] = 1;
-    a[1] = 2;
-    a[2] = 0;
-    a[3] = 3;
-
-    Cell b;
-    b[0] = 0;
-    b[1] = 1;
-    b[2] = 4;
-    b[3] = 3;
-    tri.insert(a);
-    tri.insert(b);
+    tri.insert(Cell{{1, 2, 0}});
+    tri.insert(Cell{{1, 2, 0}});
 
     tri.construct_top();
 

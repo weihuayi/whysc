@@ -19,9 +19,6 @@ public:
     typedef typename Cell::Edge Edge;
     typedef typename Cell::Face Face;
 
-    typedef typename Cell::Face2Cell Face2Cell;
-    typedef typename Cell::Cell2Face Cell2Face;
-
     typedef typename std::vector<Node>::iterator NodeIterator;
     typedef typename std::vector<Edge>::iterator EdgeIterator;
     typedef typename std::vector<Face>::iterator FaceIterator;
@@ -62,12 +59,12 @@ public:
 
     int geo_dimension()
     {
-        return Node::dim;
+        return Node::dimension();
     }
 
     int top_dimension()
     {
-        return Cell::dim;
+        return Cell::dimension();
     }
 
     void insert(Node n)
@@ -85,46 +82,58 @@ public:
     void construct_top()
     {
         NF = 0;
-        face.resize(0);
+        auto TD = Cell::dimension();
         std::map<I, I> idxmap;
-        I TD = Cell::dim;
-        cell2face.resize(NC);
-        I s = 0;
-        //I localface[TD+1][TD] = Cell::face;
-
         for(I i=0; i<NC; i++)
         {
-            Cell & c = cell[i];
-            for(I j=0; j<TD+1; j++)
+            for(I j=0; j<Cell::ND[TD-1]; j++)
             {
-               Face e;
-               for(I k=0; k<TD; k++)
-               {
-                   e[k] = c[Cell::face[j][k]];
-               }
-
-               std::sort(e.begin(), e.end(), std::greater<I>());
-               if(TD==2)
-                   s = e[0] + e[1]*(e[1]+1)/2;
-               if(TD==3)
-                   s = e[0] + e[1]*(e[1]+1)/2 + e[2]*(e[2]+1)*(e[2]+2)/6;
-
+               Face f;
+               auto s = cell[i].get_local_face(j, f);
                auto it = idxmap.find(s);
                if(it == idxmap.end())
                {
-                  cell2face[i][j] = NF;
+                  cell[i].face[j] = NF;
                   idxmap.insert(std::pair<I, I>(s, NF));
-                  face.push_back(e);
-                  Face2Cell f2c = {i, i, j, j};
-                  face2cell.push_back(f2c);
+                  f.face2cell[0] = i;
+                  f.face2cell[1] = i;
+                  f.face2cell[2] = j;
+                  f.face2cell[3] = j;
+                  face.push_back(f);
                   NF++;
                }
                else
                {
-                  cell2face[i][j] = it->second;
-                  face2cell[it->second][1] = i;
-                  face2cell[it->second][3] = j;
+                  cell[i].face[j] = it->second;
+                  face[it->second].face2cell[1] = i;
+                  face[it->second].face2cell[3] = j;
                }
+            }
+        }
+
+        if(TD == 3)
+        {
+            NE = 0;
+            idxmap.clear();
+            for(I i=0; i < NC; i++)
+            {
+                for(I j=0; j < Cell::ND[TD-2]; j++)
+                {
+                    Edge e;
+                    auto s = cell[i].get_local_edge(j, e);
+                    auto it = idxmap.find(s);
+                    if(it == idxmap.end())
+                    {
+                        cell[i].edge[j] = NE;
+                        idxmap.insert(std::pair<I, I>(s, NE));
+                        edge.push_back(e);
+                        NE++;
+                    }
+                    else
+                    {
+                        cell[i].edge[j] = it->second;
+                    }
+                }
             }
         }
     }
@@ -140,18 +149,13 @@ public:
         {
             std::cout <<"cell"<<  i << ":" << cell[i][0] << " "<< cell[i][1] << " "
                 << cell[i][2] << std::endl;
-            std::cout << cell2face[i][0] << " " << cell2face[i][1] << " "
-                << cell2face[i][2] << " " << std::endl;
         }
 
         for(I i = 0; i < NF; i++)
         {
             std::cout <<"face"<<  i << ":" << face[i][0] << " "<< face[i][1] << " "
                 << face[i][2] << std::endl;
-            std::cout << face2cell[i][0] << " " << face2cell[i][1] << " "
-                << face2cell[i][2] << " " << face2cell[i][3] << std::endl;
         }
-
     }
 
 private:
@@ -163,8 +167,6 @@ private:
     std::vector<Edge> edge;
     std::vector<Face> face;
     std::vector<Cell> cell;
-    std::vector<Face2Cell> face2cell;
-    std::vector<Cell2Face> cell2face;
 };
 
 } // end of namespace Mesh
