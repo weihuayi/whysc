@@ -1,27 +1,81 @@
 #ifndef cells_h
 #define cells_h
 
-#include <array>
 #include <algorithm>
 #include <utility>
+#include <initializer_list>
 #include "Cell_type.h"
 
 namespace WHYSC {
 namespace Mesh {
 
 template<typename I>
-struct Tetrahedron: public std::array<I, 4>
+struct Tetrahedron
 {
-    typedef typename std::array<I, 4> Base;
-    using Base::data;
-
-    typedef std::array<I, 2> Edge;
-    struct Face: public std::array<I, 3> 
+    struct Face 
     {
-        I face2cell[4];
+        Face(const std::initializer_list<I> &l)
+        {
+            std::copy_n(l.begin(), 2, m_cell);
+            std::copy_n(l.begin()+2, 2, m_index);
+        }
+
+        I & cell(const int i)
+        {
+            return m_cell[i];
+        }
+
+        const I & cell(const int i) const
+        {
+            return m_cell[i];
+        }
+
+        I & index(const int i)
+        {
+            return m_index[i];
+        }
+
+        const I & index(const int i) const
+        {
+            return m_index[i];
+        }
+    private:
+        I m_cell[2];
+        I m_index[2];
     };
 
-    static int dim; // the dimension of cell
+    struct Edge
+    {
+        Edge(const std::initializer_list<I> &l)
+        {
+            std::copy_n(l.begin(), 2, m_node);
+        }
+
+        I & cell(const int i)
+        {
+            return m_cell;
+        }
+
+        const I & cell(const int i) const
+        {
+            return m_cell;
+        }
+
+        I & index(const int i)
+        {
+            return m_index[i];
+        }
+
+        const I & index(const int i) const
+        {
+            return m_index[i];
+        }
+
+    private:
+        I m_cell[1];
+        I m_index[1];
+    };
+
     static int NV[4];
     static int ND[4];
     static Cell_type type;
@@ -30,6 +84,30 @@ struct Tetrahedron: public std::array<I, 4>
     static int localface[4][3];
     static int localface2edge[4][3];
 
+    Tetrahedron(const std::initializer_list<I> &l)
+    { 
+        std::copy_n(l.begin(), 4, m_node);
+    }
+
+    I & node(const int i)
+    {
+        return m_node[i];
+    }
+
+    const I & node(const int i) const
+    {
+        return m_node[i];
+    }
+
+    I & edge(const int i)
+    {
+        return m_edge[i];
+    }
+
+    const I & edge(const int i) const
+    {
+        return m_edge[i];
+    }
 
     I & face(const int i)
     {
@@ -41,47 +119,25 @@ struct Tetrahedron: public std::array<I, 4>
         return m_face[i];
     }
 
-    I & edge(const int i)
-    {
-        return m_face[i];
-    }
-
-    const I & edge(const int i) const
-    {
-        return m_face[i];
-    }
 
     static int dimension() {return 3;}
 
-    Tetrahedron(const std::initializer_list<I> &l)
-    { 
-        std::copy_n(l.begin(), 2, data());
+    I local_face_index(int i)
+    {
+        I f[3] = {m_node[localface[i][0]], m_node[localface[i][1]], m_node[localface[i][1]]};
+        std::sort(f, f+3, std::greater<I>());
+        return f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2] + 1)*(f[2] + 2)/6;
     }
 
-    I get_local_face(int i, Face & f)
+    I local_edge(int i)
     {
-        f[0] = *this[localface[i][0]];
-        f[1] = *this[localface[i][1]];
-        f[2] = *this[localface[i][2]];
-
-        Face f0 = f;
-        std::sort(f0.begin(), f0.end(), std::greater<I>());
-        return f0[0] + f0[1]*(f0[1]+1)/2 + f0[2]*(f0[2] + 1)*(f0[2] + 2)/6;
-    }
-
-    I get_local_edge(int i, Edge & e)
-    {
-        e[0] = *this[localedge[i][0]];
-        e[1] = *this[localedge[i][1]];
-        I s;
-        if (e[0] < e[1])
-            s = e[0] + e[1]*(e[1]+1)/2;
-        else
-            s = e[1] + e[0]*(e[0]+1)/2;
-        return s;
+        I e[2] = {m_node[localface[i][0]], m_node[localface[i][1]]};
+        std::sort(e, e+2, std::greater<I>());
+        return  e[0] + e[1]*(e[1]+1)/2;
     }
 
 private:
+    I m_node[4];
     I m_edge[6];
     I m_face[4];
 };
@@ -93,7 +149,7 @@ template<typename I>
 int Tetrahedron<I>::ND[4] = {4, 6, 4, 1};
 
 template<typename I>
-Cell_type Tetrahedron<I>::type = TETRA;
+Cell_type Tetrahedron<I>::type = 10; // VTK_TETRA
 
 template<typename I>
 int Tetrahedron<I>::localedge[6][2] = {

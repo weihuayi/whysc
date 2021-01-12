@@ -1,7 +1,7 @@
 #ifndef Triangle_h
 #define Triangle_h
 
-#include <array>
+#include <initializer_list>
 #include "Cell_type.h"
 
 namespace WHYSC {
@@ -9,14 +9,39 @@ namespace WHYSC {
 namespace Mesh {
 
 template<typename I>
-struct Triangle: public std::array<I, 3>
+struct Triangle
 {
-    typedef typename std::array<I, 3> Base;
-    using Base::data;
-
-    struct Face: public std::array<I, 2> 
+    struct Face 
     {
-        I face2cell[4];
+        Face(const std::initializer_list<I> &l)
+        { 
+            std::copy_n(l.begin(), 2, m_cell);
+            std::copy_n(l.begin()+2, 2, m_index);
+        }
+
+        I & cell(const int i)
+        {
+            return m_cell[i];
+        }
+
+        const I & cell(const int i) const
+        {
+            return m_cell[i];
+        }
+
+        I & index(const int i)
+        {
+            return m_index[i];
+        }
+
+        const I & index(const int i) const
+        {
+            return m_index[i];
+        }
+        
+    private:
+        I m_cell[2];
+        I m_index[2];
     };
 
     typedef Face Edge;
@@ -27,8 +52,22 @@ struct Triangle: public std::array<I, 3>
     static Cell_type type;
     static int localedge[3][2];
     static int localface[3][2];
+    static int localface2edge[3][1];
 
-    I m_face[3];
+    Triangle(const std::initializer_list<I> &l)
+    { 
+        std::copy_n(l.begin(), 3, m_node);
+    }
+
+    I & node(const int i)
+    {
+        return m_node[i];
+    }
+
+    const I & node(const int i) const
+    {
+        return m_node[i];
+    }
 
     I & face(const int i)
     {
@@ -50,36 +89,25 @@ struct Triangle: public std::array<I, 3>
         return m_face[i];
     }
 
-    Triangle(const std::initializer_list<I> &l)
-    { 
-        std::copy_n(l.begin(), 2, data());
-    }
-
     static int dimension() {return 2;}
 
-    I get_local_face(int i, Face & f)
+    I local_face_index(int i)
     {
-        f[0] = *this[localface[i][0]];
-        f[1] = *this[localface[i][1]];
-        I s;
-        if(f[0] < f[1])
-            s = f[0] + f[1]*(f[1]+1)/2;
-        flsf:
-            s = f[1] + f[0]*(f[0]+1)/2;
-        return s;
+        I f[2] = {m_node[localface[i][0]], m_node[localface[i][1]]};
+        std::sort(f, f+2, std::greater<I>());
+        return  f[0] + f[1]*(f[1]+1)/2;
     }
 
-    I get_local_edge(int i, Edge & e)
+    I local_edge_index(int i)
     {
-        e[0] = *this[localedge[i][0]];
-        e[1] = *this[localedge[i][1]];
-        I s;
-        if(e[0] < e[1])
-            s = e[0] + e[1]*(e[1]+1)/2;
-        flsf:
-            s = e[1] + e[0]*(e[0]+1)/2;
-        return s;
+        I e[2] = {m_node[localface[i][0]], m_node[localface[i][1]]};
+        std::sort(e, e+2, std::greater<I>());
+        return  e[0] + e[1]*(e[1]+1)/2;
     }
+
+private:
+    I m_node[3];
+    I m_face[3];
 };
 
 
@@ -104,13 +132,18 @@ int Triangle<I>::localface[3][2] = {
 };
 
 template<typename I>
+int Triangle<I>::localface2edge[3][1] = {
+    {0}, {1}, {2}
+};
+
+template<typename I>
 std::ostream& operator << (std::ostream & os, const Triangle<I> & cell)
 {
 
-    auto dim = Triangle<I>::dim;
-    for(auto i = 0; i < Triangle<I>::NV[dim]; i++)
+    auto TD = Triangle<I>::dimension();
+    for(auto i = 0; i < Triangle<I>::NV[TD]; i++)
     {
-        os << cell[i] << " ";
+        os << cell.node(i) << " ";
     }
     return os;
 }

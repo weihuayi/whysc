@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     
     // 插入两个单元
     tri.insert(Cell{{1, 2, 0}});
-    tri.insert(Cell{{1, 2, 0}});
+    tri.insert(Cell{{3, 0, 2}});
 
     tri.construct_top();
 
