@@ -55,6 +55,27 @@ struct Vector
         return *this;
     }
 
+
+
+    // v -= rhs
+    Vector<F, I> & operator -= (const Vector<F, I> & rhs)
+    {
+        for(I i = 0; i < size; i++)
+        {
+            data[i] -= rhs[i];
+        }
+        return *this;
+    }
+
+    Vector<F, I> & operator += (const Vector<F, I> & rhs)
+    {
+        for(I i = 0; i < size; i++)
+        {
+            data[i] += rhs[i];
+        }
+        return *this;
+    }
+
     void init(F val=0.0)
     {
         data = new F[size];
