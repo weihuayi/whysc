@@ -45,6 +45,15 @@ struct Vector
         }
     }
 
+    Vector<F, I>& operator = (const Vector<F, I> & rhs)
+    {
+        if(this != &rhs)
+        {
+            std::copy_n(rhs.data, size, data);
+        }
+        return *this;
+    }
+
     void init(F val=0.0)
     {
         data = new F[size];
