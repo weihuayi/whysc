@@ -8,13 +8,17 @@
 #include "geometry/Geometry_kernel.h"
 #include "mesh/Triangle.h"
 #include "mesh/Tetrahedron.h"
+#include "mesh/Quadrilateral.h"
+#include "mesh/Hexahedron.h"
 #include "mesh/Mesh.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_2 Node;
 typedef GK::Vector_2 Vector;
-typedef WHYSC::Mesh::Triangle<int> Cell;
+//typedef WHYSC::Mesh::Triangle<int> Cell;
+//typedef WHYSC::Mesh::Quadrilateral<int> Cell;
 //typedef WHYSC::Mesh::Tetrahedron<int> Cell;
+typedef WHYSC::Mesh::Hexahedron<int> Cell;
 typedef WHYSC::Mesh::Mesh<GK, Vector, Node, Cell> Mesh;
 
 int main(int argc, char **argv)
@@ -29,10 +33,19 @@ int main(int argc, char **argv)
     tri.insert(Node{1.0, 0.0});
     tri.insert(Node{1.0, 1.0});
     tri.insert(Node{0.0, 1.0});
+    tri.insert(Node{2.0, 0.0});
+    tri.insert(Node{2.0, 1.0});
+
+    tri.insert(Node{0.0, 0.0});
+    tri.insert(Node{1.0, 0.0});
+    tri.insert(Node{1.0, 1.0});
+    tri.insert(Node{0.0, 1.0});
+    tri.insert(Node{2.0, 0.0});
+    tri.insert(Node{2.0, 1.0});
     
     // 插入两个单元
-    tri.insert(Cell{{1, 2, 0}});
-    tri.insert(Cell{{3, 0, 2}});
+    tri.insert(Cell{0, 6, 3, 9, 1, 7, 2, 8});
+    tri.insert(Cell{1, 7, 2, 8, 4, 10, 5, 11});
 
     tri.construct_top();
 

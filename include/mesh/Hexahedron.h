@@ -1,5 +1,5 @@
-#ifndef cells_h
-#define cells_h
+#ifndef Hexahedron_h
+#define Hexahedron_h
 
 #include <algorithm>
 #include <utility>
@@ -10,7 +10,7 @@ namespace WHYSC {
 namespace Mesh {
 
 template<typename I>
-struct Tetrahedron
+struct Hexahedron
 {
     struct Face 
     {
@@ -52,14 +52,19 @@ struct Tetrahedron
             std::copy_n(l.begin()+1, 1, m_index);
         }
 
+        I & localnode(int i)
+        {
+            return Hexahedron::localedge[m_index[0]][i];
+        }
+
         I & cell(const int i)
         {
-            return m_cell;
+            return m_cell[i];
         }
 
         const I & cell(const int i) const
         {
-            return m_cell;
+            return m_cell[i];
         }
 
         I & index(const int i)
@@ -81,13 +86,13 @@ struct Tetrahedron
     static int ND[4];
     static Cell_type type;
 
-    static int localedge[6][2];
-    static int localface[4][3];
-    static int localface2edge[4][3];
+    static int localedge[12][2];
+    static int localface[6][4];
+    static int localface2edge[6][4];
 
-    Tetrahedron(const std::initializer_list<I> &l)
+    Hexahedron(const std::initializer_list<I> &l)
     { 
-        std::copy_n(l.begin(), 4, m_node);
+        std::copy_n(l.begin(), 8, m_node);
     }
 
     I & node(const int i)
@@ -125,9 +130,10 @@ struct Tetrahedron
 
     I local_face_index(int i)
     {
-        I f[3] = {m_node[localface[i][0]], m_node[localface[i][1]], m_node[localface[i][2]]};
-        std::sort(f, f+3);
-        return f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2] + 1)*(f[2] + 2)/6;
+        I f[4] = {m_node[localface[i][0]], m_node[localface[i][1]], m_node[localface[i][2]],
+            m_node[localface[i][3]]};
+        std::sort(f, f+4);
+        return f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2] + 1)*(f[2] + 2)/6 + f[3]*(f[3]+1)*(f[3]+2)*(f[3]+3)/24;
     }
 
     I local_edge_index(int i)
@@ -138,35 +144,40 @@ struct Tetrahedron
     }
 
 private:
-    I m_node[4];
-    I m_edge[6];
-    I m_face[4];
+    I m_node[8];
+    I m_edge[12];
+    I m_face[6];
 };
 
 template<typename I>
-int Tetrahedron<I>::NV[4] = {1, 2, 3, 4};
+int Hexahedron<I>::NV[4] = {1, 2, 4, 8};
 
 template<typename I>
-int Tetrahedron<I>::ND[4] = {4, 6, 4, 1};
+int Hexahedron<I>::ND[4] = {8, 12, 6, 1};
 
 template<typename I>
-Cell_type Tetrahedron<I>::type = 10; // VTK_TETRA
+Cell_type Hexahedron<I>::type = 12; // VTK_TETRA
 
 template<typename I>
-int Tetrahedron<I>::localedge[6][2] = {
-    {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}
+int Hexahedron<I>::localedge[12][2] = {
+    {0, 1}, {0, 2}, {0, 4}, {1, 3}, 
+    {1, 5}, {2, 3}, {2, 6}, {3, 7},
+    {4, 5}, {4, 6}, {5, 7}, {6, 7}
 };
 
 template<typename I>
-int Tetrahedron<I>::localface[4][3] = {
-    {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1}
+int Hexahedron<I>::localface[6][4] = {
+    {0, 2, 6, 4}, {1, 5, 7, 3},
+    {0, 1, 3, 2}, {4, 6, 7, 5},  
+    {0, 4, 5, 1}, {6, 2, 3, 7}
 };
 
 template<typename I>
-int Tetrahedron<I>::localface2edge[4][3] = {
-    {5, 4, 3}, {5, 1, 2}, {4, 2, 0}, {3, 0, 1}
+int Hexahedron<I>::localface2edge[6][4] = {
+    {1,  6, 9, 2}, {4, 10, 7, 3},
+    {0,  3, 5, 1}, {9, 11, 10, 8},
+    {2,  8, 4, 0}, {6, 5, 7,  11}
 };
-
 } // end of namespace Mesh
 
 } // end of namespace WHYSC

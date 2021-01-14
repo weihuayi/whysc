@@ -1,6 +1,7 @@
 #ifndef Vector_h
 #define Vector_h
 
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <initializer_list>

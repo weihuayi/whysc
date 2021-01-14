@@ -1,5 +1,5 @@
-#ifndef Triangle_h
-#define Triangle_h
+#ifndef Quadrilateral_h
+#define Quadrilateral_h
 
 #include <initializer_list>
 #include "Cell_type.h"
@@ -9,7 +9,7 @@ namespace WHYSC {
 namespace Mesh {
 
 template<typename I>
-struct Triangle
+struct Quadrilateral
 {
     struct Face 
     {
@@ -50,13 +50,13 @@ struct Triangle
     static int NV[3]; 
     static int ND[3];
     static Cell_type type;
-    static int localedge[3][2];
-    static int localface[3][2];
-    static int localface2edge[3][1];
+    static int localedge[4][2];
+    static int localface[4][2];
+    static int localface2edge[4][1];
 
-    Triangle(const std::initializer_list<I> &l)
+    Quadrilateral(const std::initializer_list<I> &l)
     { 
-        std::copy_n(l.begin(), 3, m_node);
+        std::copy_n(l.begin(), 4, m_node);
     }
 
     I & node(const int i)
@@ -106,42 +106,42 @@ struct Triangle
     }
 
 private:
-    I m_node[3];
-    I m_face[3];
+    I m_node[4];
+    I m_face[4];
 };
 
 
 template<typename I>
-int Triangle<I>::NV[3] = {1, 2, 3};
+int Quadrilateral<I>::NV[3] = {1, 2, 4};
 
 template<typename I>
-int Triangle<I>::ND[3] = {3, 3, 1};
+int Quadrilateral<I>::ND[3] = {4, 4, 1};
 
 template<typename I>
-Cell_type Triangle<I>::type = 5; // VTK_TRIANGLE
+Cell_type Quadrilateral<I>::type = 9; // VTK_TRIANGLE
 
 
 template<typename I>
-int Triangle<I>::localedge[3][2] = {
-    {1, 2}, {2, 0}, {1, 0}
+int Quadrilateral<I>::localedge[4][2] = {
+    {1, 2}, {2, 3}, {3, 0}, {0, 1}
 };
 
 template<typename I>
-int Triangle<I>::localface[3][2] = {
-    {1, 2}, {2, 0}, {1, 0}
+int Quadrilateral<I>::localface[4][2] = {
+    {1, 2}, {2, 3}, {3, 0}, {0, 1}
 };
 
 template<typename I>
-int Triangle<I>::localface2edge[3][1] = {
-    {0}, {1}, {2}
+int Quadrilateral<I>::localface2edge[4][1] = {
+    {0}, {1}, {2}, {3}
 };
 
 template<typename I>
-std::ostream& operator << (std::ostream & os, const Triangle<I> & cell)
+std::ostream& operator << (std::ostream & os, const Quadrilateral<I> & cell)
 {
 
-    auto TD = Triangle<I>::dimension();
-    for(auto i = 0; i < Triangle<I>::NV[TD]; i++)
+    auto TD = Quadrilateral<I>::dimension();
+    for(auto i = 0; i < Quadrilateral<I>::NV[TD]; i++)
     {
         os << cell.node(i) << " ";
     }
@@ -151,4 +151,4 @@ std::ostream& operator << (std::ostream & os, const Triangle<I> & cell)
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
-#endif // end of Triangle_h
+#endif // end of Quadrilateral_h
