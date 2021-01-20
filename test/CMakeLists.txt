@@ -19,11 +19,11 @@ add_executable(house_test house_test.cpp)
 
 add_executable(qr_test qr_test.cpp)
 
-add_executable(test_TriangleMesh test_TriangleMesh.cpp)
 
 add_executable(TriangleMesh_test TriangleMesh_test.cpp)
 
-add_executable(test_Mesh test_Mesh.cpp)
+# add_executable(test_TriangleMesh test_TriangleMesh.cpp)
+# add_executable(test_Mesh test_Mesh.cpp)
 
 add_executable(matplotlib_test matplotlib_test.cpp)
 target_include_directories(matplotlib_test PRIVATE ${PYTHON_INCLUDE_DIRS})
