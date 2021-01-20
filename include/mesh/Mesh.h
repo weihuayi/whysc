@@ -137,39 +137,6 @@ public:
         }
     }
 
-    int * face(int & i)
-    {
-        int & N = Cell::NV[2];
-        int *a = new int[N]; 
-
-        Face & f = m_faces[i];
-        Cell & c = m_cells[f.cell(0)];
-        int & idx = f.index(0);
-
-        for(int j=0; j<N; j++)
-        {
-            a[j] = c.node(Cell::localface[idx][j]);
-        }
-        return a;
-    }
-
-    int * edge(int & i)
-    {
-        int & N = Cell::NV[1];
-        int *a = new int[N]; 
-
-        Edge & e = m_edges[i];
-        Cell & c = m_cells[e.cell(0)];
-        int & idx = e.index(0);
-
-        for(int j=0; j<N; j++)
-        {
-            a[j] = c.node(Cell::localedge[idx][j]);
-        }
-        return a;
-    }
-
-
     void print()
     {
         for(I i = 0; i < m_NN; i++)

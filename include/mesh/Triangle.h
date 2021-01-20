@@ -8,15 +8,29 @@ namespace WHYSC {
 
 namespace Mesh {
 
-template<typename I>
-struct Triangle
+template<typename Point>
+class Node: public Point
+{
+
+pivate:
+    int m_id;
+};
+
+
+template<typename Node>
+class Triangle
 {
     struct Face 
     {
-        Face(const std::initializer_list<I> &l)
+        Face(const std::initializer_list<int> &l)
         { 
             std::copy_n(l.begin(), 2, m_cell);
             std::copy_n(l.begin()+2, 2, m_index);
+        }
+
+        I & node(const int i, Triangle<I> * cells)
+        {
+            return cells[m_cell[0]].node(localface[m_index[0]][i]);
         }
 
         I & cell(const int i)
