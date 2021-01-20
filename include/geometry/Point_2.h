@@ -12,41 +12,41 @@ namespace WHYSC {
 namespace GeometryObject {
 
 template<typename F>
-class Point_2 : public std::array<F, 2>
+class Point_2 
 {
 public:
-    typedef typename std::array<F, 2> Base;
     typedef F Float;
-    using Base::data;
 public:
 
     Point_2()
     {
-        std::fill_n(data(), 2, 0.0);
+       m_data[0] = 0.0;
+       m_data[1] = 0.0;
     }
 
     Point_2(const std::initializer_list<F> &l)
     { 
-        std::copy_n(l.begin(), 2, data());
+        m_data[0] = l[0];
+        m_data[1] = l[1];
     }
 
     Point_2(F x, F y)
     {
-        data()[0] = x;
-        data()[1] = y;
+        m_data[0] = x;
+        m_data[1] = y;
     }
 
     template<typename P2> 
     Point_2(const P2 & p)
     {
-        data()[0] = p[0];
-        data()[1] = p[1];
+        m_data[0] = p[0];
+        m_data[1] = p[1];
     }
 
     Point_2(F * p)
     {
-        data()[0] = p[0];
-        data()[1] = p[1]; 
+        m_data[0] = p[0];
+        m_data[1] = p[1]; 
     }
 
     static int dimension() {return 2;}
@@ -54,8 +54,8 @@ public:
     template<class V>
     Point_2<F> & operator += (const V & rhs)
     {
-        for(int d = 0; d < 2; d++)
-            data()[d] += rhs[d];
+        m_data[0] += rhs[0];
+        m_data[1] += rhs[1]; 
         return *this;
     }
     template<class V>
@@ -66,7 +66,8 @@ public:
         return *this;
     }
 
-
+private:
+    F m_data[2];
 };
 
 template<typename F, typename V>
