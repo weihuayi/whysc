@@ -26,8 +26,8 @@ public:
 
     Point_2(const std::initializer_list<F> &l)
     { 
-        m_data[0] = l[0];
-        m_data[1] = l[1];
+        m_data[0] = l.begin()[0];
+        m_data[1] = l.begin()[1];
     }
 
     Point_2(F x, F y)
@@ -49,8 +49,37 @@ public:
         m_data[1] = p[1]; 
     }
 
+    Point_2& operator=(const Point_2& p)
+    {
+        m_data[0] = p[0];
+        m_data[1] = p[1];
+        return *this;
+    }
+
+    static int size() {return 2;}
+
     static int dimension() {return 2;}
+
+    F & x()
+    {
+        return m_data[0];
+    }
+
+    F & y()
+    {
+        return m_data[1];
+    }
     
+    F & operator [] (const int i)
+    {
+        return m_data[i];
+    }
+
+    const F & operator [] (const int i) const
+    {
+        return m_data[i];
+    }
+
     template<class V>
     Point_2<F> & operator += (const V & rhs)
     {
@@ -62,7 +91,7 @@ public:
     Point_2<F> & operator -= (const V & rhs)
     {
         for(int d = 0; d < 2; d++)
-            data()[d] -= rhs[d];
+            m_data[d] -= rhs[d];
         return *this;
     }
 

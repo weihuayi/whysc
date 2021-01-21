@@ -13,13 +13,16 @@ class PPoint
 public:
     typedef F Float;
 private:
-    F * m_data;
+    F * m_data; // 注意这里 PPoint 类不负责数据的管理
 public:
 
     PPoint(F * p)
     {
         m_data = p;
     }
+
+    PPoint(const PPoint & p) = delete;
+    PPoint& operator=(const PPoint& p) = delete;
 
     static int dimension() {return DIM;}
 

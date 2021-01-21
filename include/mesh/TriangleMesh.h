@@ -29,19 +29,36 @@ public:
     typedef typename std::array<I, 4> Edge2cell;
     typedef typename std::array<I, 3> Cell2edge;
 
+    typedef typename std::vector<Node>::iterator Node_iterator;
+    typedef typename std::vector<Cell>::iterator Cell_iterator;
+    typedef typename std::vector<Edge>::iterator Edge_iterator;
+    typedef typename std::vector<Face>::iterator Face_iterator;
+
 public:
     TriangleMesh()
     {
+        m_holes = 1;
+        m_genus = 0;
     }
 
-    void insert(Node & node)
+    void insert(const Node & node)
     {
         m_node.push_back(node);
     }
 
-    void insert(Cell & cell)
+    void insert(const Cell & cell)
     {
         m_cell.push_back(cell);
+    }
+
+    int & number_of_holes()
+    {
+        return m_holes;
+    }
+
+    int & number_of_genus()
+    {
+        return m_genus;
     }
 
     I number_of_nodes()
@@ -76,14 +93,19 @@ public:
 
     void construct_top()
     {
-        I NE = 0;
-        std::map<I, I> idxmap;
+        auto NN = number_of_nodes();
+        auto NC = number_of_cells();
         m_cell2edge.resize(m_cell.size());
+        m_edge2cell.clear();
+        // 在知道网格代表曲面的洞和亏格的个数后, 可以准确计算边的个数
+        m_edge2cell.reserve(NN + NC + m_holes + 2*m_genus - 2);
+        std::map<I, I> idxmap;
 
+        I NE = 0;
         // 偏历所有单元
         for(I i = 0; i < m_cell.size(); i++)
         {
-            for(I j=0; j < 3; j++)
+            for(I j = 0; j < 3; j++)
             {
                auto s = local_edge_index(i, j);
                auto it = idxmap.find(s);
@@ -102,8 +124,220 @@ public:
                }
             }
         }
+
+        m_edge.resize(NE);
+        for(I i = 0; i < NE; i++)
+        {
+            auto & c = m_cell[m_edge2cell[i][0]];
+            auto j = m_edge2cell[i][2];
+            m_edge[i][0] = c[m_localedge[j][0]];
+            m_edge[i][1] = c[m_localedge[j][1]];
+        }
     }
 
+
+    Node_iterator node_begin()
+    {
+        return m_node.begin();
+    }
+
+    Node_iterator node_end()
+    {
+        return m_node.end();
+    }
+
+    Edge_iterator edge_begin()
+    {
+        return m_edge.begin();
+    }
+
+    Edge_iterator edge_end()
+    {
+        return m_edge.end();
+    }
+
+    Face_iterator face_begin()
+    {
+        return m_edge.begin();
+    }
+
+    Face_iterator face_end()
+    {
+        return m_edge.end();
+    }
+
+    Cell_iterator cell_begin()
+    {
+        return m_cell.begin();
+    }
+
+    Cell_iterator cell_end()
+    {
+        return m_cell.end();
+    }
+
+    Node & node(const I i)
+    {
+        return m_node[i];
+    }
+
+    Cell & cell(const I i)
+    {
+        return m_cell[i];
+    }
+
+    Edge & edge(const I i)
+    {
+        return m_edge[i];
+    }
+
+    Edge2cell & edge_to_cell(const I i)
+    {
+        return m_edge2cell[i];
+    }
+
+    Cell2edge & cell_to_edge(const I i)
+    {
+        return m_cell2edge[i];
+    }
+
+    F cell_measure(const I i)
+    {
+        auto & c = m_cell[i];
+        auto v1 = m_node[c[1]] - m_node[c[0]];
+        auto v2 = m_node[c[2]] - m_node[c[1]];
+        return 0.5*cross(v1, v2);
+    }
+
+    void cell_measure(std::vector<F> & measure)
+    {
+        auto NC = number_of_cells();
+        measure.resize(NC);
+        for(I i = 0; i < NC; i++)
+            measure[i] = cell_measure(i);
+    }
+
+    Node edge_barycenter(const I i)
+    {
+        auto & e = m_edge[i];
+        F x = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
+        F y = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+        return Node(x, y);
+    }
+
+    void edge_barycenter(const I i, Node & node)
+    {
+        auto & e = m_edge[i];
+        node[0] = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
+        node[1] = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+    }
+
+
+    F edge_measure(const I i)
+    {
+        auto & e = m_edge[i];
+        auto v = m_node[e[1]] - m_node[e[0]];
+        return std::sqrt(v.squared_length());
+    }
+
+    void edge_measure(std::vector<F> & measure)
+    {
+        auto NE = number_of_edges();
+        measure.resize(NE);
+        for(I i = 0; i < NE; i++)
+            measure[i] = edge_measure(i);
+    }
+
+    F face_measure(const I i)
+    {
+        auto & e = m_edge[i];
+        auto v = m_node[e[1]] - m_node[e[0]];
+        return std::sqrt(v.squared_length());
+    }
+
+    void face_measure(std::vector<F> & measure)
+    {
+        auto NE = number_of_edges();
+        measure.resize(NE);
+        for(I i = 0; i < NE; i++)
+            measure[i] = edge_measure(i);
+    }
+
+    void uniform_refine(const int n=1)
+    {
+        for(I i=0; i < n; i++)
+        {
+            auto NN = number_of_cells();
+            auto NE = number_of_edges();
+            m_node.resize(NN + NE);
+            for(I j = 0; j < NE; j++)
+            {
+               edge_barycenter(j, m_node[NN+j]); 
+            }
+            auto NC = number_of_cells();
+            m_cell.resize(4*NC);
+            for(I j = 0; j < NC; j++)
+            {
+                auto c = m_cell[j];
+                m_cell[j][0] = c[0];
+                m_cell[j][1] = m_cell2edge[j][2] + NN;
+                m_cell[j][2] = m_cell2edge[j][1] + NN;
+
+                m_cell[NC + j][0] = c[1];
+                m_cell[NC + j][1] = m_cell2edge[j][0] + NN;
+                m_cell[NC + j][2] = m_cell2edge[j][2] + NN;
+
+                m_cell[2*NC + j][0] = c[2];
+                m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
+                m_cell[2*NC + j][2] = m_cell2edge[j][0] + NN;
+
+                m_cell[3*NC + j][0] = m_cell2edge[j][0] + NN; 
+                m_cell[3*NC + j][1] = m_cell2edge[j][1] + NN;
+                m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
+            }
+            m_edge.clear();
+            m_cell2edge.clear();
+            m_edge2cell.clear();
+            construct_top();
+        }
+    }
+
+    void print()
+    {
+        std::cout << "Nodes:" << std::endl;
+        print_entities(m_node);
+
+        std::cout << "Edges:" << std::endl;
+        print_entities(m_edge);
+
+        std::cout << "Cells:" << std::endl;
+        print_entities(m_cell);
+
+        std::cout << "Edge2cell:" << std::endl;
+        print_entities(m_edge2cell);
+
+        std::cout << "Cell2edge:" << std::endl;
+        print_entities(m_cell2edge);
+    }
+
+    template<typename Entities>
+    void print_entities(Entities & entities)
+    {
+        auto N = entities.size();
+        for(I i = 0; i < N; i++)
+        {
+            auto & e = entities[i];
+            auto n = e.size();
+            std::cout << i << ":";
+            for(I j = 0; j < n; j++)
+            {
+                std::cout << " " << e[j];
+            }
+            std::cout << std::endl;
+        }
+    }
+
+private:
     /*
      *
      * Notes
@@ -111,16 +345,18 @@ public:
      */
     I local_edge_index(I i, I j)
     {
-        I e[2] = {m_cell[i][edge[j][0]], m_cell[i][edge[j][1]]};
+        I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
         std::sort(e, e+2);
         return  e[0] + e[1]*(e[1]+1)/2;
     }
-private:
-    static int ccw[3];
-    static int cw[3];
-    static int edge[3][2];
-    static int face[3][2];
 
+private:
+    static int m_ccw[3];
+    static int m_cw[3];
+    static int m_localedge[3][2];
+    static int m_localface[3][2];
+    int m_holes; // 网格中洞的个数
+    int m_genus; // 网格表示曲面的亏格数
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
@@ -129,20 +365,20 @@ private:
 };
 
 template<typename GK, typename Node, typename Vector>
-int TriangleMesh<GK, Node, Vector>::cw[3] = {2, 0, 1};
+int TriangleMesh<GK, Node, Vector>::m_cw[3] = {2, 0, 1};
 
 template<typename GK, typename Node, typename Vector>
-int TriangleMesh<GK, Node, Vector>::ccw[3] = {1, 2, 0};
+int TriangleMesh<GK, Node, Vector>::m_ccw[3] = {1, 2, 0};
 
 
 template<typename GK, typename Node, typename Vector>
-int TriangleMesh<GK, Node, Vector>::edge[3][2] = {
-    {1, 2}, {2, 0}, {1, 0}
+int TriangleMesh<GK, Node, Vector>::m_localedge[3][2] = {
+    {1, 2}, {2, 0}, {0, 1}
 };
 
 template<typename GK, typename Node, typename Vector>
-int TriangleMesh<GK, Node, Vector>::face[3][2] = {
-    {1, 2}, {2, 0}, {1, 0}
+int TriangleMesh<GK, Node, Vector>::m_localface[3][2] = {
+    {1, 2}, {2, 0}, {0, 1}
 };
 
 } // end of namespace Mesh 
