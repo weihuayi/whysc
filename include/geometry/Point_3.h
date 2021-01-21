@@ -1,8 +1,6 @@
 #ifndef Point_3_h
 #define Point_3_h
 
-#include <array>
-#include <algorithm>
 #include <initializer_list>
 #include <assert.h>
 #include "Vector_3.h"
@@ -11,65 +9,97 @@ namespace WHYSC {
 namespace GeometryObject {
 
 template<typename F>
-class Point_3 : public std::array<F, 3>
+class Point_3 
 {
 public:
-    typedef typename std::array<F, 3> Base;
     typedef F Float;
-    using Base::data;
 public:
 
     Point_3()
     {
-        data()[0] = 0.0;
-        data()[1] = 0.0;
-        data()[2] = 0.0;
+        m_data[0] = 0.0;
+        m_data[1] = 0.0;
+        m_data[2] = 0.0;
     }
 
     Point_3(const std::initializer_list<F> &l)
     { 
-        std::copy_n(l.begin(), 3, data());
+        m_data[0] = l.begin()[0];
+        m_data[1] = l.begin()[1];
+        m_data[2] = l.begin()[2];
     }
 
     Point_3(F x, F y, F z)
     {
-        data()[0] = x;
-        data()[1] = y;
-        data()[2] = z;
+        m_data[0] = x;
+        m_data[1] = y;
+        m_data[2] = z;
     }
 
     template<typename P3>
     Point_3(const P3 & p)
     {
-        data()[0] = p[0];
-        data()[1] = p[1];
-        data()[2] = p[2];
+        m_data[0] = p[0];
+        m_data[1] = p[1];
+        m_data[2] = p[2];
     }
 
     Point_3(F * p)
     {
-        data()[0] = p[0];
-        data()[1] = p[1]; 
-        data()[2] = p[2]; 
+        m_data[0] = p[0];
+        m_data[1] = p[1]; 
+        m_data[2] = p[2]; 
     }
 
+    static int size() {return 3;}
     static int dimension() {return 3;}
+
+    F & x()
+    {
+        return m_data[0];
+    }
+
+    F & y()
+    {
+        return m_data[1];
+    }
+
+    F & z()
+    {
+        return m_data[2];
+    }
+    
+    F & operator [] (const int i)
+    {
+        return m_data[i];
+    }
+
+    const F & operator [] (const int i) const
+    {
+        return m_data[i];
+    }
 
     template<class V>
     Point_3<F> & operator -= (const V & rhs)
     {
-        for(int d = 0; d < 3; d++)
-            data()[d] -= rhs[d];
+        m_data[0] -= rhs[0];
+        m_data[1] -= rhs[1];
+        m_data[2] -= rhs[2];
         return *this;
     }
 
     template<class V>
     Point_3<F> & operator += (const V & rhs)
     {
-        for(int d = 0; d < 3; d++)
-            this->data()[d] += rhs[d];
+        m_data[0] += rhs[0];
+        m_data[1] += rhs[1];
+        m_data[2] += rhs[2];
         return *this;
     }
+
+
+private:
+    F m_data[3];
 };
 
 template<typename F, typename V>

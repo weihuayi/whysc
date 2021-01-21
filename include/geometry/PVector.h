@@ -9,8 +9,6 @@ class PVector
 {
 public:
     typedef F Float;
-private:
-    F * m_data;
 public:
 
     PVector(F * p)
@@ -18,6 +16,10 @@ public:
         m_data = p;
     }
 
+    PVector(const PVector & v) = delete;
+    PVector& operator=(const PVector& p) = delete;
+
+    static int size() {return DIM;}
     static int dimension() {return DIM;}
 
     template<class V>
@@ -36,10 +38,6 @@ public:
         return *this;
     }
 
-    /*
-     *
-     *
-     */
     PVector<F, DIM> & operator *= (const F w)
     {
         for(auto d = 0; d < DIM; d++)
@@ -64,6 +62,8 @@ public:
         return m_data[i];
     }
 
+private:
+    F * m_data;
 };
 
 template<typename OS, typename F, int DIM>

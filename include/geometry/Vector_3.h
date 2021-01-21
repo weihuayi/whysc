@@ -10,76 +10,74 @@ namespace WHYSC {
 namespace GeometryObject {
 
 template<typename F>
-class Vector_3 : public std::array<F, 3>
+class Vector_3
 {
 public:
-    typedef typename std::array<F, 3> Base;
-
+    typedef F Float;
 public:
 
     Vector_3()
     {
-        std::fill_n(this->data(), 3, 0.0);
+       m_data[0] = 0.0;
+       m_data[1] = 0.0;
+       m_data[2] = 0.0;
     }
 
     Vector_3(const std::initializer_list<F> &l)
     { 
-        std::copy_n(l.begin(), 3, this->data());
+        for(int d = 0; d < 3; d++)
+           m_data[d] = l.begin()[d];
     }
 
     Vector_3(const Vector_3 &v)
     { 
-        std::copy_n(v.begin(), 3, this->data());
+        for(int d = 0; d < 3; d++)
+           m_data[d] = v[d];
     }
 
     Vector_3(F vx, F vy, F vz)
     {
-        this->data()[0] = vx;
-        this->data()[1] = vy;
-        this->data()[2] = vz;
+       m_data[0] = vx;
+       m_data[1] = vy;
+       m_data[2] = vz;
     }
 
+    static int size() {return 3;}
     static int dimension() {return 3;}
 
-    double squared_length()
+    F squared_length()
     {
-        double sum = 0.0;
-        for(int d = 0; d < 3; d++)
-            sum += this->data()[d]*this->data()[d];
-        return sum;
+
+        return m_data[0]*m_data[0] + m_data[1]*m_data[1] +  m_data[2]*m_data[2];
     }
 
     template<class RVector_3>
-    double operator * (const RVector_3 & w)
+    F operator * (const RVector_3 & w)
     {
-        // dot product of vectors
-        double sum = 0.0;
-        for(int d = 0; d < 3; d++)
-            sum += this->data()[d]*w[d];
-        return sum;
+        return m_data[0]*w[0] + m_data[1]*w[1] +  m_data[2]*w[2];
     }
 
     Vector_3<F> & operator *= (const F & s)
     {
         for(int d = 0; d < 3; d++)
-            this->data()[d] *= s;
-        return * this;
+            m_data[d] *= s;
+        return *this;
     }
 
 
     Vector_3<F> & operator /= (const F & s)
     {
         for(int d = 0; d < 3; d++)
-            this->data()[d] /= s;
-        return * this;
+            m_data[d] /= s;
+        return *this;
     }
 
     template<class RVector_3>
     Vector_3<F> & operator += (const RVector_3 & w)
     {
         for(int d = 0; d < 3; d++)
-            this->data()[d] += w[d];
-        return * this;
+            m_data[d] += w[d];
+        return *this;
     }
 
 
@@ -87,19 +85,19 @@ public:
     Vector_3<F> & operator -= (const RVector_3 & w)
     {
         for(int d = 0; d < 3; d++)
-            this->data()[d] -= w[d];
+            m_data[d] -= w[d];
         return * this;
     }
-
+private:
+    F m_data[3];
 };
 
 template<typename F>
 inline Vector_3<F> operator + (const Vector_3<F> & v0, const Vector_3<F> & v1)
 {
     Vector_3<F> v;
-    v[0] = v0[0] + v1[0];
-    v[1] = v0[1] + v1[1];
-    v[2] = v0[2] + v1[2];
+    for(int d = 0; d < 3; d++)
+        v[d] = v0[d] + v1[d];
     return v;
 }
 
@@ -107,19 +105,26 @@ template<typename F>
 inline Vector_3<F> operator - (const Vector_3<F> & v0, const Vector_3<F> & v1)
 {
     Vector_3<F> v;
-    v[0] = v0[0] - v1[0];
-    v[1] = v0[1] - v1[1];
-    v[2] = v0[2] - v1[2];
+    for(int d = 0; d < 3; d++)
+        v[d] = v0[d] - v1[d];
     return v;
 }
 
 template<typename F>
-inline Vector_3<F> operator * (F w, const Vector_3<F> & v0)
+inline Vector_3<F> operator * (const F w, const Vector_3<F> & v0)
 {
     Vector_3<F> v;
-    v[0] = w*v0[0];
-    v[1] = w*v0[1];
-    v[2] = w*v0[2];
+    for(int d = 0; d < 3; d++)
+        v[d] = w*v0[d];
+    return v;
+}
+
+template<typename F>
+inline Vector_3<F> operator * (const Vector_3<F> & v0, const F w)
+{
+    Vector_3<F> v;
+    for(int d = 0; d < 3; d++)
+        v[d] = w*v0[d];
     return v;
 }
 

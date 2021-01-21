@@ -36,24 +36,25 @@ public:
     static Vector_2 vector_2(const F *v) { return Vector_2(v[0], v[1]);}
     static Vector_3 vector_3(const F *v) { return Vector_3(v[0], v[1], v[2]);}
 
-    static PPoint_2 ppoint_2(const F * p) { return PPoint_2(p[0], p[1]);}
-    static PPoint_3 ppoint_3(const F * p) { return PPoint_3(p[0], p[1], p[2]);}
-    static PVector_2 pvector_2(const F * v) { return PVector_2(v[0], v[1]);}
-    static PVector_3 pvector_3(const F * v) { return PVector_3(v[0], v[1], v[2]);}
+    static PPoint_2 ppoint_2(const F * p) { return PPoint_2(p);}
+    static PPoint_3 ppoint_3(const F * p) { return PPoint_3(p);}
+
+    static PVector_2 pvector_2(const F * v) { return PVector_2(v);}
+    static PVector_3 pvector_3(const F * v) { return PVector_3(v);}
 
     static const F two_thirds() { return F(2.0)/F(3.0);}
     static const F one_thirds() { return F(1.0)/F(3.0);}
     static const F pi()  {return F(3.1415926535897931e+0);}
     static const F eps() {return F(1e-12);} 
 
-    static void midpoint_3(const Float * p1, const Float * p2, Float * p)
+    static void midpoint_3(const F * p1, const F * p2, F * p)
     {
         p[0] = (p1[0] + p2[0])/2.0;
         p[1] = (p1[1] + p2[1])/2.0;
         p[2] = (p1[2] + p2[2])/2.0;
     }
 
-    static void midpoint_2(const Float * p1, const Float * p2, Float * p)
+    static void midpoint_2(const F * p1, const F * p2, F * p)
     {
         p[0] = (p1[0] + p2[0])/2.0;
         p[1] = (p1[1] + p2[1])/2.0;
@@ -62,33 +63,86 @@ public:
     static Point_2 midpoint(const Point_2 & p1, const Point_2 & p2)
     {
         Point_2 p;
-        I dim = p.dimension();
-        for(auto d = 0; d < dim; d++)
-            p[d] = (p1[d] + p2[d])/2.0;
+        p[0] = (p1[0] + p2[0])/2.0;
+        p[1] = (p1[1] + p2[1])/2.0;
         return p;
     }
 
     static Point_2 midpoint(const PPoint_2 & p1, const PPoint_2 & p2)
     {
         Point_2 p;
-        for(auto d = 0; d < 2; d++)
-            p[d] = (p1[d] + p2[d])/2.0;
+        p[0] = (p1[0] + p2[0])/2.0;
+        p[1] = (p1[1] + p2[1])/2.0;
         return p;
     }
 
     static Point_3 midpoint(const Point_3 & p1, const Point_3 & p2)
     {
         Point_3 p;
-        for(auto d = 0; d < 3; d++)
-            p[d] = (p1[d] + p2[d])/2.0;
+        p[0] = (p1[0] + p2[0])/2.0;
+        p[1] = (p1[1] + p2[1])/2.0;
+        p[2] = (p1[2] + p2[2])/2.0;
         return p;
     }
 
     static Point_3 midpoint(const PPoint_3 & p1, const PPoint_3 & p2)
     {
         Point_3 p;
-        for(auto d = 0; d < 3; d++)
-            p[d] = (p1[d] + p2[d])/2.0;
+        p[0] = (p1[0] + p2[0])/2.0;
+        p[1] = (p1[1] + p2[1])/2.0;
+        p[2] = (p1[2] + p2[2])/2.0;
+        return p;
+    }
+
+    static Point_2 barycenter(
+            const Point_2 & p0,
+            const Point_2 & p1,
+            const Point_2 & p2
+            )
+    {
+        Point_2 p;
+        p[0] = (p0[0] + p1[0] + p2[0])/3.0;
+        p[1] = (p0[1] + p1[1] + p2[1])/3.0;
+        return p;
+    }
+
+    static Point_3 barycenter(
+            const Point_3 & p0,
+            const Point_3 & p1,
+            const Point_3 & p2
+            )
+    {
+        Point_3 p;
+        p[0] = (p0[0] + p1[0] + p2[0])/3.0;
+        p[1] = (p0[1] + p1[1] + p2[1])/3.0;
+        p[2] = (p0[2] + p1[2] + p2[2])/3.0;
+        return p;
+    }
+
+    static Point_2 barycenter(
+            const Point_2 & p0,
+            const Point_2 & p1,
+            const Point_2 & p2,
+            const Point_2 & p3
+            )
+    {
+        Point_2 p;
+        p[0] = (p0[0] + p1[0] + p2[0] + p3[0])/4.0;
+        p[1] = (p0[1] + p1[1] + p2[1] + p3[1])/4.0;
+        return p;
+    }
+
+    static Point_3 barycenter(
+            const Point_3 & p0,
+            const Point_3 & p1,
+            const Point_3 & p2,
+            const Point_3 & p3,
+            )
+    {
+        Point_3 p;
+        p[0] = (p0[0] + p1[0] + p2[0] + p3[0])/4.0;
+        p[1] = (p0[1] + p1[1] + p2[1] + p3[1])/4.0;
+        p[2] = (p0[2] + p1[2] + p2[2] + p3[2])/4.0;
         return p;
     }
 
