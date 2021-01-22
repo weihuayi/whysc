@@ -16,7 +16,7 @@ namespace Mesh {
  * Notes
  * -----
  *  四面体网格类, 用 std::vector 做为容器, 用整数数组代表 edge, face, 和 cell
- *  实体, 这里 edge == face.
+ *  实体.
  *
  */
 template<typename GK, typename Node, typename Vector>
@@ -26,14 +26,20 @@ public:
     typedef typename GK::Int I;
     typedef typename GK::Float F;
 
+    // 拓扑
     typedef MeshToplogy<I> Toplogy;
+
+    // 实体类型
     typedef typename std::array<I, 4> Cell;
     typedef typename std::array<I, 2> Edge;
     typedef typename std::array<I, 3> Face;
+
+    // 实体关系类型
     typedef typename std::array<I, 4> Face2cell;
     typedef typename std::array<I, 4> Cell2Face;
     typedef typename std::array<I, 6> Cell2edge;
 
+    // 迭代子类型
     typedef typename std::vector<Node>::iterator Node_iterator;
     typedef typename std::vector<Edge>::iterator Edge_iterator;
     typedef typename std::vector<Face>::iterator Face_iterator;
@@ -52,16 +58,6 @@ public:
     void insert(const Cell & cell)
     {
         m_cell.push_back(cell);
-    }
-
-    int & number_of_holes()
-    {
-        return m_holes;
-    }
-
-    int & number_of_genus()
-    {
-        return m_genus;
     }
 
     I number_of_nodes()
@@ -84,14 +80,14 @@ public:
         return m_edge.size();
     }
 
-    int geo_dimension()
+    static int geo_dimension()
     {
-        return Node::dimension();
+        return 3;
     }
 
     static int top_dimension()
     {
-        return 2;
+        return 3;
     }
 
     /*
@@ -107,16 +103,18 @@ public:
 
     void init_top()
     {
+        m_face2cell.clear();
+        m_cell2face.clear();
+
         auto NN = number_of_nodes();
         auto NC = number_of_cells();
+        m_face2cell.reserve(2*NC); //TODO: 欧拉公式?
         m_cell2face.resize(NC);
-        m_face2cell.clear();
-        m_face2cell.reserve(NN + NC);
         std::map<I, I> idxmap;
 
         I NF = 0;
         // 偏历所有单元
-        for(I i = 0; i < m_cell.size(); i++)
+        for(I i = 0; i < NC; i++)
         {
             for(I j = 0; j < 4; j++)
             {
@@ -124,7 +122,7 @@ public:
                auto it = idxmap.find(s);
                if(it == idxmap.end())
                {
-                  m_cell2edge[i][j] = NF;
+                  m_cell2face[i][j] = NF;
                   idxmap.insert(std::pair<I, I>(s, NF));
                   m_face2cell.push_back(Face2cell{i, i, j, j});
                   NF++;
@@ -137,9 +135,10 @@ public:
                }
             }
         }
+        idxmap.clear();
 
         m_face.resize(NF);
-        for(I i = 0; i < NE; i++)
+        for(I i = 0; i < NF; i++)
         {
             auto & c = m_cell[m_face2cell[i][0]];
             auto j = m_face2cell[i][2];
@@ -147,7 +146,28 @@ public:
             m_face[i][1] = c[m_localface[j][1]];
             m_face[i][2] = c[m_localface[j][2]];
         }
-        //TODO: 重建 edge 实体
+
+        I NE = 0;
+        for(I i = 0; i < NC; i++)
+        {
+            for(I j = 0; j < 6; j++)
+            { 
+                auto & c = m_cell[i];
+                auto s = local_edge_index(i, j); 
+                auto it = idxmap.find(s);
+                if(it == idxmap.end())
+                {
+                    m_cell2edge[i][j] = NE;
+                    idxmap.insert(std::pair<I, I>(s, NE));
+                    m_edge.push_back(Edge{c[m_localedge[j][0]], c[m_localedge[j][1]]});
+                    NE++; 
+                }
+               else
+               {
+                  m_cell2edge[i][j] = it->second;
+               }
+            }
+        }
     }
 
 
