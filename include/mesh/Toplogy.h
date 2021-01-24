@@ -1,5 +1,5 @@
-#ifndef MeshToplogy_h
-#define MeshToplogy_h
+#ifndef Toplogy_h
+#define Toplogy_h
 
 namespace WHYSC {
 namespace Mesh {
@@ -8,7 +8,7 @@ namespace Mesh {
  *
  */
 template<typename I, typename Container=std::vector<I> >
-class MeshToplogy
+class Toplogy
 {
 public:
     MeshToplogy()
@@ -17,10 +17,10 @@ public:
         m_NB = 0;
     }
 
-    MeshToplogy(I na, I nb)
+    MeshToplogy(I NA, I NB)
     {
-        m_NA = na;
-        m_NB = nb;
+        m_NA = NA;
+        m_NB = NB;
         m_location.resize(m_NA+1);
     }
 private:
@@ -34,4 +34,4 @@ private:
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
-#endif // end of MeshToplogy_h
+#endif // end of Toplogy_h

@@ -18,7 +18,14 @@ set(CMAKE_BUILD_TYPE Release)
 # sudo apt install python3-matplotlib
 
 find_package(PythonLibs 3)
-
 message(STATUS "${PYTHON_INCLUDE_DIRS}")
+
+# sudo apt install freeglut3-dev
+find_package(OpenGL REQUIRED COMPONENTS OpenGL)
+find_package(GLUT REQUIRED)
+
+if(NOT ${OPENGL_FOUND})
+    message("OPENGL not found")
+endif()
 
 add_subdirectory(test)

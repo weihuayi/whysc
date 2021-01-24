@@ -136,7 +136,7 @@ public:
             const Point_3 & p0,
             const Point_3 & p1,
             const Point_3 & p2,
-            const Point_3 & p3,
+            const Point_3 & p3
             )
     {
         Point_3 p;

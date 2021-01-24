@@ -5,7 +5,7 @@
 #include <array>
 #include <map>
 
-#include "MeshToplogy.h"
+#include "Toplogy.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -27,7 +27,7 @@ public:
     typedef typename GK::Float F;
 
     // 拓扑
-    typedef MeshToplogy<I> Toplogy;
+    typedef Toplogy<I> Toplogy;
 
     // 实体类型
     typedef typename std::array<I, 4> Cell;

@@ -37,3 +37,6 @@ add_executable(quiver quiver.cpp)
 target_include_directories(quiver PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(quiver ${PYTHON_LIBRARIES})
 
+if(${OPENGL_FOUND})
+    add_subdirectory(opengl)
+endif()

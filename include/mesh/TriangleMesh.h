@@ -16,7 +16,7 @@ namespace Mesh {
  * Notes
  * -----
  *  三角形网格类, 用 std::vector 做为容器, 用整数数组代表 edge, face, 和 cell
- *  实体, 这里 edge == face.
+ *  实体, 这里 face 实体即为 edge 实体.
  *
  */
 template<typename GK, typename Node, typename Vector>

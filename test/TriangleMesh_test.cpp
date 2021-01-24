@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     mesh.number_of_holes() = 1; // 上面有网格有一个外部无限大的洞
     mesh.number_of_genus() = 0; // 亏格为 0
 
-    mesh.construct_top();
+    mesh.init_top();
     mesh.print();
     mesh.uniform_refine(4);
     mesh.print();
