@@ -26,18 +26,22 @@ public:
     typedef typename GK::Int I;
     typedef typename GK::Float F;
 
-    // 拓扑
-    typedef Toplogy<I> Toplogy;
 
     // 实体类型
-    typedef typename std::array<I, 4> Cell;
     typedef typename std::array<I, 2> Edge;
     typedef typename std::array<I, 3> Face;
+    typedef typename std::array<I, 4> Cell;
 
-    // 实体关系类型
+    // 规则化的实体关系类型，这里的规则化是指每个三角形面有两个相邻单元
+    // 每个单元有 4 个三角形面
+    // 每个单元有 6 条边
     typedef typename std::array<I, 4> Face2cell;
     typedef typename std::array<I, 4> Cell2Face;
     typedef typename std::array<I, 6> Cell2edge;
+
+    // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
+    // 共享一条边的单元个数也是不固定的
+    typedef Toplogy<I> Toplogy;
 
     // 迭代子类型
     typedef typename std::vector<Node>::iterator Node_iterator;
@@ -384,7 +388,7 @@ private:
      *
      * Notes
      * -----
-     *  计算第 i 个 cell 的第 j-th face 的全局唯一整数编号
+     *  计算第 i 个 cell 的第 j 个 face 的全局唯一整数编号
      */
     I local_face_index(I i, I j)
     {
@@ -401,7 +405,7 @@ private:
      *
      * Notes
      * -----
-     *  计算第 i 个 cell 的 j-th edge 全局唯一整数编号
+     *  计算第 i 个 cell 的 j 条 edge 全局唯一整数编号
      */
     I local_edge_index(I i, I j)
     {
