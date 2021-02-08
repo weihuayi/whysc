@@ -7,8 +7,8 @@ project(WHYSC)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 message(STATUS "${PROJECT_SOURCE_DIR}")
 
-set(CMAKE_BUILD_TYPE Release)
-#set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # C++ 中调要用科学计算的模块，要在系统中安装下面的 python 包
 # sudo apt install python3

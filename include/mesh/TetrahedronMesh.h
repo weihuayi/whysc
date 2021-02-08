@@ -5,7 +5,7 @@
 #include <array>
 #include <map>
 
-#include "Toplogy.h"
+#include "MeshToplogy.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -32,16 +32,17 @@ public:
     typedef typename std::array<I, 3> Face;
     typedef typename std::array<I, 4> Cell;
 
-    // 规则化的实体关系类型，这里的规则化是指每个三角形面有两个相邻单元
+    // 规则化的实体关系类型，这里的规则化是指一种实体有固定个数的另一种邻接实体
     // 每个单元有 4 个三角形面
     // 每个单元有 6 条边
-    typedef typename std::array<I, 4> Face2cell;
-    typedef typename std::array<I, 4> Cell2Face;
+    typedef typename std::array<I, 4> Face2cell; // 如果边界面则左右单元的编号一样
+    typedef typename std::array<I, 4> Cell2face;
+    typedef typename std::array<I, 4> Cell2cell;
     typedef typename std::array<I, 6> Cell2edge;
 
     // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
     // 共享一条边的单元个数也是不固定的
-    typedef Toplogy<I> Toplogy;
+    typedef MeshToplogy<I> Toplogy;
 
     // 迭代子类型
     typedef typename std::vector<Node>::iterator Node_iterator;
@@ -50,6 +51,7 @@ public:
     typedef typename std::vector<Cell>::iterator Cell_iterator;
 
 public:
+
     TetrahedronMesh()
     {
     }
@@ -151,6 +153,7 @@ public:
             m_face[i][2] = c[m_localface[j][2]];
         }
 
+        m_cell2edge.resize(NC);
         I NE = 0;
         for(I i = 0; i < NC; i++)
         {
@@ -307,6 +310,7 @@ public:
         auto & e = m_edge[i];
         F x = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
         F y = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+        F z = (m_node[e[0]][2] + m_node[e[1]][2])/2.0;
         return Node(x, y);
     }
 
@@ -315,28 +319,65 @@ public:
         auto & e = m_edge[i];
         node[0] = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
         node[1] = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+        node[2] = (m_node[e[0]][2] + m_node[e[1]][2])/2.0;
     }
 
     Node face_barycenter(const I i)
     {
         auto & f = m_face[i];
-        F x = (m_node[f[0]][0] + m_node[f[1]][0] + )/2.0;
-        F y = (m_node[f[0]][1] + m_node[e[1]][1])/2.0;
-        F z = 
-        return Node(x, y);
-    }
-
-    void edge_barycenter(const I i, Node & node)
-    {
-        auto & e = m_edge[i];
-        node[0] = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
-        node[1] = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+        F x = (m_node[f[0]][0] + m_node[f[1]][0] + m_node[f[2]][0])/3.0;
+        F y = (m_node[f[0]][1] + m_node[f[1]][1] + m_node[f[2]][1])/3.0;
+        F z = (m_node[f[0]][2] + m_node[f[1]][2] + m_node[f[2]][2])/3.0;
+        return Node(x, y, z);
     }
 
     void uniform_refine(const int n=1)
     {
         for(I i=0; i < n; i++)
         {
+            auto NN = number_of_nodes();
+            auto NE = number_of_edges();
+            m_node.resize(NN + NE);
+            for(I j = 0; j < NE; j++)
+            {
+               edge_barycenter(j, m_node[NN+j]); 
+            }
+            auto NC = number_of_cells();
+            m_cell.resize(8*NC);
+            for(I j = 0; j < NC; j++)
+            { 
+                auto c = m_cell[j]; 
+                m_cell[0*NC + j][0] = c[0];
+                m_cell[0*NC + j][1] = m_cell2edge[j][0] + NN;
+                m_cell[0*NC + j][2] = m_cell2edge[j][1] + NN;
+                m_cell[0*NC + j][3] = m_cell2edge[j][2] + NN;
+
+                m_cell[1*NC + j][0] = c[1];
+                m_cell[1*NC + j][1] = m_cell2edge[j][3] + NN;
+                m_cell[1*NC + j][2] = m_cell2edge[j][0] + NN;
+                m_cell[1*NC + j][3] = m_cell2edge[j][4] + NN;
+
+                m_cell[2*NC + j][0] = c[2];
+                m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
+                m_cell[2*NC + j][2] = m_cell2edge[j][3] + NN;
+                m_cell[2*NC + j][3] = m_cell2edge[j][5] + NN;
+
+                m_cell[3*NC + j][0] = c[3];
+                m_cell[3*NC + j][1] = m_cell2edge[j][4] + NN;
+                m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
+                m_cell[3*NC + j][3] = m_cell2edge[j][5] + NN;
+
+                m_cell[3*NC + j][0] = c[3];
+                m_cell[3*NC + j][1] = m_cell2edge[j][4] + NN;
+                m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
+                m_cell[3*NC + j][3] = m_cell2edge[j][5] + NN;
+
+                auto v0 = m_node[m_cell2edge[j][0] + NN] - m_node[m_cell2edge[j][5]];
+                auto v1 = m_node[m_cell2edge[j][1] + NN] - m_node[m_cell2edge[j][4]]; 
+                auto v2 = m_node[m_cell2edge[j][2] + NN] - m_node[m_cell2edge[j][3]]; 
+
+            }
+
             m_edge.clear();
             m_face.clear();
             m_cell2edge.clear();
@@ -422,23 +463,23 @@ private:
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
     std::vector<Face> m_face;
-    std::vector<Edge2cell> m_face2cell;
+    std::vector<Face2cell> m_face2cell;
     std::vector<Cell2face> m_cell2face;
     std::vector<Cell2edge> m_cell2edge;
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::localedge[6][2] = {
+int TetrahedronMesh<GK, Node, Vector>::m_localedge[6][2] = {
     {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::localface[4][3] = {
+int TetrahedronMesh<GK, Node, Vector>::m_localface[4][3] = {
     {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1}
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::localface2edge[4][3] = {
+int TetrahedronMesh<GK, Node, Vector>::m_localface2edge[4][3] = {
     {5, 4, 3}, {5, 1, 2}, {4, 2, 0}, {3, 0, 1}
 };
 

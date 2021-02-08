@@ -45,6 +45,16 @@ public:
     static int size() {return 3;}
     static int dimension() {return 3;}
 
+    F & operator [] (const int i)
+    {
+        return m_data[i];
+    }
+
+    const F & operator [] (const int i) const
+    {
+        return m_data[i];
+    }
+
     F squared_length()
     {
 
@@ -80,7 +90,6 @@ public:
         return *this;
     }
 
-
     template<class RVector_3>
     Vector_3<F> & operator -= (const RVector_3 & w)
     {
@@ -99,6 +108,22 @@ inline Vector_3<F> operator + (const Vector_3<F> & v0, const Vector_3<F> & v1)
     for(int d = 0; d < 3; d++)
         v[d] = v0[d] + v1[d];
     return v;
+}
+
+template<typename F>
+inline Vector_3<F>  cross(const Vector_3<F> & v, const Vector_3<F> & w)
+{
+    Vector_3<F> r;
+    r[0] = v[1]*w[2] - v[2]*w[1];
+    r[1] = v[2]*w[0] - v[0]*w[2];
+    r[2] = v[0]*w[1] - v[1]*w[0];
+    return r;
+}
+
+template<typename F>
+inline F  dot(const Vector_3<F> & v, const Vector_3<F> & w)
+{
+    return v[0]*w[0] + v[1]*w[1] + v[2]*v[2];
 }
 
 template<typename F>
