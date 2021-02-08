@@ -16,13 +16,30 @@ private:
     F * m_data; // 注意这里 PPoint 类不负责数据的管理
 public:
 
+    PPoint()
+    {
+        m_data = NULL;
+    }
+
     PPoint(F * p)
     {
         m_data = p;
     }
 
-    PPoint(const PPoint & p) = delete;
-    PPoint& operator=(const PPoint& p) = delete;
+    PPoint & operator=(F * p)
+    {
+        this->m_data = p;
+        return *this;
+    }
+
+    PPoint(const PPoint & p)
+    {
+        m_data = p.m_data;
+    }
+    PPoint& operator=(const PPoint& p)
+    {
+        m_data = p.mdata;
+    }
 
     static int dimension() {return DIM;}
 

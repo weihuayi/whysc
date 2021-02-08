@@ -22,6 +22,8 @@ add_executable(qr_test qr_test.cpp)
 
 add_executable(TriangleMesh_test TriangleMesh_test.cpp)
 
+add_executable(MeshGeometry_test MeshGeometry_test.cpp)
+
 # add_executable(test_TriangleMesh test_TriangleMesh.cpp)
 # add_executable(test_Mesh test_Mesh.cpp)
 
