@@ -347,15 +347,15 @@ public:
             for(I j = 0; j < NC; j++)
             { 
                 auto c = m_cell[j]; 
-                m_cell[0*NC + j][0] = c[0];
-                m_cell[0*NC + j][1] = m_cell2edge[j][0] + NN;
-                m_cell[0*NC + j][2] = m_cell2edge[j][1] + NN;
-                m_cell[0*NC + j][3] = m_cell2edge[j][2] + NN;
+                m_cell[j][0] = c[0];
+                m_cell[j][1] = m_cell2edge[j][0] + NN;
+                m_cell[j][2] = m_cell2edge[j][1] + NN;
+                m_cell[j][3] = m_cell2edge[j][2] + NN;
 
-                m_cell[1*NC + j][0] = c[1];
-                m_cell[1*NC + j][1] = m_cell2edge[j][3] + NN;
-                m_cell[1*NC + j][2] = m_cell2edge[j][0] + NN;
-                m_cell[1*NC + j][3] = m_cell2edge[j][4] + NN;
+                m_cell[NC + j][0] = c[1];
+                m_cell[NC + j][1] = m_cell2edge[j][3] + NN;
+                m_cell[NC + j][2] = m_cell2edge[j][0] + NN;
+                m_cell[NC + j][3] = m_cell2edge[j][4] + NN;
 
                 m_cell[2*NC + j][0] = c[2];
                 m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
@@ -376,12 +376,35 @@ public:
                 auto v1 = m_node[m_cell2edge[j][1] + NN] - m_node[m_cell2edge[j][4]]; 
                 auto v2 = m_node[m_cell2edge[j][2] + NN] - m_node[m_cell2edge[j][3]]; 
 
+                std::vector<F> v{v0.squared_length(), v1.squared_length(), v2.squared_length()};
+                auto idx = std::distance(v.begin(), std::min_element(v.begin(), v.end()));
+
+                m_cell[4*NC + j][0] = m_cell2edge[j][m_refine[idx][0]] + NN; 
+                m_cell[4*NC + j][1] = m_cell2edge[j][m_refine[idx][1]] + NN;
+                m_cell[4*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
+                m_cell[4*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
+
+                m_cell[5*NC + j][0] = m_cell2edge[j][m_refine[idx][1]] + NN; 
+                m_cell[5*NC + j][1] = m_cell2edge[j][m_refine[idx][2]] + NN;
+                m_cell[5*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
+                m_cell[5*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
+
+                m_cell[6*NC + j][0] = m_cell2edge[j][m_refine[idx][2]] + NN; 
+                m_cell[6*NC + j][1] = m_cell2edge[j][m_refine[idx][3]] + NN;
+                m_cell[6*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
+                m_cell[6*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
+
+                m_cell[7*NC + j][0] = m_cell2edge[j][m_refine[idx][3]] + NN; 
+                m_cell[7*NC + j][1] = m_cell2edge[j][m_refine[idx][0]] + NN;
+                m_cell[7*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
+                m_cell[7*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
             }
 
             m_edge.clear();
             m_face.clear();
             m_cell2edge.clear();
             m_face2cell.clear();
+            m_cell2face.clear();
             init_top(); 
         }
     }
@@ -459,6 +482,7 @@ private:
     static int m_localedge[6][2];
     static int m_localface[4][3];
     static int m_localface2edge[4][3];
+    static int m_refine[3][6];
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
@@ -481,6 +505,11 @@ int TetrahedronMesh<GK, Node, Vector>::m_localface[4][3] = {
 template<typename GK, typename Node, typename Vector>
 int TetrahedronMesh<GK, Node, Vector>::m_localface2edge[4][3] = {
     {5, 4, 3}, {5, 1, 2}, {4, 2, 0}, {3, 0, 1}
+};
+
+template<typename GK, typename Node, typename Vector>
+int TetrahedronMesh<GK, Node, Vector>::m_refine[3][6] = {
+    {1, 3, 4, 2, 5, 0}, {0, 2, 5, 3, 4, 1}, {0, 4, 5, 1, 3, 2}
 };
 
 } // end of namespace Mesh 

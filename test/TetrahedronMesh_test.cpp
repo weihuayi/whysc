@@ -36,6 +36,9 @@ int main(int argc, char **argv)
     mesh.init_top();
     mesh.print();
 
+    mesh.uniform_refine();
+    mesh.print();
+
     auto NC = mesh.number_of_cells();
     for(int i = 0; i < NC; i++)
     {
