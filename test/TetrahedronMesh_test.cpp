@@ -6,17 +6,19 @@
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TetrahedronMesh.h"
+#include "mesh/VTKMeshWriter.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef TetMesh::Cell Cell;
+typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
 
 int main(int argc, char **argv)
 {
     TetMesh mesh;
-
+/*
     mesh.insert(Node{0.0, 0.0, 0.0});
     mesh.insert(Node{1.0, 0.0, 0.0});
     mesh.insert(Node{1.0, 1.0, 0.0});
@@ -32,26 +34,32 @@ int main(int argc, char **argv)
     mesh.insert(Cell{0, 7, 4, 6});
     mesh.insert(Cell{0, 3, 7, 6});
     mesh.insert(Cell{0, 2, 3, 6});
+*/
+
+    mesh.insert(Node{0.0, 0.0, 0.0});
+    mesh.insert(Node{1.0, 0.0, 0.0});
+    mesh.insert(Node{0.0, 1.0, 0.0});
+    mesh.insert(Node{0.0, 0.0, 1.0});
+
+    mesh.insert(Cell{0, 1, 2, 3});
     
     mesh.init_top();
-    mesh.print();
+    
+    std::vector<double> q;
+    mesh.cell_quality(q);
+    auto it = std::min_element(q.begin(), q.end());
+    std::cout << *it << std::endl;
 
-    mesh.uniform_refine();
-    mesh.print();
-
-    auto NC = mesh.number_of_cells();
-    for(int i = 0; i < NC; i++)
+    for(int n = 0; n < 6; n++)
     {
-        std::cout << i << ": " << mesh.cell_measure(i) << std::endl;
+        mesh.uniform_refine();
+        mesh.cell_quality(q);
+        auto it = std::min_element(q.begin(), q.end());
+        std::cout << *it << std::endl;
     }
 
-    std::vector<double> eh;
-    mesh.edge_measure(eh);
-    std::cout << eh.size() << std::endl;
-    for(int i = 0; i < eh.size(); i++)
-    {
-        std::cout << i << ": " <<  eh[i]<< std::endl;
-    }
+    Writer writer(&mesh);
+    writer.write();
 
     return 0;
 }

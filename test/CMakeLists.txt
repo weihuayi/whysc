@@ -24,7 +24,6 @@ add_executable(TriangleMesh_test TriangleMesh_test.cpp)
 
 add_executable(MeshGeometry_test MeshGeometry_test.cpp)
 
-add_executable(TetrahedronMesh_test TetrahedronMesh_test.cpp)
 
 # add_executable(test_TriangleMesh test_TriangleMesh.cpp)
 # add_executable(test_Mesh test_Mesh.cpp)
@@ -43,4 +42,21 @@ target_link_libraries(quiver ${PYTHON_LIBRARIES})
 
 if(${OPENGL_FOUND})
     add_subdirectory(opengl)
+endif()
+
+if(${VTK_FOUND})
+
+    add_executable(vtk_linear_cell_demo vtk_linear_cell_demo.cpp )
+    target_link_libraries(vtk_linear_cell_demo PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS vtk_linear_cell_demo 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(TetrahedronMesh_test TetrahedronMesh_test.cpp)
+    target_link_libraries(TetrahedronMesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS TetrahedronMesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 endif()

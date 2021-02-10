@@ -86,6 +86,16 @@ public:
         return m_edge.size();
     }
 
+    static int number_of_nodes_of_each_cell()
+    {
+        return 4;
+    }
+
+    static int number_of_vertices_of_each_cell()
+    {
+        return 4;
+    }
+
     static int geo_dimension()
     {
         return 3;
@@ -94,6 +104,11 @@ public:
     static int top_dimension()
     {
         return 3;
+    }
+
+    I vtk_cell_type()
+    {
+        return 10; // VTK_TETRA = 10
     }
 
     /*
@@ -175,6 +190,43 @@ public:
                }
             }
         }
+    }
+
+
+    void cell_quality(std::vector<F> & q)
+    {
+        auto NC = number_of_cells();
+        q.resize(NC);
+        std::vector<F> f;
+        face_measure(f);
+        for(I i = 0; i < NC; i++)
+        {
+            auto s = f[m_cell2face[i][0]] + f[m_cell2face[i][1]] + f[m_cell2face[i][2]] + f[m_cell2face[i][3]];
+            auto d = direction(i, 0);
+            auto l = std::sqrt(d.squared_length());
+            auto vol = cell_measure(i);
+            auto R = l/vol/12.0;
+            auto r = 3.0*vol/s;
+            q[i] = R/r/3.0;
+        }
+    }
+
+    Vector direction(const I i, const I j)
+    {
+        auto v10 = m_node[m_cell[i][m_index[3*j][0]]] - m_node[m_cell[i][m_index[3*j][1]]];
+        auto v20 = m_node[m_cell[i][m_index[3*j][0]]] - m_node[m_cell[i][m_index[3*j][2]]];
+        auto v30 = m_node[m_cell[i][m_index[3*j][0]]] - m_node[m_cell[i][m_index[3*j][3]]];
+
+        auto v1 = cross(v20, v30);
+        v1 *= v10.squared_length();
+
+        auto v2 = cross(v30, v10);
+        v2 *= v20.squared_length();
+
+        auto v3 = cross(v10, v20);
+        v3 *= v30.squared_length();
+
+        return v1 + v2 + v3;
     }
 
 
@@ -372,9 +424,9 @@ public:
                 m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
                 m_cell[3*NC + j][3] = m_cell2edge[j][5] + NN;
 
-                auto v0 = m_node[m_cell2edge[j][0] + NN] - m_node[m_cell2edge[j][5]];
-                auto v1 = m_node[m_cell2edge[j][1] + NN] - m_node[m_cell2edge[j][4]]; 
-                auto v2 = m_node[m_cell2edge[j][2] + NN] - m_node[m_cell2edge[j][3]]; 
+                auto v0 = m_node[m_cell2edge[j][0] + NN] - m_node[m_cell2edge[j][5] + NN];
+                auto v1 = m_node[m_cell2edge[j][1] + NN] - m_node[m_cell2edge[j][4] + NN]; 
+                auto v2 = m_node[m_cell2edge[j][2] + NN] - m_node[m_cell2edge[j][3] + NN]; 
 
                 std::vector<F> v{v0.squared_length(), v1.squared_length(), v2.squared_length()};
                 auto idx = std::distance(v.begin(), std::min_element(v.begin(), v.end()));
@@ -483,6 +535,7 @@ private:
     static int m_localface[4][3];
     static int m_localface2edge[4][3];
     static int m_refine[3][6];
+    static int m_index[12][4];
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
@@ -510,6 +563,14 @@ int TetrahedronMesh<GK, Node, Vector>::m_localface2edge[4][3] = {
 template<typename GK, typename Node, typename Vector>
 int TetrahedronMesh<GK, Node, Vector>::m_refine[3][6] = {
     {1, 3, 4, 2, 5, 0}, {0, 2, 5, 3, 4, 1}, {0, 4, 5, 1, 3, 2}
+};
+
+template<typename GK, typename Node, typename Vector>
+int TetrahedronMesh<GK, Node, Vector>::m_index[12][4] = {
+    {0, 1, 2, 3}, {0, 2, 3, 1}, {0, 3, 1, 2},
+    {1, 2, 0, 3}, {1, 0, 3, 2}, {1, 3, 2, 0},
+    {2, 0, 1, 3}, {2, 1, 3, 0}, {2, 3, 0, 1},
+    {3, 0, 2, 1}, {3, 2, 1, 0}, {3, 1, 0, 2}
 };
 
 } // end of namespace Mesh 

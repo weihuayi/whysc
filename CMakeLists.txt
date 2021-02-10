@@ -28,4 +28,16 @@ if(NOT ${OPENGL_FOUND})
     message("OPENGL not found")
 endif()
 
+# 
+set(VTK_DIR "~/.local/vtk")
+find_package(VTK REQUIRED)
+
+if(NOT ${VTK_FOUND})
+    message("VTK not found")
+else()
+    include_directories(${VTK_INCLUDE_DIRS})
+    message("Found vtk! ${VTK_INCLUDE_DIRS}")
+endif()
+
+
 add_subdirectory(test)
