@@ -34,7 +34,7 @@ an additional package dedicated to my C++ scientific computing program.
 
 * I    : Int type
 * F    : Float type
-* DIM  : dimentsion
+* DIM  : dimension
 * TDIM : toplogy dimension
 * GDIM : geometry dimention
 * Container : 

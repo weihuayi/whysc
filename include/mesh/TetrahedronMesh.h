@@ -19,10 +19,12 @@ namespace Mesh {
  *  实体.
  *
  */
-template<typename GK, typename Node, typename Vector>
+template<typename GK, typename NODE, typename VECTOR>
 class TetrahedronMesh 
 {
 public:
+    typedef NODE Node;
+    typedef VECTOR Vector;
     typedef typename GK::Int I;
     typedef typename GK::Float F;
 
@@ -268,6 +270,16 @@ public:
     Cell_iterator cell_end()
     {
         return m_cell.end();
+    }
+
+    std::vector<Node> & nodes()
+    {
+        return m_node;
+    }
+
+    std::vector<Cell> & cells()
+    {
+        return m_cell;
     }
 
     Node & node(const I i)

@@ -26,12 +26,18 @@ public:
     typedef typename GK::Int I;
     typedef typename GK::Float F;
 
-    typedef MeshToplogy<I> Toplogy;
     typedef typename std::array<I, 3> Cell;
     typedef typename std::array<I, 2> Edge;
     typedef Edge Face;
+
     typedef typename std::array<I, 4> Edge2cell;
+    typedef typename std::array<I, 4> Face2cell;
     typedef typename std::array<I, 3> Cell2edge;
+    typedef typename std::array<I, 3> Cell2face;
+
+    // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
+    // 共享一条边的单元个数也是不固定的
+    typedef MeshToplogy<I> Toplogy;
 
     typedef typename std::vector<Node>::iterator Node_iterator;
     typedef typename std::vector<Cell>::iterator Cell_iterator;
@@ -41,7 +47,7 @@ public:
 public:
     TriangleMesh()
     {
-        m_holes = 1;
+        m_holes = 1; // 默认一个外部无界区域
         m_genus = 0;
     }
 
@@ -377,8 +383,8 @@ private:
     int m_holes; // 网格中洞的个数
     int m_genus; // 网格表示曲面的亏格数
     std::vector<Node> m_node;
-    std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
+    std::vector<Cell> m_cell; 
     std::vector<Edge2cell> m_edge2cell;
     std::vector<Cell2edge> m_cell2edge;
 };

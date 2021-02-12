@@ -21,8 +21,8 @@ find_package(PythonLibs 3)
 message(STATUS "${PYTHON_INCLUDE_DIRS}")
 
 # sudo apt install freeglut3-dev
-find_package(OpenGL REQUIRED COMPONENTS OpenGL)
-find_package(GLUT REQUIRED)
+find_package(OpenGL COMPONENTS OpenGL)
+find_package(GLUT)
 
 if(NOT ${OPENGL_FOUND})
     message("OPENGL not found")
@@ -30,13 +30,23 @@ endif()
 
 # 
 set(VTK_DIR "~/.local/vtk")
-find_package(VTK REQUIRED)
-
+find_package(VTK)
 if(NOT ${VTK_FOUND})
     message("VTK not found")
 else()
     include_directories(${VTK_INCLUDE_DIRS})
     message("Found vtk! ${VTK_INCLUDE_DIRS}")
+endif()
+
+# 
+set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
+set(CGAL_DIR "~/.local/cgal")
+find_package(CGAL)
+if(NOT ${CGAL_FOUND})
+    message("CGAL not found")
+else()
+    include_directories(${CGAL_INCLUDE_DIRS})
+    message("Found cgal! ${CGAL_INCLUDE_DIRS}")
 endif()
 
 

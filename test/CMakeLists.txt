@@ -60,3 +60,9 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 endif()
+
+if(${CGAL_FOUND} AND ${VTK_FOUND})
+    add_executable(cgal_mesh_tetmesh cgal_mesh_tetmesh.cpp )
+    target_link_libraries(cgal_mesh_tetmesh PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES})
+endif()
