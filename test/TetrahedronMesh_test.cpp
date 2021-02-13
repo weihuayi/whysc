@@ -59,7 +59,9 @@ int main(int argc, char **argv)
     }
 
     Writer writer(&mesh);
-    writer.write();
+    writer.set_points();
+    writer.set_cells();
+    writer.write("test.vtu");
 
     return 0;
 }

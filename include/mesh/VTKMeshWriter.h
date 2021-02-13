@@ -83,6 +83,7 @@ public:
         m_ugrid->SetPoints(m_points);
     }
 
+
     void set_cells()
     {
         auto NC = m_mesh->number_of_cells();
@@ -102,10 +103,24 @@ public:
         m_ugrid->SetCells(m_mesh->vtk_cell_type(), cellArray);
     }
 
-    void write(const std::sring fname = "test.vtu")
+    template<typename Data>
+    void set_point_data(Data data)
+    {
+        auto pdata = m_ugrid->GetPointData();
+        pdata->AddArray(data);
+    }
+
+    template<typename Data>
+    void set_cell_data(Data data)
+    {
+        auto cdata = m_ugrid->GetCellData();
+        cdata->AddArray(data);
+    }
+
+    void write(const std::string & fname)
     {
         m_writer->SetFileName(fname.c_str());
-        m_writer->SetInputData(unstructuredGrid);
+        m_writer->SetInputData(m_ugrid);
         m_writer->Write();
     }
 

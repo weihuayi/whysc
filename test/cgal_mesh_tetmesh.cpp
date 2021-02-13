@@ -7,6 +7,9 @@
 #include <CGAL/make_mesh_3.h>
 #include <metis.h>
 
+#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
+
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TetrahedronMesh.h"
 #include "mesh/MeshFactory.h"
@@ -60,12 +63,10 @@ int main()
     Toplogy node2node;
     mesh.node_to_node(node2node);
 
-    std::cout << sizeof(idx_t) << sizeof(int) << std::endl;
-
-
-
     Writer writer(&mesh);
-    writer.write();
+    writer.set_points();
+    writer.set_cells();
+    writer.write("test.vtu");
     return 0;
 }
 
