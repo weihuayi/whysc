@@ -108,9 +108,14 @@ public:
         return 3;
     }
 
-    I vtk_cell_type()
+    I vtk_cell_type(int TD=3)
     {
-        return 10; // VTK_TETRA = 10
+        if(TD == 3)
+            return 10; // VTK_TETRA = 10
+        else if(TD == 2)
+            return 5; // VTK_TRIANGLE
+        else if(TD == 1)
+            return 3; // VTK_LINE
     }
 
     /*
@@ -470,6 +475,90 @@ public:
             m_face2cell.clear();
             m_cell2face.clear();
             init_top(); 
+        }
+    }
+
+    void cell_to_node(Toplogy & top)
+    {
+        auto NC = number_of_cells();
+        auto NN = number_of_nodes();
+        auto nn = number_of_vertices_of_each_cell();
+
+        top.init(3, 0, NC, NN);
+
+        auto & loc = top.locations();
+        loc.resize(NC+1, 0);
+        auto & nei = top.neighbors();
+        nei.resize(NC*nn);
+
+        for(I i = 0; i < NC; i++)
+        {
+            loc[i+1] = loc[i] + nn;
+            nei[nn*i] = m_cell[i][0];
+            nei[nn*i + 1] = m_cell[i][1];
+            nei[nn*i + 2] = m_cell[i][2];
+            nei[nn*i + 3] = m_cell[i][3];
+        }
+    }
+
+    void cell_to_cell(Toplogy & top)
+    {
+
+        auto NC = number_of_cells();
+        auto NF = number_of_faces();
+        top.init(3, 3, NC, NC);
+        auto & loc = top.locations();
+        loc.resize(NC+1, 0);
+        for(I i=0; i < NF; i++)
+        {
+            loc[m_face2cell[i][0]+1] += 1;
+            if(m_face2cell[i][0] != m_face2cell[i][1])
+            {
+                loc[m_face2cell[i][1]+1] += 1;
+            }
+        }
+        for(I i=0; i < NC; i++)
+        {
+            loc[i+1] += loc[i];
+        }
+
+        auto & nei = top.neighbors();
+        nei.resize(loc[NC]);
+        std::vector<I> start = loc;
+        for(I i = 0; i < NF; i++)
+        {
+            nei[start[m_face2cell[i][0]]++] = m_face2cell[i][1];
+            if(m_face2cell[i][0] != m_face2cell[i][1])
+            {
+                nei[start[m_face2cell[i][1]]++] = m_face2cell[i][0];
+            }
+        }
+    }
+
+    void node_to_node(Toplogy & top)
+    {
+        auto NN = number_of_nodes();
+        auto NE = number_of_edges();
+        top.init(3, 3, NN, NN);
+        auto & loc = top.locations();
+        loc.resize(NN+1, 0);
+        for(I i=0; i < NE; i++)
+        {
+            loc[m_edge[i][0]+1] += 1;
+            loc[m_edge[i][1]+1] += 1;
+        }
+        for(I i=0; i < NN; i++)
+        {
+            loc[i+1] += loc[i];
+        }
+
+        auto & nei = top.neighbors();
+        nei.resize(loc[NN]);
+        std::vector<I> start(loc);
+        for(I i = 0; i < NE; i++)
+        {
+            nei[start[m_edge[i][0]]++] = m_edge[i][1];
+            nei[start[m_edge[i][1]]++] = m_edge[i][0];
         }
     }
 

@@ -21,6 +21,11 @@ public:
 
     MeshToplogy(I TA, I TB, I NA, I NB)
     {
+        init(TA, TB, NA, NB);
+    }
+
+    void init(I TA, I TB, I NA, I NB)
+    {
         m_TA = TA;
         m_TB = TB;
         m_NA = NA;
@@ -28,10 +33,25 @@ public:
         m_location.resize(m_NA+1);
     }
 
+    Container & neighbors()
+    {
+        return m_neighbor;
+    }
+
+    Container & local_indices()
+    {
+        return m_localidx;
+    }
+
+    Container & locations()
+    {
+        return m_location;
+    }
+
 private:
     Container m_neighbor; // 存储每个 A 实体相邻的 B 实体编号
     Container m_localidx; // 存储每个 A 实体在相邻的 B 实体中的局部编号 
-    Container m_location; //
+    Container m_location; //  
     I m_TA; // A 实体的拓扑维数
     I m_TB; // B 实体的拓扑维数
     I m_NA; // the number of A entity

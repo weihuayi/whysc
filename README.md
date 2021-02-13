@@ -58,3 +58,8 @@ an additional package dedicated to my C++ scientific computing program.
 * nn : the local number of nodes on a cell
 * ne : the local number of edges on a cell
 * nf : the local number of faces on a cell
+
+
+##
+
+https://people.math.sc.edu/Burkardt/cpp_src/metis_test/metis_test.cpp

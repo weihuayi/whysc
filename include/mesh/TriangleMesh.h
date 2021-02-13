@@ -19,10 +19,13 @@ namespace Mesh {
  *  实体, 这里 face 实体即为 edge 实体.
  *
  */
-template<typename GK, typename Node, typename Vector>
+template<typename GK, typename NODE, typename VECTOR>
 class TriangleMesh 
 {
 public:
+    typedef NODE Node;
+    typedef VECTOR Vector;
+
     typedef typename GK::Int I;
     typedef typename GK::Float F;
 
@@ -91,6 +94,14 @@ public:
         return m_edge.size();
     }
 
+    I vtk_cell_type(int TD=2)
+    {
+        if(TD == 2)
+            return 5; // VTK_TRIANGLE
+        else if(TD == 1)
+            return 3; // VTK_LINE
+    }
+
     int geo_dimension()
     {
         return Node::dimension();
@@ -155,6 +166,64 @@ public:
             auto j = m_edge2cell[i][2];
             m_edge[i][0] = c[m_localedge[j][0]];
             m_edge[i][1] = c[m_localedge[j][1]];
+        }
+    }
+
+    void cell_to_cell(Toplogy & top)
+    {
+        auto NC = number_of_cells();
+        auto NE = number_of_edges();
+        auto & loc = top.locations();
+        loc.resize(NC+1, 0);
+        for(I i=0; i < NE; i++)
+        {
+            loc[m_edge2cell[i][0]+1] += 1;
+            if(m_edge2cell[i][0] != m_edge2cell[i][1])
+            {
+                loc[m_edge2cell[i][1]+1] += 1;
+            }
+        }
+        for(I i=0; i < NC; i++)
+        {
+            loc[i+1] += loc[i];
+        }
+
+        auto & nei = top.neighbors();
+        nei.resize(loc[NC]);
+        std::vector<I> start = loc;
+        for(I i = 0; i < NE; i++)
+        {
+            nei[start[m_edge2cell[i][0]]++] = m_edge2cell[i][1];
+            if(m_edge2cell[i][0] != m_edge2cell[i][1])
+            {
+                nei[start[m_edge2cell[i][1]]++] = m_edge2cell[i][0];
+            }
+        }
+    }
+
+    void node_to_node(Toplogy & top)
+    {
+        auto NN = number_of_nodes();
+        auto NE = number_of_edges();
+        auto & loc = top.locations();
+        loc.resize(NN+1, 0);
+        for(I i=0; i < NE; i++)
+        {
+            loc[m_edge[i][0]+1] += 1;
+            loc[m_edge[i][1]+1] += 1;
+        }
+        for(I i=0; i < NN; i++)
+        {
+            loc[i+1] += loc[i];
+        }
+
+        auto & nei = top.neighbors();
+        nei.resize(loc[NN]);
+        std::vector<I> start(loc);
+        for(I i = 0; i < NE; i++)
+        {
+            nei[start[m_edge[i][0]]++] = m_edge[i][1];
+            nei[start[m_edge[i][1]]++] = m_edge[i][0];
         }
     }
 

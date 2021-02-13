@@ -5,17 +5,19 @@
 #include <CGAL/Mesh_criteria_3.h>
 #include <CGAL/Labeled_mesh_domain_3.h>
 #include <CGAL/make_mesh_3.h>
+#include <metis.h>
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TetrahedronMesh.h"
-#include "mesh/VTKMeshWriter.h"
 #include "mesh/MeshFactory.h"
+#include "mesh/VTKMeshWriter.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef TetMesh::Cell Cell;
+typedef TetMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
@@ -51,6 +53,16 @@ int main()
     TetMesh mesh;
 
     MF::c3t3_to_tetmesh(c3t3, mesh);
+
+    Toplogy cell2cell;
+    mesh.cell_to_cell(cell2cell);
+
+    Toplogy node2node;
+    mesh.node_to_node(node2node);
+
+    std::cout << sizeof(idx_t) << sizeof(int) << std::endl;
+
+
 
     Writer writer(&mesh);
     writer.write();
