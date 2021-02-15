@@ -67,6 +67,12 @@ public:
         return m_data[0]*w[0] + m_data[1]*w[1] +  m_data[2]*w[2];
     }
 
+    template<class RVector_3>
+    F dot (const RVector_3 & w)
+    {
+        return m_data[0]*w[0] + m_data[1]*w[1] +  m_data[2]*w[2];
+    }
+
     Vector_3<F> & operator *= (const F & s)
     {
         for(int d = 0; d < 3; d++)
@@ -123,7 +129,7 @@ inline Vector_3<F>  cross(const Vector_3<F> & v, const Vector_3<F> & w)
 template<typename F>
 inline F  dot(const Vector_3<F> & v, const Vector_3<F> & w)
 {
-    return v[0]*w[0] + v[1]*w[1] + v[2]*v[2];
+    return v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
 }
 
 template<typename F>

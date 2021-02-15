@@ -1,6 +1,8 @@
 #ifndef MeshFactory_h
 #define MeshFactory_h
 
+#include <cmath>
+#include <string>
 #include <unordered_map>
 
 namespace WHYSC {
@@ -10,6 +12,60 @@ class MeshFactory
 {
 
 public:
+    template<typename TetMesh>
+    static void cube_tetrahedron_mesh(TetMesh & mesh)
+    {
+        typedef typename TetMesh::Node Node;
+        typedef typename TetMesh::Cell Cell;
+        mesh.insert(Node{0.0, 0.0, 0.0});
+        mesh.insert(Node{1.0, 0.0, 0.0});
+        mesh.insert(Node{1.0, 1.0, 0.0});
+        mesh.insert(Node{0.0, 1.0, 0.0});
+        mesh.insert(Node{0.0, 0.0, 1.0});
+        mesh.insert(Node{1.0, 0.0, 1.0});
+        mesh.insert(Node{1.0, 1.0, 1.0});
+        mesh.insert(Node{0.0, 1.0, 1.0});
+
+        mesh.insert(Cell{0, 1, 2, 6});
+        mesh.insert(Cell{0, 5, 1, 6});
+        mesh.insert(Cell{0, 4, 5, 6});
+        mesh.insert(Cell{0, 7, 4, 6});
+        mesh.insert(Cell{0, 3, 7, 6});
+        mesh.insert(Cell{0, 2, 3, 6});
+        mesh.init_top();
+        return;
+    }
+
+    template<typename TetMesh>
+    static void one_tetrahedron_mesh(TetMesh & mesh, const std::string type="equ")
+    {
+        typedef typename TetMesh::Node Node;
+        typedef typename TetMesh::Cell Cell;
+        auto & nodes = mesh.nodes();
+        nodes.reserve(4);
+
+        if(type == "equ")
+        {
+            nodes.push_back(Node{0.0, 0.0, 0.0});
+            nodes.push_back(Node{1.0, 0.0, 0.0});
+            nodes.push_back(Node{0.5, std::sqrt(3.0)/2.0, 0.0});
+            nodes.push_back(Node{0.5, std::sqrt(3.0)/6.0, std::sqrt(2.0/3.0)}); 
+        }
+        else if(type == "iso")
+        {
+            nodes.push_back(Node{0.0, 0.0, 0.0});
+            nodes.push_back(Node{1.0, 0.0, 0.0});
+            nodes.push_back(Node{0.0, 1.0, 0.0});
+            nodes.push_back(Node{0.0, 0.0, 1.0}); 
+        }
+
+        auto & cells = mesh.cells();
+        cells.reserve(1);
+        cells.push_back(Cell{0, 1, 2, 3});
+        mesh.init_top();
+        return;
+    }
+
     template<typename C3T3,  typename TetMesh>
     static void c3t3_to_tetmesh(C3T3 & c3t3, TetMesh & mesh)
     {

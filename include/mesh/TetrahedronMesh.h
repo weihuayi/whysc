@@ -29,6 +29,7 @@ public:
     typedef typename GK::Float F;
 
 
+
     // 实体类型
     typedef typename std::array<I, 2> Edge;
     typedef typename std::array<I, 3> Face;
@@ -44,7 +45,7 @@ public:
 
     // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
     // 共享一条边的单元个数也是不固定的
-    typedef MeshToplogy<I> Toplogy;
+    typedef MeshToplogy<I, std::vector<I> > Toplogy;
 
     // 迭代子类型
     typedef typename std::vector<Node>::iterator Node_iterator;
@@ -88,27 +89,27 @@ public:
         return m_edge.size();
     }
 
-    static int number_of_nodes_of_each_cell()
+    static I number_of_nodes_of_each_cell()
     {
         return 4;
     }
 
-    static int number_of_vertices_of_each_cell()
+    static I number_of_vertices_of_each_cell()
     {
         return 4;
     }
 
-    static int geo_dimension()
+    static I geo_dimension()
     {
         return 3;
     }
 
-    static int top_dimension()
+    static I top_dimension()
     {
         return 3;
     }
 
-    I vtk_cell_type(int TD=3)
+    I vtk_cell_type(I TD=3)
     {
         if(TD == 3)
             return 10; // VTK_TETRA = 10
@@ -202,22 +203,33 @@ public:
     }
 
 
+    F cell_quality(const I i)
+    {
+        auto s = cell_surface_area(i);
+        auto d = direction(i, 0);
+        auto l = std::sqrt(d.squared_length());
+        auto vol = cell_measure(i);
+        auto R = l/vol/12.0;
+        auto r = 3.0*vol/s;
+        return R/r/3.0;
+    }
+
+
     void cell_quality(std::vector<F> & q)
     {
         auto NC = number_of_cells();
         q.resize(NC);
-        std::vector<F> f;
-        face_measure(f);
         for(I i = 0; i < NC; i++)
-        {
-            auto s = f[m_cell2face[i][0]] + f[m_cell2face[i][1]] + f[m_cell2face[i][2]] + f[m_cell2face[i][3]];
-            auto d = direction(i, 0);
-            auto l = std::sqrt(d.squared_length());
-            auto vol = cell_measure(i);
-            auto R = l/vol/12.0;
-            auto r = 3.0*vol/s;
-            q[i] = R/r/3.0;
-        }
+            q[i] = cell_quality(i);
+    }
+
+    F cell_surface_area(const I i)
+    {
+        auto s = face_measure(m_cell2face[i][0]);
+        s += face_measure(m_cell2face[i][1]);
+        s += face_measure(m_cell2face[i][2]);
+        s += face_measure(m_cell2face[i][3]);
+        return s;
     }
 
     Vector direction(const I i, const I j)
@@ -236,6 +248,45 @@ public:
         v3 *= v30.squared_length();
 
         return v1 + v2 + v3;
+    }
+
+    void cell_dihedral_angle(F & max, F & min)
+    {
+        auto NC = number_of_cells();
+        max = 0.0;
+        min = 1e+10;
+        for(I i=0; i < NC; i++)
+        {
+            cell_dihedral_angle(i, max, min);
+        }
+    }
+
+    void cell_dihedral_angle(const I i, F & max, F & min)
+    {
+        std::array<Vector, 4> ns;
+        for(I j = 0; j < 4; j++)
+        {
+            auto v0 = m_node[m_cell[i][m_localface[j][1]]] - m_node[m_cell[i][m_localface[j][0]]];
+            auto v1 = m_node[m_cell[i][m_localface[j][2]]] - m_node[m_cell[i][m_localface[j][0]]];
+            ns[j] = cross(v0, v1);
+            ns[j] /= std::sqrt(ns[j].squared_length());
+        }
+        auto PI = GK::pi();
+        for(I j = 0; j < 4; j++)
+            for(I k = j+1; k < 4; k++)
+            {
+                F a = PI - std::acos(dot(ns[j], ns[k])); 
+                a /= PI;
+                a *= 180;
+                if( max < a)
+                {
+                    max = a;
+                }
+                if( min > a)
+                {
+                    min = a;
+                }
+            }
     }
 
 
@@ -361,10 +412,10 @@ public:
     F cell_measure(const I i)
     {
         auto & c = m_cell[i];
-        auto v1 = m_node[c[1]] - m_node[c[0]];
-        auto v2 = m_node[c[2]] - m_node[c[0]];
-        auto v3 = m_node[c[3]] - m_node[c[0]];
-        return dot(cross(v1, v2), v3)/6.0;
+        auto v01 = m_node[c[1]] - m_node[c[0]];
+        auto v02 = m_node[c[2]] - m_node[c[0]];
+        auto v03 = m_node[c[3]] - m_node[c[0]];
+        return dot(cross(v01, v02), v03)/6.0;
     }
 
     void cell_measure(std::vector<F> & measure)
@@ -402,7 +453,7 @@ public:
         return Node(x, y, z);
     }
 
-    void uniform_refine(const int n=1)
+    void uniform_refine(const I n=1)
     {
         for(I i=0; i < n; i++)
         {

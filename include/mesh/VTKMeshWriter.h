@@ -112,9 +112,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(int i = 0; i < n; i++)
+        for(I i = 0; i < n; i++)
         {
-            for(int j = 0; j < ncomponents; j ++)
+            for(I j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetPointData()->AddArray(vtkdata);
@@ -122,14 +122,14 @@ public:
 
     void set_cell_data(std::vector<int> & data, int ncomponents, const std::string name)
     {
-        auto n = data.size()/ncomponents;
+        size_t n = data.size()/ncomponents;
         auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(int i = 0; i < n; i++)
+        for(I i = 0; i < n; i++)
         {
-            for(int j = 0; j < ncomponents; j ++)
+            for(I j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetCellData()->AddArray(vtkdata);
@@ -142,9 +142,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(int i = 0; i < n; i++)
+        for(I i = 0; i < n; i++)
         {
-            for(int j = 0; j < ncomponents; j ++)
+            for(I j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetPointData()->AddArray(vtkdata);
@@ -157,9 +157,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(int i = 0; i < n; i++)
+        for(I i = 0; i < n; i++)
         {
-            for(int j = 0; j < ncomponents; j ++)
+            for(I j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetCellData()->AddArray(vtkdata);

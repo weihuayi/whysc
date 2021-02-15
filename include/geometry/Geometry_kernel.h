@@ -1,6 +1,8 @@
 #ifndef Geometry_kernel_h
 #define Geometry_kernel_h
 
+#include <cstddef>
+
 #include "Point_2.h"
 #include "Vector_2.h"
 #include "Point_3.h"
@@ -18,6 +20,7 @@ template<typename F=double, typename I=int>
 class Geometry_kernel_base
 {
 public:
+    typedef std::size_t size_t;
     typedef F Float;
     typedef I Int;
     typedef typename GeometryObject::Point_2<F> Point_2;
