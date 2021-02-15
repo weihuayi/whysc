@@ -57,15 +57,45 @@ int main()
 
     MF::c3t3_to_tetmesh(c3t3, mesh);
 
-    Toplogy cell2cell;
-    mesh.cell_to_cell(cell2cell);
+    //Toplogy cell2cell;
+    //mesh.cell_to_cell(cell2cell);
 
-    Toplogy node2node;
-    mesh.node_to_node(node2node);
+    //Toplogy node2node;
+    //mesh.node_to_node(node2node);
+    //
+    Toplogy cell2node;
+    mesh.cell_to_node(cell2node);
+
+    idx_t ne = mesh.number_of_cells();
+    idx_t nn = mesh.number_of_nodes();
+    idx_t ncommon = 3; // 四面体共享三个顶点
+    idx_t nparts = 2;
+    idx_t objval;
+    std::vector<int> epart(ne);
+    std::vector<int> npart(nn);
+
+    int r = METIS_PartMeshDual(&ne, &nn, cell2node.locations().data(), cell2node.neighbors().data(),
+            NULL, NULL, &ncommon, &nparts, 
+            NULL, NULL, &objval, epart.data(), 
+            npart.data());
+
+    //int r = METIS_PartMeshDual(idx_t *ne, idx_t *nn, idx_t *eptr, idx_t *eind,
+    //                  idx_t *vwgt, idx_t *vsize, idx_t *ncommon, idx_t *nparts, 
+    //                 real_t *tpwgts, idx_t *options, idx_t *objval, idx_t *epart, 
+    //                 idx_t *npart);
+
+    r = METIS_PartMeshNodal(&ne, &nn, cell2node.locations().data(), cell2node.neighbors().data(),
+            NULL, NULL, &nparts, NULL,
+            NULL, &objval, epart.data(), npart.data());
+    //METIS_API(int) METIS_PartMeshNodal(idx_t *ne, idx_t *nn, idx_t *eptr, idx_t *eind,
+    //                  idx_t *vwgt, idx_t *vsize, idx_t *nparts, real_t *tpwgts, 
+    //                 idx_t *options, idx_t *objval, idx_t *epart, idx_t *npart);
 
     Writer writer(&mesh);
     writer.set_points();
     writer.set_cells();
+    writer.set_cell_data(epart, 1, "CID");
+    writer.set_point_data(npart, 1, "NID");
     writer.write("test.vtu");
     return 0;
 }

@@ -60,6 +60,7 @@ an additional package dedicated to my C++ scientific computing program.
 * nf : the local number of faces on a cell
 
 
-##
+## Reference
 
 https://people.math.sc.edu/Burkardt/cpp_src/metis_test/metis_test.cpp
+https://github.com/YingzhouLi/metismex/blob/master/src/METIS_Parameters.m

@@ -113,9 +113,11 @@ public:
         if(TD == 3)
             return 10; // VTK_TETRA = 10
         else if(TD == 2)
-            return 5; // VTK_TRIANGLE
+            return 5; // VTK_TRIANGLE = 5
         else if(TD == 1)
-            return 3; // VTK_LINE
+            return 3; // VTK_LINE = 1
+        else
+            return 0; // VTK_EMPLTY_CELL = 0
     }
 
     /*

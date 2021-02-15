@@ -1,6 +1,8 @@
 #ifndef VTKMeshWriter_h
 #define VTKMeshWriter_h
 
+#include <vtkCellData.h>
+#include <vtkPointData.h>
 #include <vtkCellArray.h>
 #include <vtkNew.h>
 #include <vtkPoints.h>
@@ -88,7 +90,7 @@ public:
     {
         auto NC = m_mesh->number_of_cells();
         auto nn = m_mesh->number_of_nodes_of_each_cell();
-        vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
+        auto cellArray = vtkSmartPointer<vtkCellArray>::New();
         cellArray->AllocateExact(NC, NC*nn); 
         for(auto it=m_mesh->cell_begin(); it != m_mesh->cell_end(); it++)
         {
@@ -103,19 +105,66 @@ public:
         m_ugrid->SetCells(m_mesh->vtk_cell_type(), cellArray);
     }
 
-    template<typename Data>
-    void set_point_data(Data data)
+    void set_point_data(std::vector<int> & data, int ncomponents, const std::string name)
     {
-        auto pdata = m_ugrid->GetPointData();
-        pdata->AddArray(data);
+        auto n = data.size()/ncomponents;
+        auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
+        vtkdata->SetNumberOfComponents(ncomponents);
+        vtkdata->SetNumberOfTuples(n);
+        vtkdata->SetName(name.c_str());
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < ncomponents; j ++)
+                vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
+        }
+        m_ugrid->GetPointData()->AddArray(vtkdata);
     }
 
-    template<typename Data>
-    void set_cell_data(Data data)
+    void set_cell_data(std::vector<int> & data, int ncomponents, const std::string name)
     {
-        auto cdata = m_ugrid->GetCellData();
-        cdata->AddArray(data);
+        auto n = data.size()/ncomponents;
+        auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
+        vtkdata->SetNumberOfComponents(ncomponents);
+        vtkdata->SetNumberOfTuples(n);
+        vtkdata->SetName(name.c_str());
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < ncomponents; j ++)
+                vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
+        }
+        m_ugrid->GetCellData()->AddArray(vtkdata);
     }
+
+    void set_point_data(std::vector<double> & data, int ncomponents, const std::string name)
+    {
+        auto n = data.size()/ncomponents;
+        auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
+        vtkdata->SetNumberOfComponents(ncomponents);
+        vtkdata->SetNumberOfTuples(n);
+        vtkdata->SetName(name.c_str());
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < ncomponents; j ++)
+                vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
+        }
+        m_ugrid->GetPointData()->AddArray(vtkdata);
+    }
+
+    void set_cell_data(std::vector<double> & data, int ncomponents, const std::string name)
+    {
+        auto n = data.size()/ncomponents;
+        auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
+        vtkdata->SetNumberOfComponents(ncomponents);
+        vtkdata->SetNumberOfTuples(n);
+        vtkdata->SetName(name.c_str());
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < ncomponents; j ++)
+                vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
+        }
+        m_ugrid->GetCellData()->AddArray(vtkdata);
+    }
+
 
     void write(const std::string & fname)
     {

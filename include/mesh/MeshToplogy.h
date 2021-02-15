@@ -38,14 +38,14 @@ public:
         return m_neighbor;
     }
 
-    Container & local_indices()
-    {
-        return m_localidx;
-    }
-
     Container & locations()
     {
         return m_location;
+    }
+
+    Container & local_indices()
+    {
+        return m_localidx;
     }
 
 private:
