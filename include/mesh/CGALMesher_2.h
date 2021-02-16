@@ -25,6 +25,7 @@ public:
   template<typename Box, typename TriMesh>
   static void boxmesh2d(Box & box, TriMesh & mesh)
   {
+    CDT cdt;
   }
 };
 
