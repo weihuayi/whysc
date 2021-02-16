@@ -1,5 +1,5 @@
-#ifndef TriangleMesh_h
-#define TriangleMesh_h
+#ifndef QuadMesh_h
+#define QuadMesh_h
 
 #include <vector>
 #include <array>
@@ -15,12 +15,12 @@ namespace Mesh {
  *
  * Notes
  * -----
- *  三角形网格类, 用 std::vector 做为容器, 用整数数组代表 edge, face, 和 cell
+ *  非结构四边形网格类, 用 std::vector 做为容器, 用整数数组代表 edge, face, 和 cell
  *  实体, 这里 face 实体即为 edge 实体.
  *
  */
 template<typename GK, typename NODE, typename VECTOR>
-class TriangleMesh 
+class QuadMesh 
 {
 public:
   typedef NODE Node;
@@ -29,14 +29,14 @@ public:
   typedef typename GK::Int I;
   typedef typename GK::Float F;
 
-  typedef typename std::array<I, 3> Cell;
+  typedef typename std::array<I, 4> Cell;
   typedef typename std::array<I, 2> Edge;
   typedef Edge Face;
 
   typedef typename std::array<I, 4> Edge2cell;
   typedef typename std::array<I, 4> Face2cell;
-  typedef typename std::array<I, 3> Cell2edge;
-  typedef typename std::array<I, 3> Cell2face;
+  typedef typename std::array<I, 4> Cell2edge;
+  typedef typename std::array<I, 4> Cell2face;
 
   // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
   // 共享一条边的单元个数也是不固定的
@@ -48,7 +48,7 @@ public:
   typedef typename std::vector<Face>::iterator Face_iterator;
 
 public:
-  TriangleMesh()
+  QuadMesh()
   {
       m_holes = 1; // 默认一个外部无界区域的洞
       m_genus = 0;
@@ -76,22 +76,22 @@ public:
 
   static int number_of_nodes_of_each_cell()
   {
-      return 3;
+      return 4;
   }
 
   static int number_of_vertices_of_each_cell()
   {
-      return 3;
+      return 4;
   }
 
   static int number_of_edges_of_each_cell()
   {
-      return 3;
+      return 4;
   }
 
   static int number_of_faces_of_each_cell()
   {
-      return 3;
+      return 4;
   }
 
   I number_of_nodes()
@@ -117,7 +117,7 @@ public:
   I vtk_cell_type(int TD=2)
   {
       if(TD == 2)
-          return 5; // VTK_TRIANGLE
+          return 9; // VTK_QUAD
       else if(TD == 1)
           return 3; // VTK_LINE
       else
@@ -139,8 +139,6 @@ public:
    * Notes
    * -----
    *  TODO: 考虑如何在原来拓扑的基础上重建拓扑信息
-   *        原来的边每个变成 2 条, 每个单元内部增加 3 条边
-   *        每个单元变成 4 个单元, 这样会提高程序的效率吗?
    */
   void update_top()
   {
@@ -161,7 +159,7 @@ public:
       // 偏历所有单元
       for(I i = 0; i < m_cell.size(); i++)
       {
-          for(I j = 0; j < 3; j++)
+          for(I j = 0; j < 4; j++)
           {
              auto s = local_edge_index(i, j);
              auto it = idxmap.find(s);
@@ -335,11 +333,17 @@ public:
   }
 
   F cell_measure(const I i)
-  {//TODO: 需要考虑 inline 函数吗?
-    auto & c = m_cell[i];
-    auto v1 = m_node[c[1]] - m_node[c[0]];
-    auto v2 = m_node[c[2]] - m_node[c[0]];
-    return 0.5*cross(v1, v2);
+  {
+    F a=0.0;
+    for(I j=0; j < 4; j++)
+    {
+      auto & p0 = node(m_cell[i][m_localedge[j][0]]);
+      auto & p1 = node(m_cell[i][m_localedge[j][1]]);
+      auto v = p1 - p0;
+      a += p0[0]*v[1];
+      a -= p0[1]*v[0];
+    }
+    return 0.5*a;
   }
 
   void cell_measure(std::vector<F> & measure)
@@ -364,7 +368,6 @@ public:
     node[0] = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
     node[1] = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
   }
-
 
   F edge_measure(const I i)
   {
@@ -486,8 +489,8 @@ private:
   }
 
 private:
-  static int m_localedge[3][2];
-  static int m_localface[3][2];
+  static int m_localedge[4][2];
+  static int m_localface[4][2];
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
   std::vector<Node> m_node;
@@ -499,17 +502,15 @@ private:
 
 
 template<typename GK, typename NODE, typename VECTOR>
-int TriangleMesh<GK, NODE, VECTOR>::m_localedge[3][2] = {
-    {1, 2}, {2, 0}, {0, 1}
+int QuadMesh<GK, NODE, VECTOR>::m_localedge[4][2] = {
+    {0, 1}, {1, 2}, {2, 3}, {3, 0}
 };
 
 template<typename GK, typename NODE, typename VECTOR>
-int TriangleMesh<GK, NODE, VECTOR>::m_localface[3][2] = {
-    {1, 2}, {2, 0}, {0, 1}
+int QuadMesh<GK, NODE, VECTOR>::m_localface[4][2] = {
+    {0, 1}, {1, 2}, {2, 3}, {3, 0}
 };
-
-} // end of namespace Mesh 
+} // end of namespace Mesh
 
 } // end of namespace WHYSC
-
-#endif // end of TriangleMesh_h
+#endif // end of QuadMesh_h

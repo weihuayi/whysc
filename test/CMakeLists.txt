@@ -20,7 +20,6 @@ add_executable(house_test house_test.cpp)
 add_executable(qr_test qr_test.cpp)
 
 
-add_executable(TriangleMesh_test TriangleMesh_test.cpp)
 
 add_executable(MeshGeometry_test MeshGeometry_test.cpp)
 
@@ -57,6 +56,20 @@ if(${VTK_FOUND})
     target_link_libraries(TetrahedronMesh_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
         TARGETS TetrahedronMesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(TriangleMesh_test TriangleMesh_test.cpp)
+    target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS TriangleMesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(QuadMesh_test QuadMesh_test.cpp)
+    target_link_libraries(QuadMesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS QuadMesh_test 
         MODULES ${VTK_LIBRARIES}
     )
 endif()

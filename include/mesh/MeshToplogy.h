@@ -11,6 +11,8 @@ template<typename I, typename Container=std::vector<I> >
 class MeshToplogy
 {
 public:
+  typedef typename Container::iterator Iterator;
+public:
     MeshToplogy()
     {
         m_TA = -1;
@@ -33,6 +35,16 @@ public:
         m_location.resize(m_NA+1);
     }
 
+    I & top_dimension_of_entity_A()
+    {
+      return m_TA;
+    }
+
+    I & top_dimension_of_entity_B()
+    {
+      return m_TB;
+    }
+
     Container & neighbors()
     {
         return m_neighbor;
@@ -46,6 +58,30 @@ public:
     Container & local_indices()
     {
         return m_localidx;
+    }
+
+
+    /*
+     *
+     * Notes
+     * -----
+     *  第 i 个 A 实体相邻的 B 实体数组首地址
+     *
+     */
+    I number_of_neighbors(const I i)
+    {
+      return m_location[i+1] - m_location[i];
+    }
+
+    /*
+     *
+     * Notes
+     *  第 i 个 A 实体相邻的 B 实体数组
+     *
+     */
+    I * neighbors(const I i)
+    {
+      return &m_neighbor[m_location[i]];
     }
 
 private:
