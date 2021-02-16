@@ -398,43 +398,43 @@ public:
 
   void uniform_refine(const int n=1)
   {
-      for(I i=0; i < n; i++)
+    for(I i=0; i < n; i++)
+    {
+      auto NN = number_of_nodes();
+      auto NE = number_of_edges();
+      std::cout << NN << " " << NE << std::endl;
+      m_node.resize(NN + NE);
+      std::cout << m_node.size() << std::endl;
+      for(I j = 0; j < NE; j++)
       {
-          auto NN = number_of_nodes();
-          auto NE = number_of_edges();
-          std::cout << NN << " " << NE << std::endl;
-          m_node.resize(NN + NE);
-          std::cout << m_node.size() << std::endl;
-          for(I j = 0; j < NE; j++)
-          {
-             edge_barycenter(j, m_node[NN+j]); 
-          }
-          auto NC = number_of_cells();
-          m_cell.resize(4*NC);
-          for(I j = 0; j < NC; j++)
-          { //TODO: 考虑不同的排列顺序是否影响程序的效率
-              auto c = m_cell[j]; 
-              m_cell[j][0] = c[0];
-              m_cell[j][1] = m_cell2edge[j][2] + NN;
-              m_cell[j][2] = m_cell2edge[j][1] + NN;
-
-              m_cell[NC + j][0] = c[1];
-              m_cell[NC + j][1] = m_cell2edge[j][0] + NN;
-              m_cell[NC + j][2] = m_cell2edge[j][2] + NN;
-
-              m_cell[2*NC + j][0] = c[2];
-              m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
-              m_cell[2*NC + j][2] = m_cell2edge[j][0] + NN;
-
-              m_cell[3*NC + j][0] = m_cell2edge[j][0] + NN; 
-              m_cell[3*NC + j][1] = m_cell2edge[j][1] + NN;
-              m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
-          }
-          m_edge.clear();
-          m_cell2edge.clear();
-          m_edge2cell.clear();
-          init_top(); 
+         edge_barycenter(j, m_node[NN+j]); 
       }
+      auto NC = number_of_cells();
+      m_cell.resize(4*NC);
+      for(I j = 0; j < NC; j++)
+      { //TODO: 考虑不同的排列顺序是否影响程序的效率
+        auto c = m_cell[j]; 
+        m_cell[j][0] = c[0];
+        m_cell[j][1] = m_cell2edge[j][2] + NN;
+        m_cell[j][2] = m_cell2edge[j][1] + NN;
+
+        m_cell[NC + j][0] = c[1];
+        m_cell[NC + j][1] = m_cell2edge[j][0] + NN;
+        m_cell[NC + j][2] = m_cell2edge[j][2] + NN;
+
+        m_cell[2*NC + j][0] = c[2];
+        m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
+        m_cell[2*NC + j][2] = m_cell2edge[j][0] + NN;
+
+        m_cell[3*NC + j][0] = m_cell2edge[j][0] + NN; 
+        m_cell[3*NC + j][1] = m_cell2edge[j][1] + NN;
+        m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
+      }
+      m_edge.clear();
+      m_cell2edge.clear();
+      m_edge2cell.clear();
+      init_top(); 
+    }
   }
 
   void print()
