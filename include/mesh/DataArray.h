@@ -2,7 +2,7 @@
 #define DataArray_h
 
 #include <vector>
-#inlcude "DataArrayBase.h"
+#include "DataArrayBase.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -16,10 +16,16 @@ public:
   typedef typename VectorType::reference         Reference;
   typedef typename VectorType::const_reference   ConstReference;
   typedef typename VectorType::iterator          Iterator;
-  typedef typename VecotrType::const_iterator    ConstIterator;
+  typedef typename VectorType::const_iterator    ConstIterator;
 
   DataArray(const std::string& name, T t=T()): DataArrayBase(name), m_value(t) {}
 public:
+
+  virtual size_t size()
+  {
+    return m_data.size();
+  }
+
   virtual void reserve(size_t n)
   {
     m_data.reserve(n);
@@ -37,12 +43,12 @@ public:
 
   virtual void reset(size_t idx)
   {
-    data_[idx] = m_value;
+    m_data[idx] = m_value;
   }
 
   bool transfer(const DataArrayBase& other)
   {
-    const DataArray<T>* p = dynamic_cast<const DataArray*>(&other);
+    const DataArray<T>* p = dynamic_cast<const DataArray<T>*>(&other);
     if(p != nullptr){
       std::copy((*p).m_data.begin(), (*p).m_data.end(), m_data.end()-(*p).m_data.size());
       return true;
@@ -52,7 +58,7 @@ public:
 
   bool transfer(const DataArrayBase& other, std::size_t from, std::size_t to)
   {
-    const DataArray<T>* p = dynamic_cast<const DataArray*>(&other);
+    const DataArray<T>* p = dynamic_cast<const DataArray<T>*>(&other);
     if (p != nullptr)
     {
       m_data[to] = (*p)[from];
@@ -64,6 +70,13 @@ public:
   virtual void shrink_to_fit()
   {
     VectorType(m_data).swap(m_data);
+  }
+
+  virtual void swap(size_t i0, size_t i1)
+  {
+    T d(m_data[i0]);
+    m_data[i0] = m_data[i1];
+    m_data[i1] = d;
   }
 
   virtual DataArrayBase * clone() const
@@ -81,10 +94,34 @@ public:
 
   virtual const std::type_info& type() const { return typeid(T);}
 
+public:
+  const T* data() const
+  { // does not work for T==bool
+    return &m_data[0];
+  }
+
+  Reference operator[](std::size_t i)
+  {
+    return m_data[i];
+  }
+
+  ConstReference operator[](std::size_t i) const
+  {
+    return m_data[i];
+  }
+
+  Iterator begin() { return m_data.begin();}
+  Iterator end() {return m_data.end();}
+  ConstIterator begin() const { return m_data.begin();}
+  ConstIterator end() const {return m_data.end();}
+
 private:
   VectorType m_data;
   ValueType m_value;
 };
+
+typedef DataArray<double> DoubleDataArray;
+typedef DataArray<int> IntDataArray;
 
 } // end of namespace Mesh
 

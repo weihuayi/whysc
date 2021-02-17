@@ -1,0 +1,2 @@
+
+add_executable(pure_virtual_function pure_virtual_function.cpp)

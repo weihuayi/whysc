@@ -23,6 +23,8 @@ add_executable(qr_test qr_test.cpp)
 
 add_executable(MeshGeometry_test MeshGeometry_test.cpp)
 
+add_executable(DataArray_test DataArray_test.cpp)
+
 
 # add_executable(test_TriangleMesh test_TriangleMesh.cpp)
 # add_executable(test_Mesh test_Mesh.cpp)
@@ -75,7 +77,9 @@ if(${VTK_FOUND})
 endif()
 
 if(${CGAL_FOUND} AND ${VTK_FOUND})
-    add_executable(cgal_mesh_tetmesh cgal_mesh_tetmesh.cpp )
-    target_link_libraries(cgal_mesh_tetmesh PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_mesh_tetmesh cgal_mesh_tetmesh.cpp )
+    #target_link_libraries(cgal_mesh_tetmesh PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 endif()
+
+add_subdirectory(cpp)
