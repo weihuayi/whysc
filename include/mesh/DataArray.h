@@ -95,6 +95,7 @@ public:
   virtual const std::type_info& type() const { return typeid(T);}
 
 public:
+
   const T* data() const
   { // does not work for T==bool
     return &m_data[0];

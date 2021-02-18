@@ -42,12 +42,12 @@ public:
 
     bool end() {return m_begin == m_end;}
 
-    bool operator==(const ComponentIterator& it)
+    bool operator==(const ComponentIterator& it) const
     {
       return (m_begin == it.m_begin) && (m_end == it.m_end) && (m_csize == m_csize); 
     }
 
-    bool operator!=(const ComponentIterator& it)
+    bool operator!=(const ComponentIterator& it) const
     {
       return (m_begin != it.m_begin) || (m_end != it.m_end) || (m_csize != m_csize);
     }
@@ -68,24 +68,22 @@ public:
 
   virtual void reserve(size_t n)
   {
-    m_data.reserve(n*m_csize);
+    m_data.reserve(n);
   }
 
   virtual void resize(size_t n)
   {
-    m_data.resize(n*m_csize, m_value);
+    m_data.resize(n, m_value);
   }
 
   virtual void push_back()
   {
-    for(int i = 0; i < m_csize; i++)
-      m_data.push_back(m_value);
+    m_data.push_back(m_value);
   }
 
   virtual void reset(size_t idx)
   {
-    for(int i = 0; i < m_csize; i++)
-      m_data[idx*m_csize + i] = m_value;
+    m_data[idx] = m_value;
   }
 
   bool transfer(const DataArrayBase& other)
@@ -116,28 +114,47 @@ public:
 
   virtual void swap(size_t i0, size_t i1)
   {
-    for(int i=0; i < m_csize; i++)
-    {
-      T d(m_data[i0*m_csize + i]);
-      m_data[i0*m_csize + i] = m_data[i1*m_csize + i];
-      m_data[i1*m_csize + i] = d;
-    }
+    T d(m_data[i0]);
+    m_data[i0] = m_data[i1];
+    m_data[i1] = d;
   }
 
   virtual DataArrayBase * clone() const
   {
-    ComponentDataArray<T>* p = new ComponentDataArray<T>(this->m_name, this->m_size, this->m_value); 
+    ComponentDataArray<T>* p = new ComponentDataArray<T>(this->m_name, this->m_csize, this->m_value); 
     p->m_data = m_data;
     return p;
   }
 
   virtual DataArrayBase * empty_clone() const
   {
-    DataArray<T>* p = new DataArray<T>(this->m_name, this->m_size, this->m_value); 
+    ComponentDataArray<T>* p = new ComponentDataArray<T>(this->m_name, this->m_csize, this->m_value); 
     return p;
   }
 
   virtual const std::type_info& type() const { return typeid(T);}
+
+public:
+
+  const T* data() const
+  { // does not work for T==bool
+    return &m_data[0];
+  }
+
+  Reference operator[](std::size_t i)
+  {
+    return m_data[i];
+  }
+
+  ConstReference operator[](std::size_t i) const
+  {
+    return m_data[i];
+  }
+
+  Iterator begin() { return m_data.begin();}
+  Iterator end() {return m_data.end();}
+  ConstIterator begin() const { return m_data.begin();}
+  ConstIterator end() const {return m_data.end();}
 
 public:
 
@@ -146,7 +163,7 @@ public:
     return m_data.size()/m_csize;
   }
 
-  int component_size() { return m_csize;}
+  int component_size(size_t i) { return m_csize;}
 
   ComponentIterator component_begin()
   {
@@ -158,10 +175,10 @@ public:
     return ComponentIterator(m_data.end(), m_data.end(), m_csize);
   }
 
-  Iterator component_begin(std::size_t i) { return m_data.begin()+i*m_csize;}
-  Iterator component_end(std::size_t i) {return m_data.begin()+(i+1)*m_csize;}
-  ConstIterator component_begin(std::size_t i) const { return m_data.begin()+i*m_csize;}
-  ConstIterator component_end(std::size_t i) const {return m_data.begin()+(i+1)*m_csize;}
+  Iterator component_begin(size_t i) { return m_data.begin()+i*m_csize;}
+  Iterator component_end(size_t i) {return m_data.begin()+(i+1)*m_csize;}
+  ConstIterator component_begin(size_t i) const { return m_data.begin()+i*m_csize;}
+  ConstIterator component_end(size_t i) const {return m_data.begin()+(i+1)*m_csize;}
 
 private:
   VectorType m_data;

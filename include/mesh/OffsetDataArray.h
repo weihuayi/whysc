@@ -2,7 +2,7 @@
 #define OffsetDataArray_h
 
 #include <vector>
-#include "DataArrayBase.h"
+#include "DataArray.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -21,45 +21,65 @@ public:
   typedef typename VectorType::const_iterator    ConstIterator;
 
   typedef std::vector<Index> OffsetType;
+  typedef typename OffsetType::iterator OffsetIterator;
+  typedef typename OffsetType::const_iterator ConstOffsetIterator;
 
-  class OffsetIterator
+  class ComponentIterator
   {
-  public:
-    OffsetIterator(VectorType * data, OffsetType * offset):m_begin(begin), m_end(end), m_off(dataend) {}
-    ~OffsetIterator(){}
+  public://注意这里的 offset_end 要指向 offset 数组的最后一个元素
+    ComponentIterator(OffsetIterator offset_it, OffsetIterator offset_last, Iterator data_begin):
+      m_offset_it(offset_it), m_offset_last(offset_last), m_data_begin(data_begin) {}
+    ~ComponentIterator(){}
 
     void operator++() // prefix
     {
-      m_begin += m_csize;
+      ++m_offset_it;
     }
 
     void operator++(int) //postfix
     {
-      m_begin += m_csize;
+      m_offset_it++;
+    }
+
+    bool end() {return m_offset_it == m_offset_last;}
+
+    size_t size()
+    {
+      return *(m_offset_it+1) - *(m_offset_it);
     }
 
     Reference operator[](std::size_t i)
-    {// 0 <= i < m_csize
-      return *(m_begin + i);
-    }
-
-    bool end() {return m_begin == m_end;}
-
-    bool operator==(const ComponentIterator& it)
     {
-      return (m_begin == it.m_begin) && (m_end == it.m_end) && (m_csize == m_csize); 
+      return m_data_begin[*m_offset_it + i];
     }
 
-    bool operator!=(const OffsetIterator& it)
+    Iterator component_begin()
     {
-      return (m_begin != it.m_begin) || (m_end != it.m_end) || (m_csize != m_csize);
+      return m_data_begin[*m_offset_it];
     }
+
+    Iterator component_end()
+    {
+      return m_data_begin[*(m_offset_it + 1)];
+    }
+
+    bool operator==(const ComponentIterator& it) const
+    {
+      return (m_offset_it == it.m_offset_it) && (m_offset_last == it.m_offset_last) && (m_data_begin == m_data_begin); 
+    }
+
+    bool operator!=(const ComponentIterator& it) const
+    {
+      return (m_offset_it != it.m_offset_it) || (m_offset_last != it.m_offset_last) || (m_data_begin != m_data_begin); 
+    }
+
   private:
-    Iterator m_begin;
-    OffsetType* m_offset;
+    OffsetIterator m_offset_it;
+    OffsetIterator m_offset_last;
+    Iterator m_data_begin;
   };
 
-  ComponentDataArray(const std::string& name, int csize=1, T t=T()): DataArrayBase(name), m_value(t), m_csize(csize) {}
+  OffsetDataArray(const std::string& name, T t=T()): DataArrayBase(name), m_value(t) {}
 
 public:
 
@@ -70,30 +90,29 @@ public:
 
   virtual void reserve(size_t n)
   {
-    m_data.reserve(n*m_csize);
+    m_data.reserve(n);
   }
 
   virtual void resize(size_t n)
   {
-    m_data.resize(n*m_csize, m_value);
+    m_data.resize(n, m_value);
   }
 
   virtual void push_back()
   {
-    for(int i = 0; i < m_csize; i++)
-      m_data.push_back(m_value);
+    m_data.push_back(m_value);
   }
 
   virtual void reset(size_t idx)
   {
-    for(int i = 0; i < m_csize; i++)
-      m_data[idx*m_csize + i] = m_value;
+    m_data[idx] = m_value;
   }
 
   bool transfer(const DataArrayBase& other)
   {
-    const ComponentDataArray<T>* p = dynamic_cast<const ComponentDataArray<T>*>(&other);
-    if(p != nullptr){
+    const OffsetDataArray<T>* p = dynamic_cast<const OffsetDataArray<T>*>(&other);
+    if(p != nullptr)
+    {
       std::copy((*p).m_data.begin(), (*p).m_data.end(), m_data.end()-(*p).m_data.size());
       return true;
     }
@@ -102,7 +121,7 @@ public:
 
   bool transfer(const DataArrayBase& other, std::size_t from, std::size_t to)
   {
-    const ComponentDataArray<T>* p = dynamic_cast<const ComponentDataArray<T>*>(&other);
+    const OffsetDataArray<T>* p = dynamic_cast<const OffsetDataArray<T>*>(&other);
     if (p != nullptr)
     {
       m_data[to] = (*p)[from];
@@ -118,24 +137,22 @@ public:
 
   virtual void swap(size_t i0, size_t i1)
   {
-    for(int i=0; i < m_csize; i++)
-    {
-      T d(m_data[i0*m_csize + i]);
-      m_data[i0*m_csize + i] = m_data[i1*m_csize + i];
-      m_data[i1*m_csize + i] = d;
-    }
+    T d(m_data[i0]);
+    m_data[i0] = m_data[i1];
+    m_data[i1] = d;
   }
 
   virtual DataArrayBase * clone() const
   {
-    ComponentDataArray<T>* p = new ComponentDataArray<T>(this->m_name, this->m_size, this->m_value); 
+    OffsetDataArray<T>* p = new OffsetDataArray<T>(this->m_name, this->m_value); 
     p->m_data = m_data;
+    p->m_offset = m_offset;
     return p;
   }
 
   virtual DataArrayBase * empty_clone() const
   {
-    DataArray<T>* p = new DataArray<T>(this->m_name, this->m_size, this->m_value); 
+    OffsetDataArray<T>* p = new OffsetDataArray<T>(this->m_name, this->m_value); 
     return p;
   }
 
@@ -143,32 +160,52 @@ public:
 
 public:
 
-  size_t number_of_components()
-  {
-    return m_data.size()/m_csize;
+  const T* data() const
+  { // does not work for T==bool
+    return &m_data[0];
   }
 
-  int component_size() { return m_csize;}
+  Reference operator[](std::size_t i)
+  {
+    return m_data[i];
+  }
+
+  ConstReference operator[](std::size_t i) const
+  {
+    return m_data[i];
+  }
+
+  Iterator begin() { return m_data.begin();}
+  Iterator end() {return m_data.end();}
+  ConstIterator begin() const { return m_data.begin();}
+  ConstIterator end() const {return m_data.end();}
+
+public:
+
+  OffsetType& offset() 
+  {
+    return m_offset;
+  }
+
+  size_t number_of_components()
+  {
+    return m_offset.size()-1;
+  }
 
   ComponentIterator component_begin()
   {
-    return ComponentIterator(m_data.begin(), m_data.end(), m_csize);
+    return ComponentIterator(m_offset.begin(), m_offset.end()--, m_data.begin());
   }
 
   ComponentIterator component_end()
   {
-    return ComponentIterator(m_data.end(), m_data.end(), m_csize);
+    return ComponentIterator(m_offset.begin(), m_offset.end()--, m_data.begin());
   }
-
-  Iterator component_begin(std::size_t i) { return m_data.begin()+i*m_csize;}
-  Iterator component_end(std::size_t i) {return m_data.begin()+(i+1)*m_csize;}
-  ConstIterator component_begin(std::size_t i) const { return m_data.begin()+i*m_csize;}
-  ConstIterator component_end(std::size_t i) const {return m_data.begin()+(i+1)*m_csize;}
 
 private:
   VectorType m_data;
+  OffsetType m_offset;
   ValueType m_value;
-  int m_csize; // the size of each component
 };
 
 } // end of namespace Mesh

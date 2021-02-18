@@ -12,82 +12,185 @@ class MeshToplogy
 {
 public:
   typedef typename Container::iterator Iterator;
+
+  class AdjEntitiesIterator
+  {
+  public:
+
+    AdjEntitiesIterator(
+        Iterator offset_it, 
+        Iterator adj_begin,
+        Iterator loc_begin):
+      m_offset_it(offset_it), 
+      m_adj_begin(adj_begin),
+      m_loc_begin(loc_begin) {}
+
+    ~AdjEntitiesIterator(){}
+
+    void operator++() // prefix
+    {
+      ++m_offset_it;
+    }
+
+    void operator++(int) //postfix
+    {
+      m_offset_it++;
+    }
+
+    size_t size()
+    {
+      return *(m_offset_it+1) - *(m_offset_it);
+    }
+
+    Reference operator[](std::size_t i)
+    {
+      return m_adj_begin[*m_offset_it + i];
+    }
+
+    Iterator adj_begin()
+    {
+      return m_adj_begin[*m_offset_it];
+    }
+
+    Iterator adj_end()
+    {
+      return m_adj_begin[*(m_offset_it + 1)];
+    }
+
+    Iterator loc_begin()
+    {
+      return m_loc_begin[*m_offset_it];
+    }
+
+    Iterator loc_end()
+    {
+      return m_loc_begin[*(m_offset_it + 1)];
+    }
+
+    bool operator==(const AdjEntitiesIterator& it) const
+    {
+      return (m_offset_it == it.m_offset_it) && (m_adj_begin == m_adj_begin); 
+    }
+
+    bool operator!=(const AdjEntitiesIterator& it) const
+    {
+      return (m_offset_it != it.m_offset_it) || (m_adj_begin != m_adj_begin); 
+    }
+
+  private:
+    Iterator m_offset_it;
+    Iterator m_adj_begin;
+    Iterator m_loc_begin;
+  };
+
 public:
-    MeshToplogy()
+  MeshToplogy()
+  {
+    m_TA = -1;
+    m_TB = -1;
+    m_NA = 0;
+    m_NB = 0;
+  }
+
+  MeshToplogy(I TA, I TB, I NA, I NB)
+  {
+    init(TA, TB, NA, NB);
+  }
+
+  void init(I TA, I TB, I NA, I NB)
+  {
+    m_TA = TA;
+    m_TB = TB;
+    m_NA = NA;
+    m_NB = NB;
+    m_offset.resize(m_NA+1);
+  }
+
+  I & top_dimension_of_entity_A()
+  {
+    return m_TA;
+  }
+
+  I & top_dimension_of_entity_B()
+  {
+    return m_TB;
+  }
+
+  bool empty()
+  {
+    return (m_TA == -1) || (m_TB == -1) || (m_NA == 0) || (m_NB == 0);
+  }
+
+  void clear()
+  {
+    m_adj.clear();
+    m_loc.clear();
+    m_offset.clear();
+    m_TA = -1;
+    m_TB = -1;
+    m_NA = 0;
+    m_NB = 0;
+  }
+
+public: // new interface
+
+    I number_of_adj_entities(const I i)
     {
-        m_TA = -1;
-        m_TB = -1;
-        m_NA = 0;
-        m_NB = 0;
+      return m_offset[i+1] - m_offset[i];
     }
 
-    MeshToplogy(I TA, I TB, I NA, I NB)
+    I * adj_entities(const I i)
     {
-        init(TA, TB, NA, NB);
+      return &m_adj[m_offset[i]];
     }
 
-    void init(I TA, I TB, I NA, I NB)
+    AdjEntitiesIterator operator[](std::size_t i)
     {
-        m_TA = TA;
-        m_TB = TB;
-        m_NA = NA;
-        m_NB = NB;
-        m_location.resize(m_NA+1);
+      return AdjEntitiesIterator(m_offset.begin()+i, m_adj.begin(), m_loc.begin());
     }
 
-    I & top_dimension_of_entity_A()
+    AdjEntitiesIterator adj_begin()
     {
-      return m_TA;
+      return AdjEntitiesIterator(m_offset.begin(), m_adj.begin(), m_loc.begin());
     }
 
-    I & top_dimension_of_entity_B()
+    AdjEntitiesIterator adj_end()
     {
-      return m_TB;
+      return AdjEntitiesIterator(--m_offset.end(), m_adj.begin(), m_loc.begin());
     }
+
+public: // deprecated interface
 
     Container & neighbors()
     {
-        return m_neighbor;
-    }
-
-    Container & locations()
-    {
-        return m_location;
+        return m_adj;
     }
 
     Container & local_indices()
     {
-        return m_localidx;
+        return m_loc;
     }
 
-
-    /*
-     *
-     * Notes
-     * -----
-     *  第 i 个 A 实体相邻的 B 实体数组首地址
-     *
-     */
-    I number_of_neighbors(const I i)
+    Container & locations()
     {
-      return m_location[i+1] - m_location[i];
+        return m_offset;
     }
 
-    /*
-     *
-     * Notes
-     *  第 i 个 A 实体相邻的 B 实体数组
-     *
-     */
     I * neighbors(const I i)
     {
-      return &m_neighbor[m_location[i]];
+      return &m_adj[m_offset[i]];
     }
 
+    I number_of_neighbors(const I i)
+    {
+      return m_offset[i+1] - m_offset[i];
+    }
+
+
 private:
-    Container m_neighbor; // 存储每个 A 实体相邻的 B 实体编号
-    Container m_localidx; // 存储每个 A 实体在相邻的 B 实体中的局部编号 
-    Container m_location; //  
+    Container m_adj; // 存储每个 A 实体相邻的 B 实体编号
+    Container m_loc; // 存储每个 A 实体在相邻的 B 实体中的局部编号
+    Container m_offset; // 每个 A 实体邻接实体的偏移量 
     I m_TA; // A 实体的拓扑维数
     I m_TB; // B 实体的拓扑维数
     I m_NA; // the number of A entity

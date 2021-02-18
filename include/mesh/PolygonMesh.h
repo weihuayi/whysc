@@ -1,6 +1,8 @@
 #ifndef PolygonMesh_h
 #define PolygonMesh_h
 
+#include "MeshToplogy.h"
+
 namespace WHYSC {
 namespace Mesh {
 
@@ -23,31 +25,26 @@ public:
   typedef typename GK::Int I;
   typedef typename GK::Float F;
 
-
-  class Cells: public MeshToplogy<I>
-  {
-  public:
-    typedef MeshToplogy<I> Base;
-    typedef typename Base::Iterator Iterator;
-  public:
-    Cells():Base(2, 0, 0, 0) { }
-  }
-
-  typedef typename std::array<I, 2> Edge;
-  typedef Edge Face;
-
-  typedef typename std::array<I, 4> Edge2cell;
-  typedef typename std::array<I, 4> Face2cell;
-
-
   // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
   // 共享一条边的单元个数也是不固定的
   typedef MeshToplogy<I> Toplogy;
 
-  typedef typename std::vector<Node>::iterator Node_iterator;
-  typedef typename std::vector<Cell>::iterator Cell_iterator;
-  typedef typename std::vector<Edge>::iterator Edge_iterator;
-  typedef typename std::vector<Face>::iterator Face_iterator;
+  typedef Toplogy CellArray;
+  typedef typename CellArray::AdjEntitiesIterator CellIterator;
+  typedef CellIterator Cell;
+
+  typedef typename std::array<I, 2> Edge;
+  typedef Edge Face;
+  typedef std::vector<Node> NodeArray;
+  typedef std::vector<Edge> EdgeArray;
+  typedef std::vector<Face> FaceArray;
+
+  typedef typename NodeArray::iterator NodeIterator;
+  typedef typename EdgeArray::iterator EdgeIterator;
+  typedef typename FaceArray::iterator FaceIterator;
+
+  typedef typename std::array<I, 4> Edge2cell;
+  typedef typename std::array<I, 4> Face2cell;
 
 public:
   PolygonMesh()
@@ -74,22 +71,22 @@ public:
 
   int number_of_nodes_of_each_cell(const I i)
   {
-      return 4;
+      return m_cell.number_of_adj_entities(i);
   }
 
   int number_of_vertices_of_each_cell(const I i)
   {
-      return 4;
+      return m_cell.number_of_adj_entities(i);
   }
 
   int number_of_edges_of_each_cell(const I i)
   {
-      return 4;
+      return m_cell.number_of_adj_entities(i);
   }
 
   int number_of_faces_of_each_cell(const I i)
   {
-      return 4;
+      return m_cell.number_of_adj_entities(i);
   }
 
   I number_of_nodes()
@@ -481,17 +478,20 @@ private:
    */
   I local_edge_index(I i, I j)
   {
-      I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
-      std::sort(e, e+2);
-      return  e[0] + e[1]*(e[1]+1)/2;
+    auto s = m_cell[i].size();
+    auto j0 = j;
+    auto j1 = (j+1)%s;
+    I e[2] = {m_cell[i][j0], m_cell[i][j1]};
+    std::sort(e, e+2);
+    return  e[0] + e[1]*(e[1]+1)/2;
   }
 
 private:
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
-  std::vector<Node> m_node;
-  std::vector<Edge> m_edge;
-  Toplogy m_cell; 
+  CellArray m_cell; 
+  NodeArray m_node;
+  EdgeArray m_edge;
   std::vector<Edge2cell> m_edge2cell;
 };
 
