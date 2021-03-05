@@ -42,10 +42,22 @@ public:
   // 共享一条边的单元个数也是不固定的
   typedef MeshToplogy<I> Toplogy;
 
-  typedef typename std::vector<Node>::iterator Node_iterator;
-  typedef typename std::vector<Cell>::iterator Cell_iterator;
-  typedef typename std::vector<Edge>::iterator Edge_iterator;
-  typedef typename std::vector<Face>::iterator Face_iterator;
+  typedef std::vector<Node> NodeArray;
+  typedef std::vector<Edge> EdgeArray;
+  typedef std::vector<Face> FaceArray;
+  typedef std::vector<Cell> CellArray;
+
+  typedef typename NodeArray::iterator NodeIterator;
+  typedef typename NodeArray::const_iterator ConstNodeIterator;
+
+  typedef typename EdgeArray::iterator EdgeIterator;
+  typedef typename EdgeArray::const_iterator ConstEdgeIterator;
+
+  typedef typename FaceArray::iterator FaceIterator;
+  typedef typename FaceArray::Constiterator ConstFaceIterator;
+
+  typedef typename CellArray::iterator CellIterator;
+  typedef typename CellArray::const_iterator ConstCellIterator;
 
 public:
   TriangleMesh()
@@ -249,42 +261,42 @@ public:
     }
   }
 
-  Node_iterator node_begin()
+  NodeIterator node_begin()
   {
     return m_node.begin();
   }
 
-  Node_iterator node_end()
+  NodeIterator node_end()
   {
     return m_node.end();
   }
 
-  Edge_iterator edge_begin()
+  EdgeIterator edge_begin()
   {
     return m_edge.begin();
   }
 
-  Edge_iterator edge_end()
+  EdgeIterator edge_end()
   {
     return m_edge.end();
   }
 
-  Face_iterator face_begin()
+  FaceIterator face_begin()
   {
     return m_edge.begin();
   }
 
-  Face_iterator face_end()
+  FaceIterator face_end()
   {
     return m_edge.end();
   }
 
-  Cell_iterator cell_begin()
+  CellIterator cell_begin()
   {
     return m_cell.begin();
   }
 
-  Cell_iterator cell_end()
+  CellIterator cell_end()
   {
     return m_cell.end();
   }

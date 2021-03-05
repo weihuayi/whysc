@@ -11,7 +11,10 @@ template<typename I, typename Container=std::vector<I> >
 class MeshToplogy
 {
 public:
-  typedef typename Container::iterator Iterator;
+  typedef typename Container::reference         Reference;
+  typedef typename Container::const_reference   ConstReference;
+  typedef typename Container::iterator          Iterator;
+  typedef typename Container::const_iterator    ConstIterator;
 
   class AdjEntitiesIterator
   {
