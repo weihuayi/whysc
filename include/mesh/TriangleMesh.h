@@ -54,7 +54,7 @@ public:
   typedef typename EdgeArray::const_iterator ConstEdgeIterator;
 
   typedef typename FaceArray::iterator FaceIterator;
-  typedef typename FaceArray::Constiterator ConstFaceIterator;
+  typedef typename FaceArray::const_iterator ConstFaceIterator;
 
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;

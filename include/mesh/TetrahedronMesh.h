@@ -46,10 +46,22 @@ public:
   typedef MeshToplogy<I, std::vector<I> > Toplogy;
 
   // 迭代子类型
-  typedef typename std::vector<Node>::iterator Node_iterator;
-  typedef typename std::vector<Edge>::iterator Edge_iterator;
-  typedef typename std::vector<Face>::iterator Face_iterator;
-  typedef typename std::vector<Cell>::iterator Cell_iterator;
+  typedef std::vector<Node> NodeArray;
+  typedef std::vector<Edge> EdgeArray;
+  typedef std::vector<Face> FaceArray;
+  typedef std::vector<Cell> CellArray;
+
+  typedef typename NodeArray::iterator NodeIterator;
+  typedef typename NodeArray::const_iterator ConstNodeIterator;
+
+  typedef typename EdgeArray::iterator EdgeIterator;
+  typedef typename EdgeArray::const_iterator ConstEdgeIterator;
+
+  typedef typename FaceArray::iterator FaceIterator;
+  typedef typename FaceArray::const_iterator ConstFaceIterator;
+
+  typedef typename CellArray::iterator CellIterator;
+  typedef typename CellArray::const_iterator ConstCellIterator;
 
 public:
 
@@ -288,42 +300,42 @@ public:
   }
 
 
-  Node_iterator node_begin()
+  NodeIterator node_begin()
   {
       return m_node.begin();
   }
 
-  Node_iterator node_end()
+  NodeIterator node_end()
   {
       return m_node.end();
   }
 
-  Edge_iterator edge_begin()
+  EdgeIterator edge_begin()
   {
       return m_edge.begin();
   }
 
-  Edge_iterator edge_end()
+  EdgeIterator edge_end()
   {
       return m_edge.end();
   }
 
-  Face_iterator face_begin()
+  FaceIterator face_begin()
   {
       return m_face.begin();
   }
 
-  Face_iterator face_end()
+  FaceIterator face_end()
   {
       return m_face.end();
   }
 
-  Cell_iterator cell_begin()
+  CellIterator cell_begin()
   {
       return m_cell.begin();
   }
 
-  Cell_iterator cell_end()
+  CellIterator cell_end()
   {
       return m_cell.end();
   }

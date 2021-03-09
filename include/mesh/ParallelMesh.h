@@ -23,10 +23,10 @@ public:
 
   typedef typename Mesh::Toplogy Toplogy;
 
-  typedef typename Mesh::Node_iterator Node_iterator;
-  typedef typename Mesh::Edge_iterator Edge_iterator;
-  typedef typename Mesh::Face_iterator Face_iterator;
-  typedef typename Mesh::Cell_iterator Cell_iterator;
+  typedef typename Mesh::NodeIterator NodeIterator;
+  typedef typename Mesh::EdgeIterator EdgeIterator;
+  typedef typename Mesh::FaceIterator FaceIterator;
+  typedef typename Mesh::CellIterator CellIterator;
 
 public:
   ParallelMesh(MPI_Comm comm=MPI_COMM_WORLD)
@@ -37,7 +37,7 @@ public:
   }
   
 private:
-  std::vector<I> 
+  std::vector<I> m_data; 
   int m_wsize; // world size
   int m_wrank; // world rank
   MPI_Comm m_comm;

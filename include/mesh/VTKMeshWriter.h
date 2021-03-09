@@ -40,8 +40,8 @@ public:
     typedef typename Mesh::I I;
     typedef typename Mesh::F F;
     typedef typename Mesh::Toplogy Toplogy;
-    typedef typename Mesh::Node_iterator Node_iterator;
-    typedef typename Mesh::Cell_iterator Cell_iterator;
+    typedef typename Mesh::NodeIterator NodeIterator;
+    typedef typename Mesh::CellIterator CellIterator;
 
 
 public:
