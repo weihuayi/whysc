@@ -80,6 +80,13 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     #add_executable(cgal_mesh_tetmesh cgal_mesh_tetmesh.cpp )
     #target_link_libraries(cgal_mesh_tetmesh PRIVATE ${CGAL_LIBRARIES}
     #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
+
+    add_executable(color_test color_test.cpp )
+    message("${CGAL_LIBRARIES}")
+    target_link_libraries(color_test PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+
+
 endif()
 
 add_subdirectory(cpp)
