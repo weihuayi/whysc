@@ -90,21 +90,5 @@ void mesh_coloring(Mesh & mesh, int * color)
         if(num==0){cMax -= 1;}
         c--;
     }
-
-    //检验染色是否正确
-    int a=0;
-    for(int i = 0; i < NN; i++)
-    {
-        for(int j = loc[i]; j < loc[i+1]; j++){
-            if(color[i]==color[nei[j]])
-            {
-                a++;
-            }
-        }
-    }
-    if(a==0)
-        std::cout<< "染色成功" << " " << "最大颜色为:" << cMax <<endl; 
-    else
-        std::cout<< "染色失败" <<endl; 
 };
 
