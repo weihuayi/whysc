@@ -90,8 +90,6 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(surface_generation PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-
-
 endif()
 
 add_subdirectory(cpp)
