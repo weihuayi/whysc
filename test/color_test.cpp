@@ -7,64 +7,38 @@
 //#include <CGAL/make_mesh_3.h>
 //#include <metis.h>
 #include <time.h>
-
-#include <vtkDoubleArray.h>
-#include <vtkIntArray.h>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <iomanip>
+#include <time.h>
 
 #include "geometry/Geometry_kernel.h"
-#include "mesh/TetrahedronMesh.h"
-#include "mesh/MeshFactory.h"
+#include "mesh/TriangleMesh.h"
 #include "mesh/VTKMeshWriter.h"
+#include "mesh/MeshFactory.h"
+#include "mesh/MeshToplogy.h"
 #include "mesh/color.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-typedef GK::Point_3 Node;
-typedef GK::Vector_3 Vector;
-typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
-typedef TetMesh::Cell Cell;
-typedef TetMesh::Toplogy Toplogy;
-typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
+typedef GK::Point_2 Node;
+typedef GK::Vector_2 Vector;
+typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
+typedef TriMesh::Cell Cell;
+typedef TriMesh::Edge Edge;
+typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
+typedef TriMesh::Toplogy Toplogy;
 
-//typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-//typedef K::FT FT;
-//typedef K::Point_3 Point;
-//typedef FT (Function)(const Point&);
-//typedef CGAL::Labeled_mesh_domain_3<K> Mesh_domain;
-//typedef CGAL::Sequential_tag Concurrency_tag;
-//
-//typedef CGAL::Mesh_triangulation_3<Mesh_domain, CGAL::Default,Concurrency_tag>::type Tr;
-//typedef CGAL::Mesh_complex_3_in_triangulation_3<Tr> C3t3;
-//typedef CGAL::Mesh_criteria_3<Tr> Mesh_criteria;
-//
-//using namespace CGAL::parameters;
-//
-//FT sphere_function (const Point& p)
-//{ 
-//    return CGAL::squared_distance(p, Point(CGAL::ORIGIN))-1; 
-//}
 
 int main(int argc, char **argv)
 {
    
-    //Mesh_domain domain =
-    //Mesh_domain::create_implicit_mesh_domain(sphere_function,
-    //                                         K::Sphere_3(CGAL::ORIGIN, 2.));
-    //Mesh_criteria criteria(facet_angle=30, facet_size=0.1, facet_distance=0.025,
-    //                     cell_radius_edge_ratio=2, cell_size=0.1);
-    // Mesh generation
-    //C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria);
+    TriMesh mesh;
+    MF::one_triangle_mesh(mesh);
 
-    TetMesh mesh;
-
-    //MF::c3t3_to_tetmesh(c3t3, mesh);
-
-    //MF::one_tetrahedron_mesh(mesh, "equ");
-    //MF::one_tetrahedron_mesh(mesh, "iso");
-    MF::cube_tetrahedron_mesh(mesh);
-    mesh.uniform_refine(6);
+    mesh.uniform_refine(7);
  
-    //
     int NN = mesh.number_of_nodes();
     int NC = mesh.number_of_cells();
     int NE = mesh.number_of_edges();
@@ -74,7 +48,7 @@ int main(int argc, char **argv)
     clock_t start, end;
 
     start = clock();
-    mesh_coloring<TetMesh>(mesh, col);
+    mesh_coloring<TriMesh>(mesh, col);
     end = clock();
 
     std::cout<< "运行时间:" << double (end-start)/CLOCKS_PER_SEC << std::endl;
@@ -86,19 +60,36 @@ int main(int argc, char **argv)
     auto & nei = node2node.neighbors();
     auto & loc = node2node.locations();
 
+    int cmin = 1000000000;
+    int cmax = 0;
     for(int i = 0; i < NN; i++)
     {
-        for(int j = loc[i]; j < loc[i+1]; j++){
-            if(col[i]==col[nei[j]])
-            {
-                a++;
-            }
+      if(cmin>col[i])
+      {
+        cmin = col[i];
+      }
+
+      if(cmax<col[i])
+      {
+        cmax = col[i];
+      }
+
+      for(int j = loc[i]; j < loc[i+1]; j++){
+        if(col[i]==col[nei[j]])
+        {
+          a++;
         }
+      }
     }
     if(a==0)
-        std::cout<< "染色成功" << " " << "单元数" << " " << NC << " " << "节点数" << " " << NN << " " << "边数" << " " << NE <<endl; 
+    {
+      std::cout<< "染色成功" << " " << "单元数" << " " << NC << " " << "节点数" << " " << NN << " " << "边数" << " " << NE <<endl; 
+      std::cout<< "cmin " << cmin << " cmax " << cmax <<std::endl;
+    }
     else
-        std::cout<< "染色失败" <<endl; 
+    {
+      std::cout<< "染色失败" <<endl; 
+    }
 
     //vtk网格顶点数据
     std::vector<double> nodedata;

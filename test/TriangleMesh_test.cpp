@@ -21,13 +21,14 @@ typedef WHYSC::Mesh::MeshFactory MF;
 int main(int argc, char **argv)
 {
     TriMesh mesh;
-    MF::square_triangle_mesh(mesh);
+    MF::one_triangle_mesh(mesh);
+    mesh.uniform_refine(5);
 
     mesh.print();
     Writer writer(&mesh);
     writer.set_points();
     writer.set_cells();
-    writer.write("test.vtu");
+    writer.write("test_tri.vtu");
 
     return 0;
 }

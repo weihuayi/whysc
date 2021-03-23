@@ -91,15 +91,18 @@ void mesh_coloring(Mesh & mesh, int * color)
   {
     for(int i = 0; i < NN; i++)
     {
-      std::set<int> com;
+      //std::set<int> com;
+      std::list<int> com;
       for(int k=1; k <= cMax; k++)
       {
-        com.insert(k);
+        //com.insert(k);
+        com.push_back(k);
       }
 
       for(int j = loc[i]; j < loc[i+1]; j++)
       {
-          com.erase(color[nei[j]]);
+        //com.erase(color[nei[j]]);
+        com.remove(color[nei[j]]);
       }
       color[i] = *std::min_element(com.begin(), com.end());
     }
@@ -107,12 +110,26 @@ void mesh_coloring(Mesh & mesh, int * color)
     bool flag = true;
     for(int i = 0; i < NN; i++)
     {
-        if( color[i] == cMax )
-        {
-          flag == false;
-          break;
-        }
+      if( color[i] == cMax )
+      {
+        flag = false;
+        break;
+      }
     }
+
+    //测试不同颜色数量的变化
+    int num[cMax+1] = {0};
+    for(int i = 0; i < NN; i++)
+    {
+      num[color[i]]++;
+    }
+
+    for(int i = 1; i < cMax+1; i++)
+    {
+      std::cout<< "颜色" << " "<< i << " " << "个数" << " " << num[i] <<std::endl;
+    }
+
+    std::cout<< "\n" <<std::endl;
 
     if(flag)
     {

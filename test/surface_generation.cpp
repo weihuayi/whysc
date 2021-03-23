@@ -38,48 +38,25 @@ using namespace CGAL::parameters;
 
 FT sphere_function (const Point& p)
 {   
-    double x = p.x();
-    double y = p.y();
-    double z = p.z();
- 
-    std::cout<< CGAL::squared_distance(p, Point(CGAL::ORIGIN))-1 <<std::endl;
-    std::cout<< "x = " << " " << x <<std::endl; 
-    std::cout<< "y = " << " " << y <<std::endl; 
-    std::cout<< "y = " << " " << z <<std::endl; 
     return CGAL::squared_distance(p, Point(CGAL::ORIGIN))-1; 
 }
 
 FT test_function (const Point& p)
 {
-    //double r = p[0]*p[0]*p[0] + p[1]*p[1]*p[1] +p[2]*p[2]*p[2];
     double x = p.x();
     double y = p.y();
     double z = p.z();
-    double r = pow(pow(x, 2)+pow(y, 2) + pow(z, 2), 1/2);
-    Point pp(CGAL::ORIGIN);
-    double x1 = pp.x();
-    double y1 = pp.y();
-    double z1 = pp.z();
-    std::cout<< "r = " << " " << r <<std::endl; 
-    std::cout<< "x1 = " << " " << x1 <<std::endl; 
-    std::cout<< "y1 = " << " " << y1 <<std::endl; 
-    std::cout<< "y1 = " << " " << z1 <<std::endl; 
-
-    Point D(1, 1, 2);
-    std::cout<< "test" << " " << CGAL::squared_distance(D, Point(CGAL::ORIGIN)) <<std::endl;
-    return r;
+    return pow(x*x+9*y*y/4+z*z-1, 3) - x*x*z*z*z-9*y*y*z*z*z/80;
 }
-
-
 
 int main()
 {
     Mesh_domain domain =
-    Mesh_domain::create_implicit_mesh_domain(sphere_function,
-                                             K::Sphere_3(CGAL::ORIGIN, 2.));
+    Mesh_domain::create_implicit_mesh_domain(test_function,
+                                             K::Sphere_3(CGAL::ORIGIN, 10.));
     // Mesh criteria
-    Mesh_criteria criteria(facet_angle=30, facet_size=0.8, facet_distance=0.5,
-                         cell_radius_edge_ratio=2, cell_size=1);
+    Mesh_criteria criteria(facet_angle=30, facet_size=0.4, facet_distance=0.25,
+                         cell_radius_edge_ratio=2, cell_size=0.2);
     // Mesh generation
     C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria);
 
