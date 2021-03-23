@@ -173,6 +173,11 @@ public:
     }
     mesh.init_top();
   }
+
+  template<typename C2T3,  typename TriMesh>
+  static void C2T3_to_triangle_mesh(C2T3 & c2t3, TriMesh & mesh)
+  {
+  }
 };
 
 } // end of namespace Mesh

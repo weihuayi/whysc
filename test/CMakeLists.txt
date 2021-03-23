@@ -86,8 +86,12 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(color_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(surface_generation surface_generation.cpp )
-    target_link_libraries(surface_generation PRIVATE ${CGAL_LIBRARIES}
+    add_executable(cgal_surface_mesh_generation cgal_surface_mesh_generation.cpp )
+    target_link_libraries(cgal_surface_mesh_generation PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+
+    add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
+    target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
 endif()
