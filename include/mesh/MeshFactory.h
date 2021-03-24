@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 namespace WHYSC {
 namespace Mesh {
@@ -177,6 +178,79 @@ public:
   template<typename C2T3,  typename TriMesh>
   static void C2T3_to_triangle_mesh(C2T3 & c2t3, TriMesh & mesh)
   {
+    typedef typename C2T3::Triangulation Tr;
+
+    typedef typename Tr::Vertex_handle Vertex_handle;
+    typedef typename Tr::Point Point; //can be weighted or not
+
+    typedef typename TriMesh::Node Node;
+
+    const Tr& tr = c2t3.triangulation();
+
+    auto & nodes = mesh.nodes();
+    nodes.resize(tr.number_of_vertices());
+
+    std::unordered_map<Vertex_handle, int> V;
+    int i = 0;
+    for(auto vit = tr.finite_vertices_begin();
+            vit != tr.finite_vertices_end();
+            ++vit, ++i)
+    {
+        std::cout<< i <<std::endl;
+        V[vit] = i;
+        auto p = tr.point(vit);
+        nodes[i][0] = p.x();
+        nodes[i][1] = p.y();
+        nodes[i][2] = p.z();
+    }
+
+    auto & cells = mesh.cells();
+    cells.resize(c2t3.number_of_facets());
+    i = 0;
+    for( auto fit = c2t3.facets_begin();
+       fit != c2t3.facets_end();
+       ++fit, ++i)
+    {
+      for(int j=0; j<3; j++)
+        cells[i][j] = V[fit->first->vertex(j)];
+    }
+    mesh.init_top();
+
+  }
+  template<typename SMesh,  typename TriMesh>
+  static void Surface_mesh_to_triangle_mesh(SMesh & sm, TriMesh & mesh)
+  {
+    typedef typename SMesh::Vertex_index Vindex;
+    auto & nodes = mesh.nodes();
+    nodes.resize(sm.number_of_vertices());
+
+    std::unordered_map<Vindex, int> V;
+    int i = 0;
+    auto vr = sm.vertices();
+    for(auto vit = vr.begin(); vit != vr.end(); ++vit, ++i)
+    {
+        V[*vit] = i;
+        auto p = sm.point(*vit);
+        nodes[i][0] = p.x();
+        nodes[i][1] = p.y();
+        nodes[i][2] = p.z();
+    }
+
+    auto & cells = mesh.cells();
+    cells.resize(sm.number_of_faces());
+    i = 0;
+    auto fr = sm.faces();
+    for( auto fit = fr.begin(); fit != fr.end(); ++fit, ++i)
+    {
+      auto h0 = sm.halfedge(*fit);
+      auto h1 = sm.next(h0);
+      auto h2 = sm.next(h1);
+
+      cells[i][0] = V[sm.target(h0)];
+      cells[i][1] = V[sm.target(h1)];
+      cells[i][2] = V[sm.target(h2)];
+    }
+    mesh.init_top();
   }
 };
 

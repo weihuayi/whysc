@@ -1,10 +1,18 @@
 #include <CGAL/Surface_mesh_default_triangulation_3.h>
 #include <CGAL/Complex_2_in_triangulation_3.h>
-#include <CGAL/make_surface_mesh.h>
 #include <CGAL/Implicit_surface_3.h>
+#include <CGAL/make_surface_mesh.h>
 #include <CGAL/IO/facets_in_complex_2_to_triangle_mesh.h>
 #include <CGAL/Surface_mesh.h>
 #include <fstream>
+
+#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
+
+#include "geometry/Geometry_kernel.h"
+#include "mesh/TriangleMesh.h"
+#include "mesh/MeshFactory.h"
+#include "mesh/VTKMeshWriter.h"
 
 // default triangulation for Surface_mesher
 typedef CGAL::Surface_mesh_default_triangulation_3 Tr;
@@ -18,19 +26,37 @@ typedef FT (*Function)(Point_3);
 typedef CGAL::Implicit_surface_3<GT, Function> Surface_3;
 typedef CGAL::Surface_mesh<Point_3> Surface_mesh;
 
+typedef WHYSC::Geometry_kernel<double, int> GK;
+typedef GK::Point_3 Node;
+typedef GK::Vector_3 Vector;
+typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
+typedef TriMesh::Cell Cell;
+typedef TriMesh::Toplogy Toplogy;
+typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
+typedef WHYSC::Mesh::MeshFactory MF;
+
 FT sphere_function (Point_3 p) 
 {
   const FT x2=p.x()*p.x(), y2=p.y()*p.y(), z2=p.z()*p.z();
   return x2+y2+z2-1;
 }
 
+FT test_function (Point_3 p)
+{
+    double x = p.x();
+    double y = p.y();
+    double z = p.z();
+    return pow(x*x+9*y*y/4+z*z-1, 3) - x*x*z*z*z-9*y*y*z*z*z/80;
+}
+
+
 int main() 
 {
   Tr tr;            // 3D-Delaunay triangulation
   C2t3 c2t3 (tr);   // 2D-complex in 3D-Delaunay triangulation
   // defining the surface
-  Surface_3 surface(sphere_function,             // pointer to function
-                    Sphere_3(CGAL::ORIGIN, 2.)); // bounding sphere
+  Surface_3 surface(test_function,             // pointer to function
+                    Sphere_3(CGAL::ORIGIN, 10.)); // bounding sphere
   // Note that "2." above is the *squared* radius of the bounding sphere!
   // defining meshing criteria
   CGAL::Surface_mesh_default_criteria_3<Tr> criteria(30.,  // angular bound
@@ -41,13 +67,28 @@ int main()
   Surface_mesh sm;
   CGAL::facets_in_complex_2_to_triangle_mesh(c2t3, sm);
 
-  std::cout << "网格点的个数:" << sm.number_of_vertices() << std::endl;
-  std::cout << "sm.number_of_faces() << std::endl;
+  auto vr = sm.vertices();
+  for(auto v = vr.begin(); v != vr.end(); v++)
+  {
+    std::cout<< sm.point(*v).x() << std::endl;
+    std::cout<< "\n" << std::endl;
+  }
 
+  auto fr = sm.faces();
+  for(auto f = fr.begin(); f != fr.end(); f++)
+  {
+    auto h0 = sm.halfedge(*f);
+    auto h1 = sm.next(h0);
+    auto h2 = sm.next(h1);
+  }
 
-  
+  TriMesh mesh;
+  MF::Surface_mesh_to_triangle_mesh(sm, mesh);
 
-  std::ofstream out("sphere.off");
-  out << sm << std::endl;
-  std::cout << "Final number of points: " << tr.number_of_vertices() << "\n";
+  //mesh.print();
+
+  Writer writer(&mesh);
+  writer.set_points();
+  writer.set_cells();
+  writer.write("test_surface_0.vtu");
 }
