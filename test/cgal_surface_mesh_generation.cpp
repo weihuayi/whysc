@@ -5,6 +5,7 @@
 #include <CGAL/IO/facets_in_complex_2_to_triangle_mesh.h>
 #include <CGAL/Surface_mesh.h>
 #include <fstream>
+#include <metis.h>
 
 #include <vtkDoubleArray.h>
 #include <vtkIntArray.h>
@@ -67,28 +68,17 @@ int main()
   Surface_mesh sm;
   CGAL::facets_in_complex_2_to_triangle_mesh(c2t3, sm);
 
-  auto vr = sm.vertices();
-  for(auto v = vr.begin(); v != vr.end(); v++)
-  {
-    std::cout<< sm.point(*v).x() << std::endl;
-    std::cout<< "\n" << std::endl;
-  }
-
-  auto fr = sm.faces();
-  for(auto f = fr.begin(); f != fr.end(); f++)
-  {
-    auto h0 = sm.halfedge(*f);
-    auto h1 = sm.next(h0);
-    auto h2 = sm.next(h1);
-  }
-
   TriMesh mesh;
-  MF::Surface_mesh_to_triangle_mesh(sm, mesh);
+  MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
 
-  //mesh.print();
+  std::vector<int> nid;
+  std::vector<int> cid;
+  MF::mesh_node_partition(mesh, 4, nid, cid);
 
   Writer writer(&mesh);
   writer.set_points();
   writer.set_cells();
+  writer.set_point_data(nid, 1, "nid");
+  writer.set_cell_data(cid, 1, "cid");
   writer.write("test_surface_0.vtu");
 }

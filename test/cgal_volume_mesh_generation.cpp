@@ -62,7 +62,7 @@ int main()
 
     TetMesh mesh;
 
-    MF::c3t3_to_tetmesh(c3t3, mesh);
+    MF::cgal_c3t3_to_tetmesh(c3t3, mesh);
 
     Writer writer(&mesh);
     writer.set_points();

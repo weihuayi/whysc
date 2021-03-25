@@ -449,6 +449,28 @@ public:
     }
   }
 
+  void cell_to_node(Toplogy & top)
+  {
+      auto NC = number_of_cells();
+      auto NN = number_of_nodes();
+      auto nn = number_of_vertices_of_each_cell();
+
+      top.init(2, 0, NC, NN);
+
+      auto & loc = top.locations();
+      loc.resize(NC+1, 0);
+      auto & nei = top.neighbors();
+      nei.resize(NC*nn);
+
+      for(I i = 0; i < NC; i++)
+      {
+          loc[i+1] = loc[i] + nn;
+          nei[nn*i] = m_cell[i][0];
+          nei[nn*i + 1] = m_cell[i][1];
+          nei[nn*i + 2] = m_cell[i][2];
+      }
+  }
+
   void print()
   {
       std::cout << "Nodes:" << std::endl;

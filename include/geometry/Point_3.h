@@ -54,6 +54,8 @@ public:
     static int size() {return 3;}
     static int dimension() {return 3;}
 
+    F * data() { return m_data;}
+
     F & x()
     {
         return m_data[0];

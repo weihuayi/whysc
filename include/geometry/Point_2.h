@@ -57,8 +57,8 @@ public:
     }
 
     static int size() {return 2;}
-
     static int dimension() {return 2;}
+    F * data() {return m_data;}
 
     F & x()
     {
