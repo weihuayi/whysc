@@ -11,6 +11,7 @@
 
 #include <vtkUnstructuredGrid.h>
 #include <vtkXMLUnstructuredGridWriter.h>
+#include <vtkXMLUnstructuredGridReader.h>
 
 #include <vtkHexagonalPrism.h>
 #include <vtkHexahedron.h>
@@ -29,7 +30,12 @@
 #include <vtkVoxel.h>
 #include <vtkWedge.h>
 
+#include "vtkCommonCoreModule.h"
+#include "vtkObject.h"
+#include "vtkVariant.h"
+
 #include <string>
+#include <vector>
 
 namespace WHYSC {
 namespace Mesh {
@@ -73,31 +79,49 @@ public:
         if(m_mesh != NULL)
         {
           auto NN = m_ugrid->GetNumberOfPoints();
-          auto & nodes = mesh.nodes();
+          auto & nodes = m_mesh->nodes();
           nodes.resize(NN);
           for(int i = 0; i < NN; i++)
           {
             m_ugrid->GetPoint(i, nodes[i].data());
           }
 
-          
-
           auto NC = m_ugrid->GetNumberOfCells();
-          auto & cells = mesh.cells();
-          cells.reszie(NC);
+          auto & cells = m_mesh->cells();
+          cells.resize(NC);
           for(int i = 0; i < NC; i++)
           {
-           
+            auto c = m_ugrid->GetCell(i);
+            int N = c->GetNumberOfPoints();
+            for(int j = 0; j < N; j++)
+            {
+              cells[i][j] = c->GetPointId(j);
+            }
           }
         }
     }
 
-    void get_node_data(const std::string & dname)
+    void get_node_data(const std::string & dname, std::vector<int> & nodedata)
     {
+      auto vtkdata = m_ugrid->GetPointData()->GetArray(dname.c_str());
+      int N = vtkdata->GetSize();
+      nodedata.resize(N);
+      for(int i = 0; i < N; i++)
+      {
+        nodedata[i] = vtkdata->GetComponent(i, 0);
+      }
     }
 
-    void get_cell_data(const std::string & dname)
+    void get_cell_data(const std::string & dname, std::vector<int> & celldata)
     {
+      auto vtkdata = m_ugrid->GetCellData()->GetArray(dname.c_str());
+      int N = vtkdata->GetSize();
+      celldata.resize(N);
+      for(int i = 0; i < N; i++)
+      {
+        celldata[i] = vtkdata->GetComponent(i, 0);
+      }
+
     }
 
 private:

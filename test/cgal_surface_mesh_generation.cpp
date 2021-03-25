@@ -14,6 +14,7 @@
 #include "mesh/TriangleMesh.h"
 #include "mesh/MeshFactory.h"
 #include "mesh/VTKMeshWriter.h"
+#include "mesh/VTKMeshReader.h"
 
 // default triangulation for Surface_mesher
 typedef CGAL::Surface_mesh_default_triangulation_3 Tr;
@@ -34,6 +35,7 @@ typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef TriMesh::Cell Cell;
 typedef TriMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshReader<TriMesh> Reader;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 FT sphere_function (Point_3 p) 
@@ -81,4 +83,96 @@ int main()
   writer.set_point_data(nid, 1, "nid");
   writer.set_cell_data(cid, 1, "cid");
   writer.write("test_surface_0.vtu");
+
+  TriMesh tmesh;
+  Reader reader(&tmesh);
+  reader.read("test_surface_0.vtu");
+
+  std::vector<int> nid1;
+  std::vector<int> cid1;
+  reader.get_node_data("nid", nid1);
+  reader.get_cell_data("cid", cid1);
+
+  for(auto & i : nid1)
+  {
+    std::cout<< i <<std::endl;
+  }
+
+  for(auto & i : cid1)
+  {
+    std::cout<< i <<std::endl;
+  }
+
+  std::vector<TriMesh> meshs;
+  std::vector<std::vector<Node>> nodes;
+  std::vector<std::vector<Cell>> cells;
+  std::vector<std::map<int, int>> nidxmap;//节点在整体网格中的编号 
+  meshs.resize(4);
+  cells.resize(4);
+  nodes.resize(4);
+  nidxmap.resize(4);
+
+  auto & cell = tmesh.cells();
+  auto & node = tmesh.cells();
+
+  for(auto & c : cell)
+  {
+    bool isinmesh[4] = {0};//判断单元在哪个网格中
+    for(auto & i : c)
+    {
+      isinmesh[nid[i]] = true;
+    }
+
+    for(int i = 0; i < 4; i++)
+    {
+      if(isinmesh[i])
+      {
+        cells[i].push_back(c);
+      }
+    }
+  }
+
+  for(int i = 0; i < 4; i++)
+  {
+    int num = 0;
+    for(auto & c : cells[i])
+    {
+      for(auto & v : c)
+      {
+        if(it == nidxmap[i].end())
+        {
+          nidxmap[i].insert(std::pair<int, int>(v, num));
+          nodes[i].push_back(node[v]);
+          num++;
+        }
+      }
+    }
+  }
+
+  for(int i = 0; i < 4; i++)
+  {
+    for(auto & c : cells[i])
+    {
+      for(auto & v : c)
+      {
+        auto it = nidxmap[i].find(v);
+        v = it->second;
+      }
+    }
+  }
+
+
+
+  for(int i = 0; i < 4; i++)
+  {
+    meshs[i].nodes() = nodes[i];
+    meshs[i].cells() = cells[i];
+    meshs[i].init_top();
+  }
+
+  Writer writer0(&meshs[0]);
+  writer0.set_points();
+  writer0.set_cells();
+  writer0.write("test_surface_3.vtu");
+  
 }
