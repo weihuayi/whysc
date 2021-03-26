@@ -82,97 +82,90 @@ int main()
   writer.set_cells();
   writer.set_point_data(nid, 1, "nid");
   writer.set_cell_data(cid, 1, "cid");
-  writer.write("test_surface_0.vtu");
+  writer.write("test_surface_init.vtu");
 
+  //测试读网格
   TriMesh tmesh;
   Reader reader(&tmesh);
-  reader.read("test_surface_0.vtu");
-
+  reader.read("test_surface_init.vtu");
   std::vector<int> nid1;
   std::vector<int> cid1;
   reader.get_node_data("nid", nid1);
   reader.get_cell_data("cid", cid1);
 
-  for(auto & i : nid1)
-  {
-    std::cout<< i <<std::endl;
-  }
+  Writer writer1(&tmesh);
+  writer1.set_points();
+  writer1.set_cells();
+  writer1.set_point_data(nid1, 1, "nid");
+  writer1.set_cell_data(cid1, 1, "cid");
+  writer1.write("test_surface_read.vtu");
 
-  for(auto & i : cid1)
-  {
-    std::cout<< i <<std::endl;
-  }
 
+  //测试网格分块
   std::vector<TriMesh> meshs;
-  std::vector<std::vector<Node>> nodes;
-  std::vector<std::vector<Cell>> cells;
+  std::vector<std::vector<int>> nids;
   std::vector<std::map<int, int>> nidxmap;//节点在整体网格中的编号 
   meshs.resize(4);
-  cells.resize(4);
-  nodes.resize(4);
+  nids.resize(4);
   nidxmap.resize(4);
 
   auto & cell = tmesh.cells();
-  auto & node = tmesh.cells();
+  auto & node = tmesh.nodes();
 
+  //将 cell 分到每个 mesh
   for(auto & c : cell)
   {
     bool isinmesh[4] = {0};//判断单元在哪个网格中
     for(auto & i : c)
-    {
       isinmesh[nid[i]] = true;
-    }
 
     for(int i = 0; i < 4; i++)
     {
       if(isinmesh[i])
-      {
-        cells[i].push_back(c);
-      }
+        meshs[i].cells().push_back(c);
     }
   }
 
+  //将每个 mesh 中的 cell 的 node 视为 自身的 node, 并从新编号
   for(int i = 0; i < 4; i++)
   {
     int num = 0;
-    for(auto & c : cells[i])
+    auto & nodei = meshs[i].nodes();
+    auto & celli = meshs[i].cells();
+    for(auto & c : celli)
     {
-      for(auto & v : c)
-      {
-        if(it == nidxmap[i].end())
-        {
-          nidxmap[i].insert(std::pair<int, int>(v, num));
-          nodes[i].push_back(node[v]);
-          num++;
-        }
-      }
-    }
-  }
-
-  for(int i = 0; i < 4; i++)
-  {
-    for(auto & c : cells[i])
-    {
+      int j = 0;
       for(auto & v : c)
       {
         auto it = nidxmap[i].find(v);
-        v = it->second;
+        if(it == nidxmap[i].end())
+        {
+          nidxmap[i].insert(std::pair<int, int>(v, num));
+          nodei.push_back(node[v]);
+          c[j] = num;
+          num++;
+        }
+        else
+          c[j] = it->second;
+        j++;
       }
     }
   }
 
-
-
   for(int i = 0; i < 4; i++)
   {
-    meshs[i].nodes() = nodes[i];
-    meshs[i].cells() = cells[i];
     meshs[i].init_top();
+    int NN = meshs[i].number_of_nodes();
+    nids[i].resize(NN);
+    for(auto it = nidxmap[i].begin(); it != nidxmap[i].end(); it++)
+    {
+      nids[i][it->second] = nid1[it->first];
+    }
   }
 
   Writer writer0(&meshs[0]);
   writer0.set_points();
   writer0.set_cells();
+  writer0.set_point_data(nids[0], 1, "nid");
   writer0.write("test_surface_3.vtu");
-  
 }

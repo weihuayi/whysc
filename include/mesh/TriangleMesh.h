@@ -373,8 +373,8 @@ public:
   void edge_barycenter(const I i, Node & node)
   {
     auto & e = m_edge[i];
-    node[0] = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
-    node[1] = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+    for(int i = 0; i < geo_dimension(); i++)
+      node[i] = (m_node[e[0]][i] + m_node[e[1]][i])/2.0;
   }
 
 
