@@ -82,12 +82,21 @@ int main()
   writer.set_cells();
   writer.set_point_data(nid, 1, "nid");
   writer.set_cell_data(cid, 1, "cid");
+<<<<<<< HEAD
   writer.write("test_surface_init.vtu");
+=======
+  writer.write("test_surface.vtu");
+>>>>>>> 33ef81c (update)
 
   //测试读网格
   TriMesh tmesh;
   Reader reader(&tmesh);
+<<<<<<< HEAD
   reader.read("test_surface_init.vtu");
+=======
+  reader.read("test_surface.vtu");
+
+>>>>>>> 33ef81c (update)
   std::vector<int> nid1;
   std::vector<int> cid1;
   reader.get_node_data("nid", nid1);
