@@ -78,112 +78,61 @@ int main()
   std::vector<TriMesh> submeshes;
   MF::mesh_node_partition(mesh, 4, submeshes);
 
+  std::vector<std::vector<int>> nids;
+  nids.resize(4);
   for(int i = 0; i < 4; i++)
   {
+    int NN = submeshes[i].number_of_nodes();
+    nids[i].resize(NN);
+    for(auto & j : nids[i])
+    {
+      j = i;
+    }
+    auto pds = submeshes[i].parallel_data_structure();
+    for(int j = 0; j < 4; j++)
+    {
+      auto it = pds.find(j);
+      if(it != pds.end())
+      {
+        for(auto k : it->second)
+        {
+          nids[i][k] = j;
+        }
+      }
+    }
     std::stringstream ss;
     ss << "test_surface_" << i << ".vtu";
     Writer writer(&submeshes[i]);
     writer.set_points();
     writer.set_cells();
+    writer.set_point_data(nids[i], 1, "nid");
+    writer.set_point_data(submeshes[i].node_global_id(), 1, "gid");
     writer.write(ss.str());
   }
 
-/*
-  std::vector<int> nid;
-  std::vector<int> cid;
-
-  MF::mesh_node_partition(mesh, 4, nid, cid);
-  Writer writer(&mesh);
-  writer.set_points();
-  writer.set_cells();
-  writer.set_point_data(nid, 1, "nid");
-  writer.set_cell_data(cid, 1, "cid");
-  writer.write("test_surface.vtu");
-
-  //测试读网格
-  TriMesh tmesh;
-  Reader reader(&tmesh);
-  reader.read("test_surface.vtu");
-
-  std::vector<int> nid1;
-  std::vector<int> cid1;
-  reader.get_node_data("nid", nid1);
-  reader.get_cell_data("cid", cid1);
-
-  Writer writer1(&tmesh);
-  writer1.set_points();
-  writer1.set_cells();
-  writer1.set_point_data(nid1, 1, "nid");
-  writer1.set_cell_data(cid1, 1, "cid");
-  writer1.write("test_surface_read.vtu");
-
-
-  //测试网格分块
-  std::vector<TriMesh> meshs;
-  std::vector<std::vector<int>> nids;
-  std::vector<std::map<int, int>> nidxmap;//节点在整体网格中的编号 
-  meshs.resize(4);
-  nids.resize(4);
-  nidxmap.resize(4);
-
-  auto & cell = tmesh.cells();
-  auto & node = tmesh.nodes();
-
-  //将 cell 分到每个 mesh
-  for(auto & c : cell)
-  {
-    bool isinmesh[4] = {0};//判断单元在哪个网格中
-    for(auto & i : c)
-      isinmesh[nid[i]] = true;
-
-    for(int i = 0; i < 4; i++)
-    {
-      if(isinmesh[i])
-        meshs[i].cells().push_back(c);
-    }
-  }
-
-  //将每个 mesh 中的 cell 的 node 视为 自身的 node, 并从新编号
+  //测试读文件
+  std::vector<TriMesh> meshes(4);
   for(int i = 0; i < 4; i++)
   {
-    int num = 0;
-    auto & nodei = meshs[i].nodes();
-    auto & celli = meshs[i].cells();
-    for(auto & c : celli)
+    std::stringstream ss;
+    ss << "test_surface_" << i << ".vtu";
+
+    Reader reader(&meshes[i]);
+    reader.read(ss.str());
+
+    std::vector<int> nid0;
+    reader.get_node_data("nid", nid0);
+
+    auto & gid = meshes[i].node_global_id();
+    reader.get_node_data("gid", gid);
+
+    auto & pds = meshes[i].parallel_data_structure();
+    for(int j = 0; j < nid0.size(); j++)
     {
-      int j = 0;
-      for(auto & v : c)
+      if(nid0[j]!=i)
       {
-        auto it = nidxmap[i].find(v);
-        if(it == nidxmap[i].end())
-        {
-          nidxmap[i].insert(std::pair<int, int>(v, num));
-          nodei.push_back(node[v]);
-          c[j] = num;
-          num++;
-        }
-        else
-          c[j] = it->second;
-        j++;
+        pds[nid0[j]].push_back(j);
       }
     }
   }
-
-  for(int i = 0; i < 4; i++)
-  {
-    meshs[i].init_top();
-    int NN = meshs[i].number_of_nodes();
-    nids[i].resize(NN);
-    for(auto it = nidxmap[i].begin(); it != nidxmap[i].end(); it++)
-    {
-      nids[i][it->second] = nid1[it->first];
-    }
-  }
-
-  Writer writer0(&meshs[0]);
-  writer0.set_points();
-  writer0.set_cells();
-  writer0.set_point_data(nids[0], 1, "nid");
-  writer0.write("test_surface_3.vtu");
-  */
 }

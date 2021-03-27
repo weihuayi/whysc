@@ -284,8 +284,6 @@ public:
       nums[nid[gid]] += 1;
     }
 
-
-
     for(int i = 0; i < nparts; i++)
     {
       auto & pds = submeshes[i].parallel_data_structure();
@@ -299,8 +297,8 @@ public:
             submeshes[i].nodes().push_back(nodes[v]);
             submeshes[i].node_global_id().push_back(v);
             maps[i].insert(std::pair<int, int>(v, nums[i]));
-            v = nums[i];
             pds[nid[v]].push_back(nums[i]);
+            v = nums[i];
             nums[i] += 1;
           }
           else
