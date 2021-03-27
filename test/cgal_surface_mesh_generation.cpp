@@ -1,3 +1,5 @@
+#include <sstream> 
+
 #include <CGAL/Surface_mesh_default_triangulation_3.h>
 #include <CGAL/Complex_2_in_triangulation_3.h>
 #include <CGAL/Implicit_surface_3.h>
@@ -73,30 +75,36 @@ int main()
   TriMesh mesh;
   MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
 
+  std::vector<TriMesh> submeshes;
+  MF::mesh_node_partition(mesh, 4, submeshes);
+
+  for(int i = 0; i < 4; i++)
+  {
+    std::stringstream ss;
+    ss << "test_surface_" << i << ".vtu";
+    Writer writer(&submeshes[i]);
+    writer.set_points();
+    writer.set_cells();
+    writer.write(ss.str());
+  }
+
+/*
   std::vector<int> nid;
   std::vector<int> cid;
-  MF::mesh_node_partition(mesh, 4, nid, cid);
 
+  MF::mesh_node_partition(mesh, 4, nid, cid);
   Writer writer(&mesh);
   writer.set_points();
   writer.set_cells();
   writer.set_point_data(nid, 1, "nid");
   writer.set_cell_data(cid, 1, "cid");
-<<<<<<< HEAD
-  writer.write("test_surface_init.vtu");
-=======
   writer.write("test_surface.vtu");
->>>>>>> 33ef81c (update)
 
   //测试读网格
   TriMesh tmesh;
   Reader reader(&tmesh);
-<<<<<<< HEAD
-  reader.read("test_surface_init.vtu");
-=======
   reader.read("test_surface.vtu");
 
->>>>>>> 33ef81c (update)
   std::vector<int> nid1;
   std::vector<int> cid1;
   reader.get_node_data("nid", nid1);
@@ -177,4 +185,5 @@ int main()
   writer0.set_cells();
   writer0.set_point_data(nids[0], 1, "nid");
   writer0.write("test_surface_3.vtu");
+  */
 }

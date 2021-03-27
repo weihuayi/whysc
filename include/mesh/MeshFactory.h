@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <set>
 
 #include <metis.h>
 
@@ -232,6 +233,84 @@ public:
             NULL, &objval, cid.data(), nid.data());
   }
 
+  template<typename Mesh>
+  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes)
+  {
+    typedef typename Mesh::Toplogy Toplogy;
+
+
+    Toplogy cell2node;
+    mesh.cell_to_node(cell2node);
+
+    idx_t ne = mesh.number_of_cells();
+    idx_t nn = mesh.number_of_nodes();
+
+    std::vector<int> cid(ne);
+    std::vector<int> nid(nn);
+
+    idx_t objval;
+    auto r = METIS_PartMeshNodal(&ne, &nn, cell2node.locations().data(), cell2node.neighbors().data(),
+            NULL, NULL, &nparts, NULL,
+            NULL, &objval, cid.data(), nid.data());
+    submeshes.resize(nparts);
+
+
+    auto & cells = mesh.cells();
+    auto & nodes = mesh.nodes();
+
+    //将 cell 分到每个 mesh
+    for(auto & cell : cells)
+    {
+      std::set<int> idx;
+      for(auto i: cell)
+      {
+        idx.insert(nid[i]);
+      }
+
+      for(auto i: idx)
+      {
+        submeshes[i].cells().push_back(cell);
+      }
+    }
+
+    std::vector<std::map<int, int> > maps(nparts);
+    std::vector<int> nums(nparts, 0);
+
+    for(int gid = 0; gid < nn; gid++)
+    {
+      submeshes[nid[gid]].nodes().push_back(nodes[gid]);
+      submeshes[nid[gid]].node_global_id().push_back(gid);
+      maps[nid[gid]].insert(std::pair<int, int>(gid, nums[nid[gid]]));
+      nums[nid[gid]] += 1;
+    }
+
+
+
+    for(int i = 0; i < nparts; i++)
+    {
+      auto & pds = submeshes[i].parallel_data_structure();
+      for(auto & cell: submeshes[i].cells())
+      {
+        for(auto & v : cell)
+        {
+          auto it = maps[i].find(v);
+          if(it == maps[i].end())
+          {
+            submeshes[i].nodes().push_back(nodes[v]);
+            submeshes[i].node_global_id().push_back(v);
+            maps[i].insert(std::pair<int, int>(v, nums[i]));
+            v = nums[i];
+            pds[nid[v]].push_back(nums[i]);
+            nums[i] += 1;
+          }
+          else
+          {
+            v = it->second; 
+          }
+        }
+      }
+    }
+  }
 };
 
 } // end of namespace Mesh
