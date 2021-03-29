@@ -76,8 +76,9 @@ int main()
   MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
 
   std::vector<TriMesh> submeshes;
-  MF::mesh_node_partition(mesh, 4, submeshes);
+  MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");
 
+  /*
   std::vector<std::vector<int>> nids;
   nids.resize(4);
   for(int i = 0; i < 4; i++)
@@ -109,6 +110,7 @@ int main()
     writer.set_point_data(submeshes[i].node_global_id(), 1, "gid");
     writer.write(ss.str());
   }
+  */
 
   //测试读文件
   std::vector<TriMesh> meshes(4);

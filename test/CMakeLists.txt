@@ -96,4 +96,13 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
 
 endif()
 
+if(${VTK_FOUND} AND ${MPI_FOUND})
+    add_executable(parallel_coloring parallel_coloring.cpp)
+    target_link_libraries(parallel_coloring PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_coloring 
+        MODULES ${VTK_LIBRARIES}
+    )
+endif()
+
 add_subdirectory(cpp)

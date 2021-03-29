@@ -9,6 +9,8 @@
 
 #include <metis.h>
 
+#include "VTKMeshWriter.h"
+
 namespace WHYSC {
 namespace Mesh {
 
@@ -234,10 +236,11 @@ public:
   }
 
   template<typename Mesh>
-  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes)
+  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
+      std::string fname="")
   {
     typedef typename Mesh::Toplogy Toplogy;
-
+    typedef VTKMeshWriter<Mesh> Writer;
 
     Toplogy cell2node;
     mesh.cell_to_node(cell2node);
@@ -306,6 +309,41 @@ public:
             v = it->second; 
           }
         }
+      }
+    }
+
+    if(!fname.empty())
+    {
+      std::vector<std::vector<int>> nids;
+      nids.resize(nparts);
+      for(int i = 0; i < nparts; i++)
+      {
+        int NN = submeshes[i].number_of_nodes();
+        nids[i].resize(NN);
+        for(auto & j : nids[i])
+        {
+          j = i;
+        }
+        auto pds = submeshes[i].parallel_data_structure();
+        for(int j = 0; j < 4; j++)
+        {
+          auto it = pds.find(j);
+          if(it != pds.end())
+          {
+            for(auto k : it->second)
+            {
+              nids[i][k] = j;
+            }
+          }
+        }
+        std::stringstream ss;
+        ss << fname <<"_"<< i << ".vtu";
+        Writer writer(&submeshes[i]);
+        writer.set_points();
+        writer.set_cells();
+        writer.set_point_data(nids[i], 1, "nid");
+        writer.set_point_data(submeshes[i].node_global_id(), 1, "gid");
+        writer.write(ss.str());
       }
     }
   }
