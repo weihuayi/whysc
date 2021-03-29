@@ -1,5 +1,8 @@
 #include <string>
 #include <iostream>
+#include <list>
+#include <vector>
+#include <set>
 
 #include <mpi.h>
 
@@ -33,12 +36,10 @@ void mesh_coloring(TriMesh & mesh, std::vector<int> & color)
   auto & pds = mesh.parallel_data_structure();
 
   for(auto idx:pds[rank])
-    nColored.push_back(idx)
+    nColored.push_back(idx);
 
   for(int i=0; i < NE; i++)
-  {
     edges.push_back(i);
-  }
 
   int cmax = 0;
   int tnum=0;
@@ -83,15 +84,45 @@ int main(int argc, char * argv[])
   auto & gid = mesh.node_global_id();
   reader.get_node_data("gid", gid);
 
-  auto & pds = mesh.parallel_data_structure();
+  // 网格拓扑信息
+  Toplogy node2node;
+  mesh.node_to_node(node2node);
+  auto & loc = node2node.locations();
+  auto & nei = node2node.neighbors();
+
+  auto & pds = mesh.parallel_data_structure();// 本网格中其它进程的点
+  std::map<int, std::set<int> > pds0; // 本进程节点在其它网格的点
+  std::map<int, int> gid2lid; // 全局编号到局部编号
   for(int j = 0; j < nid.size(); j++)
   {
     pds[nid[j]].push_back(j);
+    if(nid[j] != rank) // j 是其他进程的点, 那么他相邻的点也是 nid[j] 网格的点
+    {
+      for(int k = loc[j]; k < loc[j+1]; k++)// 循环 j 相邻的点, 将本进程的点放入pds0[nid[j]] 中
+      {
+        if(nid[k] == rank) // k 是本进程的点
+        {
+          pds0[nid[j]].insert(k);
+        }
+      }
+    }
+    gid2lid[gid[j]] = j;
+  }
+
+  for(int j = 0; j < nprocs; j++)
+  {
+    if(j != rank)
+    {
+      for(auto k : pds[j])
+      {
+
+      }
+    }
   }
 
   auto NN = mesh.number_of_nodes();
   std::vector<int> color(NN, 0); 
-  mesh_coloring(mesh, color);
+  //mesh_coloring(mesh, color);
 
   MPI_Finalize();
   return 0;
