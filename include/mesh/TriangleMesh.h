@@ -59,7 +59,6 @@ public:
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;
 
-  typedef std::map<int, std::vector<int> > ParallelDataStructure;
 
 public:
   TriangleMesh()
@@ -303,15 +302,6 @@ public:
     return m_cell.end();
   }
 
-  std::vector<I> & node_global_id()
-  {
-    return m_node_gid;
-  }
-
-  ParallelDataStructure & parallel_data_structure()
-  {
-    return m_pds;
-  }
 
   std::vector<Node> & nodes()
   {
@@ -541,8 +531,6 @@ private:
   std::vector<Cell> m_cell; 
   std::vector<Edge2cell> m_edge2cell;
   std::vector<Cell2edge> m_cell2edge;
-  std::vector<I> m_node_gid; // 全局编号信息
-  ParallelDataStructure m_pds; // 并行数据结构
 };
 
 

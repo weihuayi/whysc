@@ -33,7 +33,7 @@ void mesh_coloring(TriMesh & mesh, std::vector<int> & color)
 
   std::list<int> edges; //没有被删除的边
   std::list<int> nColored; //没有被染色的点
-  auto & pds = mesh.parallel_data_structure();
+  /*auto & pds = mesh.parallel_data_structure();
 
   for(auto idx:pds[rank])
     nColored.push_back(idx);
@@ -59,6 +59,7 @@ void mesh_coloring(TriMesh & mesh, std::vector<int> & color)
     // 通信影像节点上的随机值
 
   }
+  */
 
 }
 
@@ -78,7 +79,7 @@ int main(int argc, char * argv[])
   TriMesh mesh;
   Reader reader(&mesh);
   reader.read(ss.str());
-
+/*
   std::vector<int> nid;
   reader.get_node_data("nid", nid);
   auto & gid = mesh.node_global_id();
@@ -89,7 +90,6 @@ int main(int argc, char * argv[])
   mesh.node_to_node(node2node);
   auto & loc = node2node.locations();
   auto & nei = node2node.neighbors();
-
   auto & pds = mesh.parallel_data_structure();// 本网格中其它进程的点
   std::map<int, std::set<int> > pds0; // 本进程节点在其它网格的点
   std::map<int, int> gid2lid; // 全局编号到局部编号
@@ -123,6 +123,7 @@ int main(int argc, char * argv[])
   auto NN = mesh.number_of_nodes();
   std::vector<int> color(NN, 0); 
   //mesh_coloring(mesh, color);
+ */
 
   MPI_Finalize();
   return 0;

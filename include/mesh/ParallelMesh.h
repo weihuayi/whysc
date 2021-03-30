@@ -1,10 +1,11 @@
 #ifndef ParallelMesh_h
 #define ParallelMesh_h
 
-#include <mpi.h>
+#include "thirdparty/json.hpp"
 
 namespace WHYSC {
 namespace Mesh {
+
 template<typename GK, typename Mesh>
 class ParallelMesh: public Mesh
 {
@@ -27,20 +28,30 @@ public:
   typedef typename Mesh::EdgeIterator EdgeIterator;
   typedef typename Mesh::FaceIterator FaceIterator;
   typedef typename Mesh::CellIterator CellIterator;
-
+  typedef json MeshInfo;
 public:
-  ParallelMesh(MPI_Comm comm=MPI_COMM_WORLD)
+  ParallelMesh(int id, std::string & name, std::string & ptype="node")
   {
-    m_comm = comm;
-    MPI_Comm_size(m_comm, &m_wsize);
-    MPI_Comm_rank(m_comm, &m_wrank);
+    m_info["name"] = name;
+    m_info["ptype"] = ptype;
+    m_info["id"] = id;
+  }
+
+  std::vector<I> & cell_global_id()
+  {
   }
   
+  std::vector<I> & node_global_id()
+  {
+    return m_node_gid;
+  }
+
+  ParallelDataStructure & parallel_data_structure()
+  {
+    return m_pds;
+  }
 private:
-  std::vector<I> m_data; 
-  int m_wsize; // world size
-  int m_wrank; // world rank
-  MPI_Comm m_comm;
+  MeshInfo m_info;
 };
 
 } // end of namespace Mesh
