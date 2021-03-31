@@ -99,6 +99,7 @@ public:
             }
           }
         }
+        m_mesh->init_top();
     }
 
     void get_node_data(const std::string & dname, std::vector<int> & nodedata)

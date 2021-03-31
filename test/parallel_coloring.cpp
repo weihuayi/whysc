@@ -30,6 +30,14 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
   auto & num = mesh.number_of_nodes_in_process();
   auto rank = mesh.id();
 
+  if(rank == 3)
+  {
+      for(auto k : pds[1])
+      {
+          std::cout<< "k = "<< k << " " << rank <<std::endl;
+      }
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
   for(auto it = pds.begin(); it != pds.end(); it++)
   {
     auto key = it->first; 
@@ -48,9 +56,11 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
 
       MPI_Send(&N, 1, MPI_INT, key, 0, MPI_COMM_WORLD);
       MPI_Send(gid_data, N*2, MPI_INT, key, 1, MPI_COMM_WORLD);
+      std::cout<< "myrank = " << rank << " 发给 " << key << std::endl; 
     }
   }//发送数据完成
-  std::cout<< "tnum = " << 6 <<std::endl;
+  std::cout<< "tnum = " << 88888 <<std::endl;
+  MPI_Barrier(MPI_COMM_WORLD);
 
   for(int j = 0; j < nprocs; j++)
   {
@@ -62,6 +72,7 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
       std::cout<< "tnum = " << 78 <<std::endl;
       int gid_data[N*2];
       MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Barrier(MPI_COMM_WORLD);
       for(int k = 0; k < N; k++)
       {
         data[ng2l[gid_data[k*2]]] = gid_data[k*2+1];//填充影像节点数据
@@ -179,7 +190,7 @@ int main(int argc, char * argv[])
 
   mesh.construct_parallel_data_structure();
   std::vector<int> color; 
-  mesh_coloring(mesh, color);
+  //mesh_coloring(mesh, color);
   std::cout<< "here" <<std::endl;
 
   MPI_Finalize();

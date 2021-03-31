@@ -20,26 +20,29 @@ int main(int argc, char **argv)
     {
       for(int i = 0; i < 10; i++)
       {
-        mydata[i] = pow(i, myrank+1);
+        mydata[i] = pow(i, myrank+2);
       }
     }
 
-    if(myrank != 1)
+    if(myrank == 0)
     {
-      MPI_Send(mydata, //发送的数据地址
-               10,     //发送数据的长度
-               MPI_INT,//发送数据类型
-               1,      //发送给1进程
-               0, //发送的信息的编号
-               MPI_COMM_WORLD);
+      for(int i = 1; i < 4; i++)
+      {
+        MPI_Send(mydata, //发送的数据地址
+                   10,     //发送数据的长度
+                   MPI_INT,//发送数据类型
+                   i,      //发送给1进程
+                   0, //发送的信息的编号
+                   MPI_COMM_WORLD);
+      }
     }
 
-    if(myrank == 1)
+    if(myrank != 0)
     {
-      MPI_Recv(mydata, //接收的数据存储位置 
+        MPI_Recv(mydata, //接收的数据存储位置 
                10,     //接收数据的长度
                MPI_INT,//接收数据类型
-               t,      //接收1进程的信息
+               0,      //接收1进程的信息
                0,      //接收信息的编号
                MPI_COMM_WORLD,
                MPI_STATUS_IGNORE);
@@ -47,18 +50,15 @@ int main(int argc, char **argv)
     for(int i = 0; i < 10; i++)
     {
       if(myrank == 1)
-        std::cout<< mydata[i] <<std::endl;
+        std::cout<< myrank << " mydata["<< i << "] = " << mydata[i] <<std::endl;
+      if(myrank == 2)
+        std::cout<< myrank << " mydata["<< i << "] = " << mydata[i] <<std::endl;
+      if(myrank == 3)
+        std::cout<< myrank << " mydata["<< i << "] = " << mydata[i] <<std::endl;
     }
 
-    for(int i = 0; i < 10; i++)
-    {
-      if(i = 0)
-      {
-        int test = 10;
-      }
-      //std::cout<< test <<std::endl;
-    }
-      
+     
+    std::cout<< "here " << myrank << std::endl;
     MPI_Finalize();
     return 0;
 }

@@ -44,6 +44,7 @@ public:
     this->node_to_node(node2node);
     auto & loc = node2node.locations();
     auto & nei = node2node.neighbors();
+
     auto & pds = parallel_data_structure();// 本网格需要发送信息的节点 
     auto NN = this->number_of_nodes();
     auto & npid = node_process_id();
@@ -52,15 +53,17 @@ public:
     //auto & num = number_of_nodes_in_process();
     for(I i=0; i < NN; i++)
     {
+      std::cout<< m_id <<std::endl;
       //num[npid[i]]++;
       ng2l[gid[i]] = i;
       if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 nid[j] 网格的点
       {
         for(int k = loc[i]; k < loc[i+1]; k++)//循环i相邻的点, 将本进程的点放入pds0[nid[j]] 中
         {
-          if(npid[k] == id) // k 是本进程的点
+          if(npid[k] == m_id) // k 是本进程的点
           {
             pds[npid[i]].insert(k);
+            //std::cout<< npid[i] << " " << k << " " << m_id <<std::endl;
           }
         }
       }
