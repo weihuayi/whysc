@@ -1,8 +1,6 @@
 #ifndef ParallelMesh_h
 #define ParallelMesh_h
 
-#include "thirdparty/json.hpp"
-
 namespace WHYSC {
 namespace Mesh {
 
@@ -19,7 +17,6 @@ public:
 
   typedef typename Mesh::Face2cell Face2cell;
   typedef typename Mesh::Cell2face Cell2face;
-  //typedef typename Mesh::Cell2cell Cell2cell;
   typedef typename Mesh::Cell2edge Cell2edge;
 
   typedef typename Mesh::Toplogy Toplogy;
@@ -30,30 +27,12 @@ public:
   typedef typename Mesh::CellIterator CellIterator;
 
   typedef std::map<I, std::set<I> > PDS; // 并行网格数据结构
-  typedef nlohmann::json MeshInfo;
 
 public:
-  ParallelMesh(int id, int npro, std::string ptype="node")
+  ParallelMesh(int id, int gw=0)
   {
-    m_info["id"] = id;
-
-    m_info["NN"] = std::vector<I>(npro, 0); // 网格中每个进程的节点数统计
-    m_info["NC"] = std::vector<I>(npro, 0); // 网格中每个进程的单元数统计
-
-    m_info["ptype"] = ptype;
-
-    m_info["cpid"] = std::vector<I>(); // 单元所在进程编号
-    m_info["npid"] = std::vector<I>(); // 节点所在进程编号
-
-    m_info["cgid"] = std::vector<I>(); // 单元的全局编号
-    m_info["ngid"] = std::vector<I>(); // 节点的全局编号
-
-    m_info["cg2l"] = std::map<I, I>(); // 单元全局到局部编号的映射
-    m_info["ng2l"] = std::map<I, I>(); // 节点全局到局部编号的映射
-
-    m_info["pds"] = PDS();
-    //m_info["pds"]["node"] = PDS();
-    //m_info["pds"]["cell"] = PDS();
+    m_id = id;
+    m_gw = gw; 
   }
 
   void construct_parallel_data_structure()
@@ -139,15 +118,26 @@ public:
     return m_info["cpid"];
   }
 
-  PDS & parallel_data_structure()
+  const PDS & parallel_data_structure()
   {
     //auto & ptype = m_info["ptype"];
-    //return m_info["pds"][ptype];
-    return m_info["pds"];
+    return m_info["pds"]["node"];
   }
 
 private:
-  MeshInfo m_info;
+  I m_LNN;
+  I m_LNC;
+  I m_id; // 网格块编号
+  int m_gw; // 影像区宽度
+  std::vector<I> m_cpid; //单元所在进程编号  
+  std::vector<I> m_npid; //节点所在进程编号
+  std::vector<I> m_cgid; //单元的全局编号
+  std::vector<I> m_ngid; //节点的全局编号
+  std::map<I, I> m_cg2l; //单元全局到局部编号的映射
+  std::map<I, I> m_ng2l; //节点全局到局部编号的映射
+
+
+  m_info["pds"] = PDS();
 };
 
 } // end of namespace Mesh

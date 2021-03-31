@@ -34,6 +34,12 @@ int main(int argc, char * argv[])
   j["2"] = std::vector<int>(3);
   j["pds"]["2"] = std::vector<int>(3);
 
+  auto & v = j["list"];
+  v[0] = 3;
+
+  for(auto i : v)
+    std::cout << i << std::endl;
+
 
   for(auto i : j["pds"]["2"])
     std::cout << i << std::endl;
