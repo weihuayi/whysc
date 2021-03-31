@@ -14,6 +14,7 @@
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TriangleMesh.h"
+#include "mesh/ParallelMesh.h"
 #include "mesh/MeshFactory.h"
 #include "mesh/VTKMeshWriter.h"
 #include "mesh/VTKMeshReader.h"
@@ -34,10 +35,11 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
-typedef TriMesh::Cell Cell;
-typedef TriMesh::Toplogy Toplogy;
-typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
-typedef WHYSC::Mesh::VTKMeshReader<TriMesh> Reader;
+typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
+typedef PMesh::Cell Cell;
+typedef PMesh::Toplogy Toplogy;
+typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
+typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 FT sphere_function (Point_3 p) 
@@ -72,10 +74,10 @@ int main()
   Surface_mesh sm;
   CGAL::facets_in_complex_2_to_triangle_mesh(c2t3, sm);
 
-  TriMesh mesh;
+  PMesh mesh(1);
   MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
 
-  std::vector<TriMesh> submeshes;
+  std::vector<PMesh> submeshes;
   MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");
 
   /*
@@ -110,7 +112,6 @@ int main()
     writer.set_point_data(submeshes[i].node_global_id(), 1, "gid");
     writer.write(ss.str());
   }
-  */
 
   //测试读文件
   std::vector<TriMesh> meshes(4);
@@ -136,5 +137,5 @@ int main()
         pds[nid0[j]].push_back(j);
       }
     }
-  }
+  */
 }

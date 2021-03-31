@@ -276,32 +276,35 @@ public:
       }
     }
 
+    std::vector<std::map<int, int> > maps(nparts);
+    for(int j = 0; j < nparts; j++)
+        maps[j] = submeshes[j].node_global_to_local_id(); //获得网格整体到局部编号
+
     std::vector<int> nums(nparts, 0);
+
     for(int gid = 0; gid < nn; gid++)
     {
       submeshes[nid[gid]].nodes().push_back(nodes[gid]); // 做映射
       submeshes[nid[gid]].node_global_id().push_back(gid);
 
-      submeshes[nid[gid]].node_global_to_local_id().insert(std::pair<int, int>(gid, nums[nid[gid]]));
+      maps[nid[gid]].insert(std::pair<int, int>(gid, nums[nid[gid]]));
       nums[nid[gid]] += 1;
     }
 
     for(int i = 0; i < nparts; i++)
     {
       auto & pds = submeshes[i].parallel_data_structure();
-      auto & ng2l = submeshes[i].node_global_to_local_id();
-
       for(auto & cell: submeshes[i].cells())
       {
         for(auto & v : cell)
         {
-          auto it = ng2l.find(v);
-          if(it == ng2l.end())
+          auto it = maps[i].find(v);
+          if(it == maps[i].end())
           {
             submeshes[i].nodes().push_back(nodes[v]);
             submeshes[i].node_global_id().push_back(v);
-            ng2l.insert(std::pair<int, int>(v, nums[i]));
-            pds[nid[v]].insert(nums[i]);
+            maps[i].insert(std::pair<int, int>(v, nums[i]));
+            pds[nid[v]].push_back(nums[i]);
             v = nums[i];
             nums[i] += 1;
           }

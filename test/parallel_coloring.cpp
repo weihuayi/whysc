@@ -50,13 +50,16 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
       MPI_Send(gid_data, N*2, MPI_INT, key, 1, MPI_COMM_WORLD);
     }
   }//发送数据完成
+  std::cout<< "tnum = " << 6 <<std::endl;
 
   for(int j = 0; j < nprocs; j++)
   {
     if(j != rank)
     {
+      std::cout<< "tnum = " << 7 <<std::endl;
       int N;
       MPI_Recv(&N, 1, MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      std::cout<< "tnum = " << 78 <<std::endl;
       int gid_data[N*2];
       MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int k = 0; k < N; k++)
@@ -93,7 +96,6 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
 
   int cmax = 0;
   int tnum = 1;
-  std::cout<< "tnum = " << tnum <<std::endl;
   while(tnum > 0)
   {
     cmax++;

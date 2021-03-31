@@ -29,7 +29,7 @@ public:
   typedef std::map<I, std::set<I> > PDS; // 并行网格数据结构
 
 public:
-  ParallelMesh(int id, int gw=0)
+  ParallelMesh(int id = 0, int gw=0)
   {
     m_id = id;
     m_gw = gw; 
