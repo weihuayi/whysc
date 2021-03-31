@@ -38,90 +38,83 @@ public:
   void construct_parallel_data_structure()
   {
 
-    auto & ptype = m_info["ptype"];
-    auto id = m_info["id"];
-    if(ptype == "node")
+    auto id = m_id;
+
+    Toplogy node2node;
+    this->node_to_node(node2node);
+    auto & loc = node2node.locations();
+    auto & nei = node2node.neighbors();
+    auto & pds = parallel_data_structure();// 本网格需要发送信息的节点 
+    auto NN = this->number_of_nodes();
+    auto & npid = node_process_id();
+    auto & gid = node_global_id();
+    auto & ng2l = node_global_to_local_id();
+    //auto & num = number_of_nodes_in_process();
+    for(I i=0; i < NN; i++)
     {
-      Toplogy node2node;
-      node_to_node(node2node);
-      auto & loc = node2node.locations();
-      auto & nei = node2node.neighbors();
-      auto & pds = parallel_data_structure();// 本网格需要发送信息的节点 
-      auto NN = this->number_of_nodes();
-      auto & npid = node_process_id();
-      auto & gid = node_global_id();
-      auto & ng2l = node_global_to_local_id();
-      auto & num = number_of_nodes_in_process();
-      for(I i=0; i < NN; i++)
+      //num[npid[i]]++;
+      ng2l[gid[i]] = i;
+      if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 nid[j] 网格的点
       {
-        num[npid[i]]++;
-        ng2l[gid[i]] = i;
-        if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 nid[j] 网格的点
+        for(int k = loc[i]; k < loc[i+1]; k++)//循环i相邻的点, 将本进程的点放入pds0[nid[j]] 中
         {
-          for(int k = loc[i]; k < loc[i+1]; k++)// 循环 i 相邻的点, 将本进程的点放入pds0[nid[j]] 中
+          if(npid[k] == id) // k 是本进程的点
           {
-            if(npid[k] == id) // k 是本进程的点
-            {
-              pds[npid[i]].insert(k);
-            }
+            pds[npid[i]].insert(k);
           }
         }
       }
-    }
-    else if(ptype == "cell")
-    {
     }
   }
 
   int id()
   {
-    return m_info["id"];
+    return m_id;
   }
 
   std::vector<I> & number_of_nodes_in_process()
   {
-    return m_info["NN"];
+    return m_NN;
   }
 
   std::vector<I> & number_of_cells_in_process()
   {
-    return m_info["NC"];
+    return m_NC;
   }
 
   std::map<I, I> & cell_global_to_local_id()
   {
-    return m_info["cg2l"];
+    return m_cg2l;
   }
 
   std::map<I, I> & node_global_to_local_id()
   {
-    return m_info["ng2l"];
+    return m_ng2l;
   }
 
   std::vector<I> & cell_global_id()
   {
-    return m_info["cgid"];
+    return m_cgid;
   }
   
   std::vector<I> & node_global_id()
   {
-    return m_info["ngid"];
+    return m_ngid;
   }
 
   std::vector<I> & node_process_id()
   {
-    return m_info["npid"];
+    return m_npid;
   }
 
   std::vector<I> & cell_process_id()
   {
-    return m_info["cpid"];
+    return m_cpid;
   }
 
-  const PDS & parallel_data_structure()
+  PDS & parallel_data_structure()
   {
-    //auto & ptype = m_info["ptype"];
-    return m_info["pds"]["node"];
+    return m_pds;
   }
 
 private:
@@ -129,6 +122,8 @@ private:
   I m_LNC;
   I m_id; // 网格块编号
   int m_gw; // 影像区宽度
+  std::vector<I> m_NN;
+  std::vector<I> m_NC;
   std::vector<I> m_cpid; //单元所在进程编号  
   std::vector<I> m_npid; //节点所在进程编号
   std::vector<I> m_cgid; //单元的全局编号
@@ -136,8 +131,7 @@ private:
   std::map<I, I> m_cg2l; //单元全局到局部编号的映射
   std::map<I, I> m_ng2l; //节点全局到局部编号的映射
 
-
-  m_info["pds"] = PDS();
+  PDS m_pds;
 };
 
 } // end of namespace Mesh

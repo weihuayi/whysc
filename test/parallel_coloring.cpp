@@ -46,12 +46,8 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
         j++;
       }
 
-      MPI_Send(gid_data,     //发送的数据地址
-             N*2,        //发送数据的长度
-             MPI_INT,  //发送数据类型
-             key,      //发送给 key 进程
-             1,        //发送的信息的编号
-             MPI_COMM_WORLD);
+      MPI_Send(&N, 1, MPI_INT, key, 0, MPI_COMM_WORLD);
+      MPI_Send(gid_data, N*2, MPI_INT, key, 1, MPI_COMM_WORLD);
     }
   }//发送数据完成
 
@@ -59,15 +55,10 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
   {
     if(j != rank)
     {
-      int N = num[j];
+      int N;
+      MPI_Recv(&N, 1, MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       int gid_data[N*2];
-      MPI_Recv(gid_data,     //发送的数据地址
-             N*2,        //发送数据的长度
-             MPI_INT,  //发送数据类型
-             j,      //发送给 key 进程
-             1,        //发送的信息的编号
-             MPI_COMM_WORLD,
-             MPI_STATUS_IGNORE);
+      MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int k = 0; k < N; k++)
       {
         data[ng2l[gid_data[k*2]]] = gid_data[k*2+1];//填充影像节点数据
@@ -102,7 +93,7 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
 
   int cmax = 0;
   int tnum = 1;
-
+  std::cout<< "tnum = " << tnum <<std::endl;
   while(tnum > 0)
   {
     cmax++;
@@ -156,6 +147,7 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
 
     int lnum = nColored.size();
     MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    std::cout<< "tnum = " << tnum <<std::endl;
   }
 }
 
@@ -173,7 +165,7 @@ int main(int argc, char * argv[])
   std::cout << "process " << rank << " of " << nprocs << " process." 
     << "The file name is " << fname <<  std::endl;
 
-  PMesh mesh(rank, nprocs);
+  PMesh mesh(rank);
   Reader reader(&mesh);
   reader.read(ss.str());
 
@@ -186,6 +178,7 @@ int main(int argc, char * argv[])
   mesh.construct_parallel_data_structure();
   std::vector<int> color; 
   mesh_coloring(mesh, color);
+  std::cout<< "here" <<std::endl;
 
   MPI_Finalize();
   return 0;
