@@ -10,6 +10,7 @@
 #include "mesh/TriangleMesh.h"
 #include "mesh/ParallelMesh.h"
 #include "mesh/VTKMeshReader.h"
+#include "mesh/VTKMeshWriter.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
@@ -19,9 +20,10 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
+typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 
 template<typename I>
-void communication(PMesh & mesh, std::vector<I> & data, int tag)
+void communication(PMesh & mesh, std::vector<I> & data)
 {
   // 通信影像节点上的随机值
   int rank, nprocs;
@@ -50,21 +52,20 @@ void communication(PMesh & mesh, std::vector<I> & data, int tag)
         j++;
       }
 
-      MPI_Send(&N, 1, MPI_INT, key, tag*10, MPI_COMM_WORLD);
-      MPI_Send(gid_data, N*2, MPI_INT, key, tag*10+1, MPI_COMM_WORLD);
+      MPI_Send(&N, 1, MPI_INT, key, 0, MPI_COMM_WORLD);
+      MPI_Send(gid_data, N*2, MPI_INT, key, 1, MPI_COMM_WORLD);
       //std::cout<< "myrank = " << rank << " 发给 " << key << " 完成 "<<std::endl; 
     }
   }//发送数据完成
-  //MPI_Barrier(MPI_COMM_WORLD);
 
   for(int j = 0; j < nprocs; j++)
   {
     if(j != rank)
     {
       int N;
-      MPI_Recv(&N, 1, MPI_INT, j, tag*10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(&N, 1, MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       int gid_data[N*2];
-      MPI_Recv(gid_data, N*2, MPI_INT, j, tag*10+1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       //std::cout<< "myrank = " << rank << " 接收 " << j << " 完成 "<<std::endl; 
       for(int k = 0; k < N; k++)
       {
@@ -92,7 +93,6 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
   std::list<int> nColored; //没有被染色的点
   auto & pds = mesh.parallel_data_structure();
 
-  std::cout<< mesh.number_of_local_nodes() << std::endl;
   for(int i = 0; i < mesh.number_of_local_nodes(); i++)
     nColored.push_back(i);
 
@@ -113,9 +113,9 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
     }
 
     // 通信影像节点上的随机值
-    std::cout<< "randVal 开始通信"<<std::endl;
-    communication(mesh, randVal, 0);
-    std::cout<< "randVal 通信完成"<<std::endl;
+    std::cout<< "randVal 开始通信 " << rank <<std::endl;
+    communication(mesh, randVal);
+    std::cout<< "randVal 通信完成 " << rank <<std::endl;
 
     for(auto it = edges.begin(); it != edges.end();)
     {
@@ -152,11 +152,11 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
       }
     }
     // 通信影像节点上的随机值
-    communication(mesh, color, 1);
+    communication(mesh, color);
 
     int lnum = nColored.size();
     MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    std::cout<< "tnum = " << tnum <<std::endl;
+    std::cout<< "tnum = " << tnum << " cmax = "<<  cmax <<std::endl;
   }
 }
 
@@ -184,10 +184,56 @@ int main(int argc, char * argv[])
   auto & gid = mesh.node_global_id();
   reader.get_node_data("gid", gid);
 
+  //构建平行网格数据结构
   mesh.construct_parallel_data_structure();
+
+  //染色
   std::vector<int> color; 
-  std::cout<< "here11" <<std::endl;
   mesh_coloring(mesh, color);
+
+  //检验染色是否成功
+  int a=0;
+  int NN = mesh.number_of_nodes();
+  int NC = mesh.number_of_cells();
+  int NE = mesh.number_of_edges();
+  Toplogy node2node;
+  mesh.node_to_node(node2node);
+  auto & nei = node2node.neighbors();
+  auto & loc = node2node.locations();
+
+  for(int i = 0; i < NN; i++)
+  {
+    for(int j = loc[i]; j < loc[i+1]; j++){
+      if(color[i]==color[nei[j]])
+      {
+        a++;
+      }
+    }
+  }
+  if(a==0)
+  {
+    std::cout<< "染色成功  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<endl; 
+  }
+  else
+  {
+    std::cout<< "染色失败" <<endl; 
+  }
+
+  //vtk网格顶点数据
+  std::vector<double> nodedata;
+  nodedata.resize(NN);
+  for(int i = 0; i < NN; i++)
+  {
+      nodedata[i] = (double)color[i];
+  }
+
+  std::stringstream sss;
+  sss << "color_"<< rank << ".vtu";
+  Writer writer(&mesh);
+  writer.set_points();
+  writer.set_point_data(nodedata, 1, "color");
+  writer.set_cells();
+  writer.write(sss.str());
 
   MPI_Finalize();
   return 0;

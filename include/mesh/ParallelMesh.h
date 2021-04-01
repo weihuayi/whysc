@@ -56,11 +56,12 @@ public:
       ng2l[gid[i]] = i;
       if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 nid[j] 网格的点
       {
-        for(int k = nei[loc[i]]; k < nei[loc[i+1]]; k++)//循环i相邻的点, 将本进程的点放入pds0[nid[j]] 中
+        for(int k = loc[i]; k < loc[i+1]; k++)//循环i相邻的点, 将本进程的点放入pds0[nid[j]] 中
         {
-          if(npid[k] == m_id) // k 是本进程的点
+          std::cout<< " rank " << m_id << " " << nei[k] <<std::endl;
+          if(npid[nei[k]] == m_id) // k 是本进程的点
           {
-            pds[npid[i]].insert(k);
+            pds[npid[i]].insert(nei[k]);
           }
         }
       }

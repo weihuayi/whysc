@@ -75,69 +75,11 @@ int main()
   CGAL::facets_in_complex_2_to_triangle_mesh(c2t3, sm);
 
   PMesh mesh(1);
-  //MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
-  MF::one_triangle_mesh(mesh);
-  mesh.uniform_refine(5);
+  MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
+  //MF::one_triangle_mesh(mesh);
+  //mesh.uniform_refine(3);
 
   std::vector<PMesh> submeshes;
   MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");
 
-  /*
-  std::vector<std::vector<int>> nids;
-  nids.resize(4);
-  for(int i = 0; i < 4; i++)
-  {
-    int NN = submeshes[i].number_of_nodes();
-    nids[i].resize(NN);
-    for(auto & j : nids[i])
-    {
-      j = i;
-    }
-    auto pds = submeshes[i].parallel_data_structure();
-    for(int j = 0; j < 4; j++)
-    {
-      auto it = pds.find(j);
-      if(it != pds.end())
-      {
-        for(auto k : it->second)
-        {
-          nids[i][k] = j;
-        }
-      }
-    }
-    std::stringstream ss;
-    ss << "test_surface_" << i << ".vtu";
-    Writer writer(&submeshes[i]);
-    writer.set_points();
-    writer.set_cells();
-    writer.set_point_data(nids[i], 1, "nid");
-    writer.set_point_data(submeshes[i].node_global_id(), 1, "gid");
-    writer.write(ss.str());
-  }
-
-  //测试读文件
-  std::vector<TriMesh> meshes(4);
-  for(int i = 0; i < 4; i++)
-  {
-    std::stringstream ss;
-    ss << "test_surface_" << i << ".vtu";
-
-    Reader reader(&meshes[i]);
-    reader.read(ss.str());
-
-    std::vector<int> nid0;
-    reader.get_node_data("nid", nid0);
-
-    auto & gid = meshes[i].node_global_id();
-    reader.get_node_data("gid", gid);
-
-    auto & pds = meshes[i].parallel_data_structure();
-    for(int j = 0; j < nid0.size(); j++)
-    {
-      if(nid0[j]!=i)
-      {
-        pds[nid0[j]].push_back(j);
-      }
-    }
-  */
 }
