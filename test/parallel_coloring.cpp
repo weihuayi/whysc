@@ -30,14 +30,7 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
   auto & num = mesh.number_of_nodes_in_process();
   auto rank = mesh.id();
 
-  if(rank == 3)
-  {
-      for(auto k : pds[1])
-      {
-          std::cout<< "k = "<< k << " " << rank <<std::endl;
-      }
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
   for(auto it = pds.begin(); it != pds.end(); it++)
   {
     auto key = it->first; 
@@ -56,23 +49,20 @@ void communication(PMesh & mesh, std::vector<I> & data, int nprocs)
 
       MPI_Send(&N, 1, MPI_INT, key, 0, MPI_COMM_WORLD);
       MPI_Send(gid_data, N*2, MPI_INT, key, 1, MPI_COMM_WORLD);
-      std::cout<< "myrank = " << rank << " 发给 " << key << std::endl; 
+      //std::cout<< "myrank = " << rank << " 发给 " << key << " 完成 "<<std::endl; 
     }
   }//发送数据完成
-  std::cout<< "tnum = " << 88888 <<std::endl;
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 
   for(int j = 0; j < nprocs; j++)
   {
     if(j != rank)
     {
-      std::cout<< "tnum = " << 7 <<std::endl;
       int N;
       MPI_Recv(&N, 1, MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      std::cout<< "tnum = " << 78 <<std::endl;
       int gid_data[N*2];
       MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Barrier(MPI_COMM_WORLD);
+      //std::cout<< "myrank = " << rank << " 接收 " << j << " 完成 "<<std::endl; 
       for(int k = 0; k < N; k++)
       {
         data[ng2l[gid_data[k*2]]] = gid_data[k*2+1];//填充影像节点数据
@@ -99,8 +89,9 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
   std::list<int> nColored; //没有被染色的点
   auto & pds = mesh.parallel_data_structure();
 
-  for(auto idx:pds[rank])
-    nColored.push_back(idx);
+  std::cout<< mesh.number_of_local_nodes() << std::endl;
+  for(int i = 0; i < mesh.number_of_local_nodes(); i++)
+    nColored.push_back(i);
 
   for(int i=0; i < NE; i++)
     edges.push_back(i);
@@ -119,7 +110,9 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
     }
 
     // 通信影像节点上的随机值
+    std::cout<< "randVal 开始通信"<<std::endl;
     communication(mesh, randVal, nprocs);
+    std::cout<< "randVal 通信完成"<<std::endl;
 
     for(auto it = edges.begin(); it != edges.end();)
     {
@@ -156,7 +149,9 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
       }
     }
     // 通信影像节点上的随机值
+    std::cout<< "color 开始通信"<<std::endl;
     communication(mesh, color, nprocs);
+    std::cout<< "color 通信完成"<<std::endl;
 
     int lnum = nColored.size();
     MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -190,8 +185,8 @@ int main(int argc, char * argv[])
 
   mesh.construct_parallel_data_structure();
   std::vector<int> color; 
-  //mesh_coloring(mesh, color);
-  std::cout<< "here" <<std::endl;
+  std::cout<< "here11" <<std::endl;
+  mesh_coloring(mesh, color);
 
   MPI_Finalize();
   return 0;

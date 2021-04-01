@@ -57,8 +57,15 @@ int main(int argc, char **argv)
         std::cout<< myrank << " mydata["<< i << "] = " << mydata[i] <<std::endl;
     }
 
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    for(int i = 0; i < myrank+5; i++)
+    {
+      std::cout<< "test " << myrank << " " <<i <<std::endl;
+    }
+
      
-    std::cout<< "here " << myrank << std::endl;
+    //std::cout<< "here " << myrank << std::endl;
     MPI_Finalize();
     return 0;
 }
