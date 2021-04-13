@@ -12,16 +12,16 @@ class EntityOverlap
 {
   EntityOverlap()
   {
-    m_flag = false;
+    m_init_flag = false;
   }
 
   bool empty()
   {
-    return m_flag;
+    return m_init_flag;
   }
 
 private:
-  bool m_flag; // 是否已经初始化
+  bool m_init_flag; // 是否已经初始化
   std::vector<I> m_src; // 在当前网格片的编号
   std::vector<I> m_dst; // 在邻居网格片的编号
 };
@@ -29,6 +29,7 @@ private:
 template<typename I>
 class MeshOverlap
 {
+public:
   MeshOverlap(I GD)
   {
     m_entity_overlap.resize(GD);
