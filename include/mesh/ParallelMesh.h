@@ -1,6 +1,9 @@
 #ifndef ParallelMesh_h
 #define ParallelMesh_h
 
+#include <vector>
+#include <map>
+
 namespace WHYSC {
 namespace Mesh {
 

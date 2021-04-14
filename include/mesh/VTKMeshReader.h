@@ -1,6 +1,10 @@
 #ifndef VTKMeshReader_h
 #define VTKMeshReader_h
 
+#include <string>
+#include <vector>
+#include <memory>
+
 #include <vtkCellData.h>
 #include <vtkPointData.h>
 #include <vtkCellArray.h>
@@ -34,8 +38,6 @@
 #include "vtkObject.h"
 #include "vtkVariant.h"
 
-#include <string>
-#include <vector>
 
 namespace WHYSC {
 namespace Mesh {
@@ -63,7 +65,7 @@ public:
         m_reader = vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
     }
 
-    VTKMeshReader(Mesh * mesh)
+    VTKMeshReader(std::shared_ptr<Mesh> mesh)
     {
         m_mesh = mesh;
         m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
@@ -126,7 +128,7 @@ public:
     }
 
 private:
-    Mesh *m_mesh;
+    std::shared_ptr<Mesh> m_mesh;
     vtkSmartPointer<vtkUnstructuredGrid> m_ugrid;
     vtkSmartPointer<vtkXMLUnstructuredGridReader> m_reader;
 };
