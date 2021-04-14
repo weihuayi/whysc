@@ -123,6 +123,38 @@ public:
     m_id = id;
   }
 
+  void construct_parallel_data_structure(std::vector<int> npid)
+  {
+    auto id = m_id;
+
+    Toplogy node2node;
+    Mesh::node_to_node(node2node);
+    auto & loc = node2node.locations();
+    auto & nei = node2node.neighbors();
+
+    auto NN = Mesh::number_of_nodes();
+    auto & pds = parallel_data_structure();
+    auto & gid = node_global_id();
+
+    overlap0 = m_pds.entity_overlap(0);
+    for(I i=0; i < NN; i++)
+    {
+      //不是本进程的点的周围的点就是 overlap 的点
+      if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 npid[i] 网格的点
+      {
+        auto &  overlap0 = pds[npid[i]].entity_overlap(0);
+        for(int k = loc[i]; k < loc[i+1]; k++)
+        {
+        }
+      }
+      else
+      {
+      }
+    }
+
+    
+  }
+
   int id()
   {
     return m_id;

@@ -26,19 +26,26 @@ public:
     std::stringstream ss;
     ss << fnamebase << "_" << rank << fnameextent;
     std::string fname = ss.str();
-  Reader reader(&mesh);
-  reader.read(ss.str());
 
+    Reader reader(m_pmesh);
+    reader.read(ss.str());
+
+    auto & npid = m_pmesh->node_process_id();
+    reader.get_node_data("nid", npid);
+
+    auto & gid = m_pmesh->node_global_id();
+    reader.get_node_data("gid", gid);
   }
 
   virtual ~ParallelMesher();
 
   std::shared_ptr<Pmesh> build_mesh()
   {
+    return m_pmesh;
   }
   
 private:
-  Reader m_reader;
+  //Reader m_reader;
   MPI_Comm m_comm;
   int m_rank;
   std::shared_ptr<PMesh> m_pmesh;
