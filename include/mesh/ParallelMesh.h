@@ -7,46 +7,6 @@
 namespace WHYSC {
 namespace Mesh {
 
-template<typename I>
-class EntityOverlap
-{
-  EntityOverlap()
-  {
-    m_init_flag = false;
-  }
-
-  bool empty()
-  {
-    return m_init_flag;
-  }
-
-private:
-  bool m_init_flag; // 是否已经初始化
-  std::vector<I> m_src; // 在当前网格片的编号
-  std::vector<I> m_dst; // 在邻居网格片的编号
-};
-
-template<typename I>
-class MeshOverlap
-{
-public:
-  MeshOverlap(I GD)
-  {
-    m_entity_overlap.resize(GD);
-  }
-
-  // 返回第 i 维的重叠实体编号
-  EntityOverlap & entity_overlap(I i)
-  {
-    // 0 <= i << m_GD
-    return m_entity_overlap[i];
-  }
-
-private:
-  I m_GD; // 几何维数
-  std::vector<EntityOverlap> m_entity_overlap;
-};
-
 template<typename GK, typename Mesh>
 class ParallelMesh: public Mesh
 {

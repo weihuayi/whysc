@@ -38,8 +38,8 @@ public:
 
 private:
   bool m_init_flag; // 是否已经初始化
-  Container m_loc; // 在当前网格块的编号
-  Container m_adj; // 在邻居网格块的编号
+  Container m_loc; // 实体在当前网格块的编号
+  Container m_adj; // 实体在邻居网格块的编号
 };
 
 template<typename I>
@@ -65,12 +65,17 @@ public:
 
   bool empty()
   {
-    return m_GD > -1;
+    return m_GD == -1;
   }
 
-  I geo_dimension()
+  I get_geo_dimension() const
   {// 网格重叠的最高维度
     return m_GD;
+  }
+
+  void set_geo_dimension(I GD)
+  {// 网格重叠的最高维度
+    m_GD = GD;
   }
 
   // 返回第 i 维的重叠实体编号
@@ -107,7 +112,7 @@ public:
   typedef typename Mesh::FaceIterator FaceIterator;
   typedef typename Mesh::CellIterator CellIterator;
 
-  // 并行网格数据结构, 记录了当前网格块和相邻网格块之间重叠网格实体
+  // 并行网格块之间的拓扑关系, 记录了当前网格块和相邻网格块之间重叠网格实体
   // 在本网格块和相邻网格块之间的对应关系
   typedef std::map<I, MeshOverlap<I> > PDS; 
 
@@ -133,23 +138,13 @@ public:
     return m_ngid;
   }
 
-  std::vector<I> & node_process_id()
-  {
-    return m_npid;
-  }
-
-  std::vector<I> & cell_process_id()
-  {
-    return m_cpid;
-  }
-
   PDS & parallel_data_structure()
   {
     return m_pds;
   }
 
 private:
-  I m_id; // 网格块编号
+  I m_id; // 网格块编号(进程的编号）
   std::vector<I> m_cgid; //单元的全局编号
   std::vector<I> m_ngid; //节点的全局编号
   PDS m_pds;
