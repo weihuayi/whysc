@@ -50,15 +50,16 @@ public:
     auto & npid = node_process_id();
     auto & gid = node_global_id();
     auto & ng2l = node_global_to_local_id();
+    auto & num = number_of_nodes_in_process();
 
     for(I i=0; i < NN; i++)
     {
+      num[npid[i]]++;
       ng2l[gid[i]] = i;
       if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 nid[j] 网格的点
       {
         for(int k = loc[i]; k < loc[i+1]; k++)//循环i相邻的点, 将本进程的点放入pds0[nid[j]] 中
         {
-          std::cout<< " rank " << m_id << " " << nei[k] <<std::endl;
           if(npid[nei[k]] == m_id) // k 是本进程的点
           {
             pds[npid[i]].insert(nei[k]);
@@ -77,7 +78,7 @@ public:
     return m_id;
   }
 
-  std::vector<I> & number_of_nodes_in_process()
+  std::map<I, I> & number_of_nodes_in_process()
   {
     return m_NN;
   }
@@ -132,7 +133,7 @@ private:
   I m_LNC;
   I m_id; // 网格块编号
   int m_gw; // 影像区宽度
-  std::vector<I> m_NN;
+  std::map<I, I> m_NN;
   std::vector<I> m_NC;
   std::vector<I> m_cpid; //单元所在进程编号  
   std::vector<I> m_npid; //节点所在进程编号

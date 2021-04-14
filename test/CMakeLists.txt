@@ -27,6 +27,7 @@ add_executable(DataArray_test DataArray_test.cpp)
 
 add_executable(json_test json_test.cpp)
 
+add_executable(txt_to_off_test txt_to_off_test.cpp)
 
 # add_executable(test_TriangleMesh test_TriangleMesh.cpp)
 # add_executable(test_Mesh test_Mesh.cpp)
@@ -95,6 +96,13 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     #add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
     #target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
     #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
+
+    add_executable(cgal_remesh_test cgal_remesh_test.cpp )
+    message("${CGAL_LIBRARIES}")
+    target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+
+
 
 endif()
 

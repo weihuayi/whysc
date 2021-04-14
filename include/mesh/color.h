@@ -118,18 +118,18 @@ void mesh_coloring(Mesh & mesh, int * color)
     }
 
     //测试不同颜色数量的变化
-    int num[cMax+1] = {0};
-    for(int i = 0; i < NN; i++)
-    {
-      num[color[i]]++;
-    }
+    //int num[cMax+1] = {0};
+    //for(int i = 0; i < NN; i++)
+    //{
+    //  num[color[i]]++;
+    //}
 
-    for(int i = 1; i < cMax+1; i++)
-    {
-      std::cout<< "颜色" << " "<< i << " " << "个数" << " " << num[i] <<std::endl;
-    }
+    //for(int i = 1; i < cMax+1; i++)
+    //{
+    //  std::cout<< "颜色" << " "<< i << " " << "个数" << " " << num[i] <<std::endl;
+    //}
 
-    std::cout<< "\n" <<std::endl;
+    //std::cout<< "\n" <<std::endl;
 
     if(flag)
     {

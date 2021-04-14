@@ -315,7 +315,6 @@ public:
 
     if(!fname.empty())
     {
-      std::cout<< "here" <<std::endl;
       std::vector<std::vector<int>> nids;
       nids.resize(nparts);
       for(int i = 0; i < nparts; i++)

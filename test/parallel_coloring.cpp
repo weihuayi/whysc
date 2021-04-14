@@ -5,6 +5,7 @@
 #include <set>
 
 #include <mpi.h>
+#include <time.h>
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TriangleMesh.h"
@@ -52,25 +53,21 @@ void communication(PMesh & mesh, std::vector<I> & data)
         j++;
       }
 
-      MPI_Send(&N, 1, MPI_INT, key, 0, MPI_COMM_WORLD);
+      //MPI_Send(&N, 1, MPI_INT, key, 0, MPI_COMM_WORLD);
       MPI_Send(gid_data, N*2, MPI_INT, key, 1, MPI_COMM_WORLD);
-      //std::cout<< "myrank = " << rank << " 发给 " << key << " 完成 "<<std::endl; 
     }
   }//发送数据完成
 
-  for(int j = 0; j < nprocs; j++)
+  for(auto it = pds.begin(); it != pds.end(); it++)
   {
-    if(j != rank)
+    auto j = it->first; 
+    int N = mesh.number_of_nodes_in_process()[j];
+    //MPI_Recv(&N, 1, MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    int gid_data[N*2];
+    MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    for(int k = 0; k < N; k++)
     {
-      int N;
-      MPI_Recv(&N, 1, MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      int gid_data[N*2];
-      MPI_Recv(gid_data, N*2, MPI_INT, j, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      //std::cout<< "myrank = " << rank << " 接收 " << j << " 完成 "<<std::endl; 
-      for(int k = 0; k < N; k++)
-      {
-        data[ng2l[gid_data[k*2]]] = gid_data[k*2+1];//填充影像节点数据
-      }
+      data[ng2l[gid_data[k*2]]] = gid_data[k*2+1];//填充影像节点数据
     }
   }//接收数据完成
 }
@@ -101,6 +98,8 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
 
   int cmax = 0;
   int tnum = 1;
+  double timet = 0;
+  clock_t start, end;
   while(tnum > 0)
   {
     cmax++;
@@ -112,10 +111,10 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
       randVal[idx] = rand();
     }
 
-    // 通信影像节点上的随机值
-    std::cout<< "randVal 开始通信 " << rank <<std::endl;
-    communication(mesh, randVal);
-    std::cout<< "randVal 通信完成 " << rank <<std::endl;
+    start = clock();
+    communication(mesh, randVal); // 通信影像节点上的随机值
+    end = clock();
+    timet += double (end-start)/CLOCKS_PER_SEC;
 
     for(auto it = edges.begin(); it != edges.end();)
     {
@@ -151,13 +150,74 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
         it++;
       }
     }
-    // 通信影像节点上的随机值
-    communication(mesh, color);
+
+    start = clock();
+    communication(mesh, color); // 通信影像节点上的随机值
+    end = clock();
+    timet += double (end-start)/CLOCKS_PER_SEC;
 
     int lnum = nColored.size();
     MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     std::cout<< "tnum = " << tnum << " cmax = "<<  cmax <<std::endl;
   }
+
+  //Toplogy node2node;
+  //esh.node_to_node(node2node);
+//
+  /// 尝试用新的 API
+  //uto & nei = node2node.neighbors();
+  //uto & loc = node2node.locations();
+//
+  //nt LNN = mesh.number_of_local_nodes();
+  //hile(true)
+  //
+  // for(int i = 0; i < LNN; i++)
+  // {
+  //   std::list<int> com;
+  //   for(int k=1; k <= cmax; k++)
+  //   {
+  //     com.push_back(k);
+  //   }
+//
+  //   for(int j = loc[i]; j < loc[i+1]; j++)
+  //   {
+  //     com.remove(color[nei[j]]);
+  //   }
+  //   color[i] = *std::min_element(com.begin(), com.end());
+  // }
+//
+  // start = clock();
+  // communication(mesh, color); // 通信影像节点上的随机值
+  // end = clock();
+  // timet += double (end-start)/CLOCKS_PER_SEC;
+//
+  // int flag = 1;
+  // for(int i = 0; i < NN; i++)
+  // {
+  //   if( color[i] == cmax )
+  //   {
+  //     flag = 0;
+  //     break;
+  //   }
+  // }
+//
+  // int flag0;
+  // MPI_Allreduce(&flag, &flag0, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+//
+  // if(flag>0)
+  // {
+  //   cmax -= 1;
+  // }
+  // if(flag0==0)
+  // {
+  //   break;
+  // }
+  // std::cout<< flag0 << std::endl;
+  //
+
+  std::stringstream sst;
+  sst << "rank: " << rank << "通讯时间: " << timet;
+  std::cout<< sst.str() << std::endl;
 }
 
 int main(int argc, char * argv[])
@@ -187,9 +247,17 @@ int main(int argc, char * argv[])
   //构建平行网格数据结构
   mesh.construct_parallel_data_structure();
 
+  clock_t start, end;
+
+  start = clock();
   //染色
   std::vector<int> color; 
   mesh_coloring(mesh, color);
+  end = clock();
+
+  std::stringstream sst;
+  sst << "rank = " << rank << "运行时间: " << double (end-start)/CLOCKS_PER_SEC;
+  std::cout<< sst.str() << std::endl;
 
   //检验染色是否成功
   int a=0;

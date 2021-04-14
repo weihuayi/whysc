@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     TriMesh mesh;
     MF::one_triangle_mesh(mesh);
 
-    mesh.uniform_refine(7);
+    mesh.uniform_refine(10);
  
     int NN = mesh.number_of_nodes();
     int NC = mesh.number_of_cells();
