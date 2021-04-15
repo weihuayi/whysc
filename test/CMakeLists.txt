@@ -97,22 +97,30 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     #target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
     #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(cgal_remesh_test cgal_remesh_test.cpp )
-    message("${CGAL_LIBRARIES}")
-    target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_remesh_test cgal_remesh_test.cpp )
+    #message("${CGAL_LIBRARIES}")
+    #target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
 
 
 endif()
 
 if(${VTK_FOUND} AND ${MPI_FOUND})
-        add_executable(parallel_coloring parallel_coloring.cpp)
-        target_link_libraries(parallel_coloring PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
-        vtk_module_autoinit(
-            TARGETS parallel_coloring 
-            MODULES ${VTK_LIBRARIES}
-        )
+    #add_executable(parallel_coloring parallel_coloring.cpp)
+    #target_link_libraries(parallel_coloring PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    #vtk_module_autoinit(
+    #      TARGETS parallel_coloring 
+    #      MODULES ${VTK_LIBRARIES}
+    #   )
+
+    add_executable(parallel_coloring_test parallel_coloring_test.cpp)
+    target_link_libraries(parallel_coloring_test PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_coloring_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
 
 endif()
 

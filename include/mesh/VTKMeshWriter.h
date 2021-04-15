@@ -29,6 +29,7 @@
 #include <vtkWedge.h>
 
 #include <string>
+#include <memory>
 
 namespace WHYSC {
 namespace Mesh {
@@ -60,7 +61,7 @@ public:
         m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
         m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
     }
-    
+
     void set_points()
     {
         auto NN = m_mesh->number_of_nodes();
