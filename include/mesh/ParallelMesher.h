@@ -37,7 +37,6 @@ public:
     std::vector<int> npid(gid.size());
     reader.get_node_data("nid", npid);
 
-    std::cout<< "here3" <<std::endl;
     m_pmesh->construct_parallel_data_structure(npid, m_comm);
   }
 

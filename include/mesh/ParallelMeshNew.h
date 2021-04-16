@@ -172,9 +172,7 @@ public:
         j++;
       }
 
-      std::cout<< m_id << "准备发送给" << target << " 信息 长度是" << N*2 <<std::endl;
       MPI_Send(data, N*2, MPI_INT, target, 1, comm);
-      std::cout<< m_id << "已经发送给" << target << "信息" <<std::endl;
     }
 
     //接收重叠区的编号信息
@@ -186,9 +184,7 @@ public:
       int N = idxmap.size();
       int data[N*2];
 
-      std::cout<< m_id << "准备接收" << target << "的信息" <<std::endl;
       MPI_Recv(data, N*2, MPI_INT, target, 1, comm, MPI_STATUS_IGNORE);
-      std::cout<< m_id << "接收到" << target << "的信息" <<std::endl;
 
       //把 data 中的数据和 idxmap 结合
       pds[target].init(3);

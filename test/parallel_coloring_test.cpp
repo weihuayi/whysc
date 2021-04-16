@@ -54,8 +54,6 @@ void communication(std::shared_ptr<PMesh> mesh, std::vector<I> & data, int dim)
       {
         adjData[j*2] = adjid[j];
         adjData[j*2+1] = data[locid[j]];
-        if(rank == 1 & target == 0)
-          std::cout<< "1->0 " << adjData[2*j] << " " << adjData[2*j+1] <<std::endl;
       }
     }
     MPI_Send(adjData, N*2, MPI_INT, target, 1, MPI_COMM_WORLD);
@@ -77,8 +75,6 @@ void communication(std::shared_ptr<PMesh> mesh, std::vector<I> & data, int dim)
       if(locData[2*k]>=LNN)//只接收别人的数据
       {
         data[locData[2*k]] = locData[k*2+1];//填充影像节点数据
-        if(rank == 0 & target == 1)
-          std::cout<< "0<-1 " << locData[2*k] << " " << locData[2*k+1] <<std::endl;
       }
     }
   }//接收数据完成
@@ -161,7 +157,6 @@ void mesh_coloring(std::shared_ptr<PMesh> mesh, std::vector<int> & color)
 
     int lnum = nColored.size();
     MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    //std::cout<< "lnum = " << lnum << " " << rank <<std::endl;
   }
 
 }
@@ -175,9 +170,7 @@ int main(int argc, char * argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  std::cout<< "here1" <<std::endl;
   PMesher pmesher(argv[1], ".vtu", MPI_COMM_WORLD);
-  std::cout<< "here2" <<std::endl;
   auto mesh = pmesher.build_mesh();
 
   auto NN = mesh->number_of_nodes();
