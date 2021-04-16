@@ -204,6 +204,33 @@ public:
       }
   }
 
+  void is_Boundary_edge(std::vector<bool> & isBdEdge)
+  {
+      auto NE = number_of_edges();
+      isBdEdge.resize(NE);
+      for(int i = 0; i < NE; i++)
+      {
+          isBdEdge[i] = false;
+          if(edge_to_cell(i)[0]==edge_to_cell(i)[1])
+              isBdEdge[i] = true;
+      }
+  }
+
+  void is_Boundary_node(std::vector<bool> & isBdNode)
+  {
+      auto NN = number_of_edges();
+      isBdNode.resize(NN);
+      for(int i = 0; i < NN; i++)
+      {
+          if(edge_to_cell(i)[0]==edge_to_cell(i)[1])
+          {
+              isBdNode[edge(i)[0]] = true;
+              isBdNode[edge(i)[1]] = true;
+          }
+      }
+  }
+
+
   void cell_to_cell(Toplogy & top)
   {
       auto NC = number_of_cells();

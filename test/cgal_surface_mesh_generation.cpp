@@ -75,10 +75,10 @@ int main()
   CGAL::facets_in_complex_2_to_triangle_mesh(c2t3, sm);
 
   PMesh mesh(1);
-  //MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
+  MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
   
-  MF::one_triangle_mesh(mesh);
-  mesh.uniform_refine(10);
+  //MF::one_triangle_mesh(mesh);
+  //mesh.uniform_refine(10);
 
   std::vector<PMesh> submeshes;
   MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");

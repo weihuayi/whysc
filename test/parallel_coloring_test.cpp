@@ -27,61 +27,6 @@ typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::EntityOverlap<int> EntityOverlap;
 
-template<typename I>
-void communication(std::shared_ptr<PMesh> mesh, std::vector<I> & data, int dim)
-{
-  // 通信影像节点上的随机值
-  int rank, nprocs;
-  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  auto LNN = mesh->number_of_local_nodes();
-  auto & pds = mesh->parallel_data_structure();
-  for(auto map : pds)
-  {
-    auto & target = map.first; 
-    auto & meshOverlap = map.second; 
-    auto & overlap = meshOverlap.entity_overlap(dim);
-
-    auto & locid = overlap.loc_index();
-    auto & adjid = overlap.adj_index();
-
-    int N = adjid.size();
-    int adjData[2*N];
-
-    for(int j = 0; j < N; j++)
-    {
-      adjData[j*2] = -1;
-      if(locid[j]<LNN)//只发送自己的数据
-      {
-        adjData[j*2] = adjid[j];
-        adjData[j*2+1] = data[locid[j]];
-      }
-    }
-    MPI_Send(adjData, N*2, MPI_INT, target, 1, MPI_COMM_WORLD);
-  }//发送数据完成
-
-  for(auto map : pds)
-  {
-    auto & target = map.first; 
-    auto & meshOverlap = map.second; 
-    auto & overlap = meshOverlap.entity_overlap(dim);
-    auto & adjid = overlap.adj_index();
-
-    int N = adjid.size();
-    int locData[2*N];
-
-    MPI_Recv(locData, N*2, MPI_INT, target, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    for(int k = 0; k < N; k++)
-    {
-      if(locData[2*k]>=LNN)//只接收别人的数据
-      {
-        data[locData[2*k]] = locData[k*2+1];//填充影像节点数据
-      }
-    }
-  }//接收数据完成
-}
-
 void mesh_coloring(std::shared_ptr<PMesh> mesh, std::vector<int> & color)
 {
   int rank, nprocs;

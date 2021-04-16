@@ -22,6 +22,8 @@ public:
 
     auto & pds = mesh->parallel_data_structure();
     auto & isImageNode = get_image_node();
+    std::vector<bool> isBdNode;
+    mesh->is_Boundary_node(isBdNode);
 
     isImageNode.resize(NN);
     std::vector<bool> isOverlapNode(NN, 0);
@@ -45,21 +47,13 @@ public:
     for(int i = 0; i < NN; i++)
     {
       isImageNode[i] = false;
-      if(isOverlapNode[i])
+      if(isOverlapNode[i] & isBdNode[i])
       {
         isImageNode[i] = true;
         for(int j = loc[i]; j < loc[i+1]; j++)
         {
           isImageNode[i] = isImageNode[i] & isOverlapNode[nei[j]];
         }
-      }
-      if((i<lnn) & isImageNode[i])
-      {
-        std::cout<< "hanpi1" <<std::endl;
-      }
-      if((i>=lnn)&!isImageNode[i])
-      {
-        std::cout<< "hanpi2" <<std::endl;
       }
     }
   }
@@ -85,7 +79,7 @@ public:
       for(int j = 0; j < N; j++)
       {
         adjData[j*2] = -1;
-        if(!isImageNode[j])//只发送自己的数据
+        if(!isImageNode[locid[j]])//只发送自己的数据
         {
           adjData[j*2] = adjid[j];
           adjData[j*2+1] = data[locid[j]];
@@ -107,9 +101,12 @@ public:
       MPI_Recv(locData, N*2, MPI_INT, target, 1, m_comm, MPI_STATUS_IGNORE);
       for(int k = 0; k < N; k++)
       {
-        if(locData[2*k] >= 0 & isImageNode[k])//只接收别人的数据
+        if(locData[2*k] >= 0)
         {
-          data[locData[2*k]] = locData[k*2+1];//填充影像节点数据
+          if(isImageNode[locData[k*2]])//只接收别人的数据
+          {
+            data[locData[2*k]] = locData[k*2+1];//填充影像节点数据
+          }
         }
       }
     }//接收数据完成
