@@ -155,7 +155,6 @@ public:
         lnn++;
       }
     }//完成 ng2l 的构建
-    std::cout<< "here4" <<std::endl;
 
     //发送 ng2l 中全局与局部的编号信息
     for(auto map : ng2l)
@@ -205,6 +204,22 @@ public:
         adjid[j] = data[2*j+1];
       }
     }
+
+    if(m_id==0)
+    {
+      auto & overlap0 = pds[1].entity_overlap(0);
+      auto & locid = overlap0.loc_index();
+      auto & adjid = overlap0.adj_index();
+      std::cout<< "locid" <<std::endl;
+      for(auto a : locid)
+        std::cout<< a <<std::endl;
+
+      std::cout<< "adjid" <<std::endl;
+      for(auto a : adjid)
+        std::cout<< a <<std::endl;
+    }
+
+
   }
 
   int id()

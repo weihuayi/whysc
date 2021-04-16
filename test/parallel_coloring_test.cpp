@@ -49,8 +49,14 @@ void communication(std::shared_ptr<PMesh> mesh, std::vector<I> & data, int dim)
 
     for(int j = 0; j < N; j++)
     {
-      adjData[j*2] = adjid[j];
-      adjData[j*2+1] = data[locid[j]];
+      adjData[j*2] = -1;
+      if(locid[j]<LNN)//只发送自己的数据
+      {
+        adjData[j*2] = adjid[j];
+        adjData[j*2+1] = data[locid[j]];
+        if(rank == 1 & target == 0)
+          std::cout<< "1->0 " << adjData[2*j] << " " << adjData[2*j+1] <<std::endl;
+      }
     }
     MPI_Send(adjData, N*2, MPI_INT, target, 1, MPI_COMM_WORLD);
   }//发送数据完成
@@ -68,10 +74,11 @@ void communication(std::shared_ptr<PMesh> mesh, std::vector<I> & data, int dim)
     MPI_Recv(locData, N*2, MPI_INT, target, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     for(int k = 0; k < N; k++)
     {
-      if(locData[2*k]>LNN)
+      if(locData[2*k]>=LNN)//只接收别人的数据
       {
-        std::cout<< "hhhh" <<std::endl;
         data[locData[2*k]] = locData[k*2+1];//填充影像节点数据
+        if(rank == 0 & target == 1)
+          std::cout<< "0<-1 " << locData[2*k] << " " << locData[2*k+1] <<std::endl;
       }
     }
   }//接收数据完成
@@ -88,8 +95,6 @@ void mesh_coloring(std::shared_ptr<PMesh> mesh, std::vector<int> & color)
   auto NE = mesh->number_of_edges();
   auto LNN = mesh->number_of_local_nodes();
   auto & pds = mesh->parallel_data_structure();
-
-  color.resize(NN);
 
   std::vector<int> randVal(NN);
   std::vector<bool> isMin(NN, true);
@@ -115,7 +120,15 @@ void mesh_coloring(std::shared_ptr<PMesh> mesh, std::vector<int> & color)
       randVal[idx] = rand();
     }
 
-    communication(mesh, randVal, 0); // 通信影像节点上的随机值
+    //if(rank==1)
+    //{
+    //  std::cout<< "hahahah" << randVal[21] <<std::endl;
+    //}
+    //communication(mesh, randVal, 0); // 通信影像节点上的随机值
+    //if(rank==1)
+    //{
+    //  std::cout<< "hahahah1" << randVal[21] <<std::endl;
+    //}
 
     for(auto it = edges.begin(); it != edges.end();)
     {
@@ -138,6 +151,15 @@ void mesh_coloring(std::shared_ptr<PMesh> mesh, std::vector<int> & color)
         }
         it++;
       }
+      //if(rank==1)
+      //{
+      //  std::cout<< "爷还在" << e[0] << " " << isMin[e[0]] << " " << isMin[e[1]]<<std::endl;
+      //  std::cout<< randVal[21] <<std::endl;
+      //}
+      //if(rank==2)
+      //{
+      //  std::cout<< "y还在" << randVal[20];
+      //}
     }
 
     for(auto it = nColored.begin(); it != nColored.end();)
@@ -154,9 +176,16 @@ void mesh_coloring(std::shared_ptr<PMesh> mesh, std::vector<int> & color)
     }
 
     communication(mesh, color, 0); // 通信影像节点上的随机值
+    if(rank==1)
+    {
+      //for(auto i : nColored)
+        //std::cout<< i <<std::endl;
+        //std::cout<< LNN <<std::endl;
+    }
 
     int lnum = nColored.size();
     MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    //std::cout<< "lnum = " << lnum << " " << rank <<std::endl;
   }
 }
 

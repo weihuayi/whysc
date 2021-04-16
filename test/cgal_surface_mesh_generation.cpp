@@ -76,10 +76,11 @@ int main()
 
   PMesh mesh(1);
   //MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
+  
   MF::one_triangle_mesh(mesh);
-  mesh.uniform_refine(2);
+  mesh.uniform_refine(3);
 
   std::vector<PMesh> submeshes;
-  MF::mesh_node_partition(mesh, 2, submeshes, "test_surface");
+  MF::mesh_node_partition(mesh, 3, submeshes, "test_surface");
 
 }
