@@ -172,8 +172,9 @@ public:
         j++;
       }
 
+      std::cout<< m_id << "准备发送给" << target << " 信息 长度是" << N*2 <<std::endl;
       MPI_Send(data, N*2, MPI_INT, target, 1, comm);
-      //std::cout<< m_id << "已经发送给" << target << "信息" <<std::endl;
+      std::cout<< m_id << "已经发送给" << target << "信息" <<std::endl;
     }
 
     //接收重叠区的编号信息
@@ -183,11 +184,11 @@ public:
       auto & idxmap = map.second;
 
       int N = idxmap.size();
-      std::cout<< "N = " << N <<std::endl;
       int data[N*2];
 
+      std::cout<< m_id << "准备接收" << target << "的信息" <<std::endl;
       MPI_Recv(data, N*2, MPI_INT, target, 1, comm, MPI_STATUS_IGNORE);
-      //std::cout<< m_id << "接收到" << target << "的信息" <<std::endl;
+      std::cout<< m_id << "接收到" << target << "的信息" <<std::endl;
 
       //把 data 中的数据和 idxmap 结合
       pds[target].init(3);
@@ -204,22 +205,6 @@ public:
         adjid[j] = data[2*j+1];
       }
     }
-
-    if(m_id==0)
-    {
-      auto & overlap0 = pds[1].entity_overlap(0);
-      auto & locid = overlap0.loc_index();
-      auto & adjid = overlap0.adj_index();
-      std::cout<< "locid" <<std::endl;
-      for(auto a : locid)
-        std::cout<< a <<std::endl;
-
-      std::cout<< "adjid" <<std::endl;
-      for(auto a : adjid)
-        std::cout<< a <<std::endl;
-    }
-
-
   }
 
   int id()
