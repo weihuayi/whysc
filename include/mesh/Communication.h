@@ -56,15 +56,6 @@ public:
           isImageNode[i] = isImageNode[i] & isOverlapNode[nei[j]];
         }
       }
-      if(i<lnn & isImageNode[i])
-      {
-        std::cout<< "hanpi1" <<std::endl;
-      }
-
-      if(i>=lnn & !isImageNode[i])
-      {
-        std::cout<< "hanpi2 " << isBdNode[i] << " " << i << " " << mesh->id() <<std::endl;
-      }
     }
   }
 

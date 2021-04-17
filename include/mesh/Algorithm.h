@@ -52,7 +52,6 @@ public:
         randVal[idx] = rand();
       }
 
-      std::cout<< "haha" <<std::endl;
       communication.communicate(randVal); // 通信影像节点上的随机值
 
       for(auto it = edges.begin(); it != edges.end();)
