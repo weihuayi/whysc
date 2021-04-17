@@ -23,10 +23,10 @@ public:
     auto mesh = get_mesh();
     auto NN = mesh->number_of_nodes();
     auto NE = mesh->number_of_edges();
-    auto LNN = mesh->number_of_local_nodes();
     auto & pds = mesh->parallel_data_structure();
 
     Communication communication(mesh, m_comm);
+    auto & isImageNode = communication.get_image_node();
 
     std::vector<int> randVal(NN);
     std::vector<bool> isMin(NN, true);
@@ -34,8 +34,11 @@ public:
     std::list<int> edges; //没有被删除的边
     std::list<int> nColored; //没有被染色的点
 
-    for(int i = 0; i < LNN; i++)
-      nColored.push_back(i);
+    for(int i = 0; i < NN; i++)
+    {
+      if(!isImageNode[i])
+        nColored.push_back(i);
+    }
 
     for(int i=0; i < NE; i++)
       edges.push_back(i);

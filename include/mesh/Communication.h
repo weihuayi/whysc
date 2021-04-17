@@ -19,8 +19,6 @@ public:
     m_comm = comm;
     m_mesh = mesh;
 
-    auto lnn = mesh->number_of_local_nodes();
-
     auto & pds = mesh->parallel_data_structure();
     auto & isImageNode = get_image_node();
     std::vector<bool> isBdNode;

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <memory>
+#include <array>
+#include <vector>
 #include <mpi.h>
 
 #include "VTKMeshReader.h"
@@ -46,19 +48,17 @@ public:
 
   void build_mesh(std::vector<int> & npid)
   {
+    auto mesh = get_mesh();
 
     Toplogy node2node;
-    m_pmesh->node_to_node(node2node);
+    mesh->node_to_node(node2node);
     auto & loc = node2node.locations();
     auto & nei = node2node.neighbors();
 
-    auto id = m_pmesh->id();
-    auto NN = m_pmesh->number_of_nodes();
-    auto & pds = m_pmesh->parallel_data_structure();
-    auto & gid = m_pmesh->node_global_id();
-    auto & lnn = m_pmesh->number_of_local_nodes();
-    lnn = 0;
-
+    auto id = mesh->id();
+    auto NN = mesh->number_of_nodes();
+    auto & pds = mesh->parallel_data_structure();
+    auto & gid = mesh->node_global_id();
     std::map<I, std::map<I, I> > ng2l; //每个重叠区的节点全局编号到局部编号的映射
     for(I i=0; i < NN; i++)
     {
@@ -71,14 +71,18 @@ public:
           ng2l[npid[i]][gid[nei[k]]] = nei[k];
         }
       }
-      else
-      {
-        lnn++;
-      }
     }//完成 ng2l 的构建
+    communicate_index(ng2l, 0);
+    build_overlap(mesh->edges(), 1);
+    build_overlap(mesh->cells(), 2);
+  }
 
-    //发送 ng2l 中全局与局部的编号信息
-    for(auto map : ng2l)
+  void communicate_index(std::map<I, std::map<I, I> > & g2l, int d)
+  {
+    auto mesh = get_mesh();
+    auto & pds = mesh->parallel_data_structure();
+
+    for(auto map : g2l)
     {
       auto target  = map.first;
       auto & idxmap = map.second;
@@ -97,7 +101,16 @@ public:
     }
 
     //接收重叠区的编号信息
-    for(auto map : ng2l)
+    for(auto map : g2l)
+    {
+      auto target  = map.first;
+      auto & idxmap = map.second;
+
+      int N = idxmap.size();
+      int data[N*2];
+    }
+
+    for(auto map : g2l)
     {
       auto target  = map.first;
       auto & idxmap = map.second;
@@ -109,7 +122,7 @@ public:
 
       //把 data 中的数据和 idxmap 结合
       pds[target].init(3);
-      auto & overlap0 = pds[target].entity_overlap(0);
+      auto & overlap0 = pds[target].entity_overlap(d);
       auto & locid = overlap0.loc_index();
       auto & adjid = overlap0.adj_index();
 
@@ -122,6 +135,62 @@ public:
         adjid[j] = data[2*j+1];
       }
     }
+  }
+
+  template<typename Vec>
+  void build_overlap(Vec & com, int d)
+  {
+    auto mesh = get_mesh();
+    int NN = mesh->number_of_nodes();
+
+    auto & pds = mesh->parallel_data_structure();
+    std::map<I, std::map<I, I> > g2l; //每个重叠区的 d 维单形全局编号到局部编号的映射
+
+    for(auto & map : pds)
+    {
+      auto & target = map.first;
+      auto & meshOverlap = map.second; 
+      auto & overlap0 = meshOverlap.entity_overlap(0);
+      auto & overlapd = meshOverlap.entity_overlap(d);
+
+      std::vector<bool> isOverlapNode(NN, 0);
+      auto & locid = overlap0.loc_index();
+      for(auto id : locid)
+      {
+        isOverlapNode[id] = true;
+      }
+
+      for(int i = 0; i < com.size(); i++)
+      {
+        bool flag = true;
+
+        int E[d+1];
+        for(int j = 0; j < d+1; j++)
+        {
+          flag = flag & isOverlapNode[com[i][j]]; //顶点都在 overlap 则自己也在 overlap
+          E[j] = com[i][j];
+        }
+        std::sort(E, E+d+1);
+
+        if(flag)// i 单形在 overlap 中
+        {
+          int gid = 0;
+          for(int k = 1; k < d+2; k++)
+          {
+            int num0 = 1;
+            int num1 = 1;
+            for(int j = 0; j < k; j++)
+            {
+              num0 *= E[k-1]+j;
+              num1 *= j+1;
+            }
+            gid += num0/num1;
+          }
+          g2l[target][gid] = i;
+        }
+      }
+    }// g2l 构建完成
+    communicate_index(g2l, d);
   }
 
   std::shared_ptr<PMesh> get_mesh()

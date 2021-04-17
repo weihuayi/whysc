@@ -128,11 +128,6 @@ public:
     return m_id;
   }
 
-  int & number_of_local_nodes()
-  {
-    return m_lnn;
-  }
-
   std::vector<I> & cell_global_id()
   {
     return m_cgid;
@@ -150,7 +145,6 @@ public:
 
 private:
   I m_id; // 网格块编号(进程的编号）
-  I m_lnn;
   std::vector<I> m_cgid; //单元的全局编号
   std::vector<I> m_ngid; //节点的全局编号
   PDS m_pds;
