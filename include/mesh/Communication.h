@@ -24,7 +24,7 @@ public:
     auto & pds = mesh->parallel_data_structure();
     auto & isImageNode = get_image_node();
     std::vector<bool> isBdNode;
-    mesh->is_Boundary_node(isBdNode);
+    mesh->is_boundary_node(isBdNode);
 
     isImageNode.resize(NN);
     std::vector<bool> isOverlapNode(NN, 0);
