@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <set>
+#include <memory>
 
 #include <metis.h>
 
@@ -187,7 +188,7 @@ public:
     auto & nodes = mesh.nodes();
     nodes.resize(sm.number_of_vertices());
 
-    //std::unordered_map<VIndex, int> V;
+    std::cout<< " ha "<< std::endl; 
     for(auto & v : sm.vertices())
     {
         auto i = v.idx();
@@ -198,7 +199,13 @@ public:
     }
 
     auto & cells = mesh.cells();
-    cells.resize(sm.number_of_faces());
+    std::cout<< " ha "<< std::endl; 
+    int N = sm.number_of_faces();
+    std::cout<< " ha "<< std::endl; 
+    cells.resize(2169);
+    std::cout<< " ha "<< N << std::endl; 
+    cells.resize(N);
+    std::cout<< " ha "<< std::endl; 
     auto fr = sm.faces();
 
     for( auto & f : sm.faces())

@@ -128,6 +128,11 @@ public:
     return m_id;
   }
 
+  std::vector<I> & node_process_id()
+  {
+    return m_npid;
+  }
+
   std::vector<I> & cell_global_id()
   {
     return m_cgid;
@@ -147,6 +152,7 @@ private:
   I m_id; // 网格块编号(进程的编号）
   std::vector<I> m_cgid; //单元的全局编号
   std::vector<I> m_ngid; //节点的全局编号
+  std::vector<I> m_npid; //节点的进程编号
   PDS m_pds;
 };
 

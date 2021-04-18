@@ -87,10 +87,10 @@ int main(int argc, char* argv[])
   out << "OFF"<< std::endl;
   out << vdata.size() <<" "<< cdata.size() <<" 0"<< std::endl;
   for (int j = 0; j <vdata.size() ; ++j) {
-      out << (vdata[j][0]) <<" " << vdata[j][1]<< " "<< vdata[j][2]<<  std::endl;
+      out << (vdata[j][0]) <<" " << vdata[j][1]<< " "<< vdata[j][2]<<std::endl;
   }
   for (int j = 0; j <cdata.size() ; ++j) {
-      out <<"3 " << (cdata[j][0]) <<" " << cdata[j][1] <<" " << cdata[j][2]<< std::endl;
+      out <<"3 " << (cdata[j][0]) <<" " << cdata[j][1] <<" " << cdata[j][2] <<std::endl;
   }
   out.close();
 }

@@ -38,15 +38,15 @@ public:
     auto & gid = m_pmesh->node_global_id();
     reader.get_node_data("gid", gid);
 
-    std::vector<int> npid(gid.size());
+    auto & npid = m_pmesh->node_process_id();
     reader.get_node_data("nid", npid);
 
-    build_mesh(npid);
+    build_mesh();
   }
 
   //virtual ~ParallelMesher();
 
-  void build_mesh(std::vector<int> & npid)
+  void build_mesh()
   {
     auto mesh = get_mesh();
 
@@ -59,6 +59,7 @@ public:
     auto NN = mesh->number_of_nodes();
     auto & pds = mesh->parallel_data_structure();
     auto & gid = mesh->node_global_id();
+    auto & npid = mesh->node_process_id();
     std::map<I, std::map<I, I> > ng2l; //每个重叠区的节点全局编号到局部编号的映射
     for(I i=0; i < NN; i++)
     {

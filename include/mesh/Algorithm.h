@@ -5,14 +5,14 @@
 namespace WHYSC {
 namespace Mesh {
 
-template<typename Mesh, typename Communication>
+template<typename PMesh, typename Communication>
 class Algorithm
 {
 public:
-  typedef typename Mesh::Toplogy Toplogy;
+  typedef typename PMesh::Toplogy Toplogy;
 
 public:
-  Algorithm(std::shared_ptr<Mesh> mesh, MPI_Comm comm)
+  Algorithm(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
   {
     m_mesh = mesh;
     m_comm = comm;
@@ -26,7 +26,7 @@ public:
     auto & pds = mesh->parallel_data_structure();
 
     Communication communication(mesh, m_comm);
-    auto & isImageNode = communication.get_image_node();
+    auto & isGhostNode = communication.get_ghost_node();
 
     std::vector<int> randVal(NN);
     std::vector<bool> isMin(NN, true);
@@ -36,7 +36,7 @@ public:
 
     for(int i = 0; i < NN; i++)
     {
-      if(!isImageNode[i])
+      if(!isGhostNode[i])
         nColored.push_back(i);
     }
 
@@ -135,14 +135,14 @@ public:
   }
 
 
-  std::shared_ptr<Mesh> get_mesh()
+  std::shared_ptr<PMesh> get_mesh()
   {
     return m_mesh;
   }
 
 private:
   MPI_Comm m_comm;
-  std::shared_ptr<Mesh> m_mesh;
+  std::shared_ptr<PMesh> m_mesh;
 };
 
 

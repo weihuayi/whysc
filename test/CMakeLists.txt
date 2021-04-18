@@ -97,10 +97,10 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     #target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
     #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    #add_executable(cgal_remesh_test cgal_remesh_test.cpp )
-    #message("${CGAL_LIBRARIES}")
-    #target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
-    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    add_executable(cgal_remesh_test cgal_remesh_test.cpp )
+    message("${CGAL_LIBRARIES}")
+    target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
 
 
