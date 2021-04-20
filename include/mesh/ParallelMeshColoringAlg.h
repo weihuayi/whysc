@@ -3,23 +3,27 @@
 #include <mpi.h>
 
 
+#include "GhostFillingAlg.h"
+
 namespace WHYSC {
 namespace Mesh {
 
-template<typename PMesh, typename Communication>
+template<typename PMesh>
 class ParallelMeshColoringAlg
 {
 public:
   typedef typename PMesh::Toplogy Toplogy;
+  typedef GhostFillingAlg<PMesh> SetGhostAlg;
 
 public:
   ParallelMeshColoringAlg(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
   {
     m_mesh = mesh;
+    m_set_ghost_alg = std::make_shared<SetGhostAlg>(mesh, comm);
     m_comm = comm;
   }
 
-  void mesh_coloring(std::vector<int> & color)
+  void coloring(std::vector<int> & color)
   {
     auto mesh = get_mesh();
     auto NN = mesh->number_of_nodes();
@@ -143,6 +147,7 @@ public:
 
 private:
   MPI_Comm m_comm;
+  std::shared_ptr<GhostFillingAlg<PMesh> >  m_set_ghost_alg;
   std::shared_ptr<PMesh> m_mesh;
 };
 
