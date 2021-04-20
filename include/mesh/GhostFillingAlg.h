@@ -6,14 +6,14 @@ namespace WHYSC {
 namespace Mesh {
 
 template<typename PMesh>
-class Communication 
+class GhostFillAlg 
 {
 public:
   typedef typename PMesh::I I;
   typedef typename PMesh::Toplogy Toplogy;
 
 public:
-  Communication(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
+  GhostFillAlg(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
   {
     int NN = mesh->number_of_nodes();
     m_comm = comm;
@@ -32,7 +32,7 @@ public:
   }
 
   template<typename F>
-  void communicate(std::vector<F> & data)
+  void fill(std::vector<F> & data)
   {
     auto mesh = get_mesh();
     auto & isGhostNode = get_ghost_node();

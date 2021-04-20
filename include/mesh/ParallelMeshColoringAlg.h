@@ -2,17 +2,18 @@
 #include <vector>
 #include <mpi.h>
 
+
 namespace WHYSC {
 namespace Mesh {
 
 template<typename PMesh, typename Communication>
-class Algorithm
+class ParallelMeshColoringAlg
 {
 public:
   typedef typename PMesh::Toplogy Toplogy;
 
 public:
-  Algorithm(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
+  ParallelMeshColoringAlg(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
   {
     m_mesh = mesh;
     m_comm = comm;
