@@ -188,7 +188,6 @@ public:
     auto & nodes = mesh.nodes();
     nodes.resize(sm.number_of_vertices());
 
-    std::cout<< " ha "<< std::endl; 
     for(auto & v : sm.vertices())
     {
         auto i = v.idx();
@@ -199,13 +198,8 @@ public:
     }
 
     auto & cells = mesh.cells();
-    std::cout<< " ha "<< std::endl; 
-    int N = sm.number_of_faces();
-    std::cout<< " ha "<< std::endl; 
-    cells.resize(2169);
-    std::cout<< " ha "<< N << std::endl; 
-    cells.resize(N);
-    std::cout<< " ha "<< std::endl; 
+    std::cout<< sm.number_of_faces() <<std::endl;
+    cells.resize(sm.number_of_faces());
     auto fr = sm.faces();
 
     for( auto & f : sm.faces())

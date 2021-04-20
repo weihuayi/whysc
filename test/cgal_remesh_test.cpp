@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream> 
 #include <memory>
+#include <map>
 
 #include <vtkDoubleArray.h>
 #include <vtkIntArray.h>
@@ -40,6 +41,7 @@ typedef GT::FT FT;
 typedef FT (*Function)(Point_3);
 typedef CGAL::Implicit_surface_3<GT, Function> Surface_3;
 typedef CGAL::Surface_mesh<Point_3> Surface_mesh;
+typedef Surface_mesh::Vertex_index vertex_descriptor;
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
@@ -66,30 +68,160 @@ struct halfedge2edge
   std::vector<edge_descriptor>& m_edges;
 };
 
+int read_file(const char* filename, Surface_mesh & mesh)
+{
+  std::ifstream input;
+  input.open(filename);
+
+	if (!input.is_open())
+	{
+    std::cout<< "读取文件失败" <<std::endl;
+		return 1;
+	}
+  std::vector<vertex_descriptor> vdata;
+  vdata.resize(1022);
+  std::string data;
+
+  int vsize = 1022;
+  int csize = 2040;
+
+  int i = 0;
+  while(getline(input, data))
+  {
+    if(data[0] == 'f')
+    {
+      continue;
+    }
+
+    if(i < vsize+2) 
+    {
+      std::vector<double> v;
+      std::string x="";
+      for(int j = 0; j < data.length(); j++)
+      {
+        if(data[j] !=' ')
+        {
+          x+=data[j];
+        }
+
+        if((data[j] == ' ' && x != "") || j == data.length()-1)
+        {
+          v.push_back(stod(x));
+          x="";
+        }
+      }
+      vdata[i-1] = mesh.add_vertex(Point_3(v[0], v[1], v[2]));
+      std::cout<< "herw " << mesh.point(vdata[i-1]) <<std::endl;
+    } 
+    else 
+    {
+      std::vector<int> c;
+      std::string x="";
+      for(int j = 0; j < data.length(); j++)
+      {
+        if(data[j] !=' ')
+        {
+          x+=data[j];
+        }
+
+        if((data[j] == ' ' && x != "") || j == data.length()-1)
+        {
+          c.push_back(stod(x));
+          x="";
+        }
+      }
+      std::cout<< "hahah" << c[0] << " " << c[1] << " " << c[2] <<std::endl;
+      mesh.add_face(vdata[c[1]], vdata[c[2]], vdata[c[3]]);
+    }
+    i++;
+  }
+  return 0;
+}
+
 int main(int argc, char* argv[])
 {
   const char* filename = (argc > 1) ? argv[1] : "data/pig.off";
-  std::ifstream input(filename);
+  const char* filename1 = (argc > 1) ? argv[2] : "data/pig.off";
   Mesh mesh;
 
-  //input >> mesh;
-  std::cout<< !input << " " << !(input >> mesh) << " " << !CGAL::is_triangle_mesh(mesh) <<std::endl;
-  if (!input || !(input >> mesh) || !CGAL::is_triangle_mesh(mesh)) 
-  {
-    std::cerr << "Not a valid input file." << std::endl;
-    return 1;
-  }
+  /* 读文件并转换为 surface_mesh*/
+  std::ifstream input;
+  input.open(filename);
 
-  for(auto f : mesh.faces())
-  {
-    auto i = f.idx();
-    auto h0 = mesh.halfedge(f);
-    auto h1 = mesh.next(h0);
-    auto h2 = mesh.next(h1);
+	if (!input.is_open())
+	{
+    std::cout<< "读取文件失败" <<std::endl;
+		return 1;
+	}
+  std::vector<vertex_descriptor> vdata;
+  vdata.resize(4532);
+  std::string data;
 
-    std::cout<< mesh.target(h0).idx() << " " << mesh.target(h1).idx() << " " << mesh.target(h2).idx() <<std::endl;
+  int vsize = 4532;
+
+  int i = 0;
+  while(getline(input, data))
+  {
+    if(data[0] == 'f')
+    {
+      i++;
+      continue;
+    }
+
+    if(i <= vsize) 
+    {
+      std::vector<double> v;
+      std::string x="";
+      for(int j = 0; j < data.length(); j++)
+      {
+        if(data[j] !=' ')
+        {
+          x+=data[j];
+        }
+
+        if((data[j] == ' ' && x != "") || j == data.length()-1)
+        {
+          v.push_back(stod(x));
+          x="";
+        }
+      }
+      vdata[i-1] = mesh.add_vertex(Point_3(v[0], v[1], v[2]));
+      std::cout<< i-1 << "herw " << mesh.point(vdata[i-1]) <<std::endl;
+      i++;
+    } 
+    else 
+    {
+      std::vector<int> c;
+      std::string x="";
+      for(int j = 0; j < data.length(); j++)
+      {
+        if(data[j] !=' ')
+        {
+          x+=data[j];
+        }
+
+        if((data[j] == ' ' && x != "") || j == data.length()-1)
+        {
+          c.push_back(stoi(x)-1);
+          x="";
+        }
+      }
+      std::cout<< "hahah" << c[0] << " " << c[1] << " " << c[2] <<std::endl;
+      mesh.add_face(vdata[c[0]], vdata[c[1]], vdata[c[2]]);
+      i++;
+    }
   }
+  /*******************完成************************/
+  TriMesh mesh0;
+  std::cout<< "here" <<std::endl;
+  MF::cgal_surface_mesh_to_triangle_mesh<Mesh, TriMesh>(mesh, mesh0);
+
+  Writer writer(&mesh0);
+  writer.set_points();
+  writer.set_cells();
+  writer.write("file.vtu");
  
+  /*
   double target_edge_length = 0.04;
   unsigned int nb_iter = 3;
   std::cout << "Split border...";
@@ -109,9 +241,34 @@ int main(int argc, char* argv[])
       .protect_constraints(true)//i.e. protect border, here
       );
 
-  TriMesh mesh0;
-  MF::cgal_surface_mesh_to_triangle_mesh<Mesh, TriMesh>(mesh, mesh0);
- 
+
   std::cout << "Remeshing done." << std::endl;
-  return 0;
+
+  std::ofstream out(filename1);
+  out << "OFF"<< std::endl;
+
+  std::map<int, int> indexmap;
+  int kk = 1;
+  for(auto & v : mesh.vertices())
+  {
+      auto i = v.idx();
+      auto p = mesh.point(v);
+      indexmap[i] = kk;
+      std::cout<< " 编号 " << i <<std::endl;
+      out << p.x() <<" " << p.y() << " "<< p.z() <<std::endl;
+      kk++;
+  }
+
+  for( auto & f : mesh.faces())
+  {
+    auto i = f.idx();
+    auto h0 = mesh.halfedge(f);
+    auto h1 = mesh.next(h0);
+    auto h2 = mesh.next(h1);
+
+    out <<" " << indexmap[mesh.target(h0).idx()] <<" " << indexmap[mesh.target(h1).idx()] <<" " << indexmap[mesh.target(h2).idx()] <<std::endl;
+    //out <<" " << mesh.target(h0).idx() <<" " << mesh.target(h1).idx() <<" " << mesh.target(h2).idx() <<std::endl;
+  }
+  out.close();
+  */
 } 

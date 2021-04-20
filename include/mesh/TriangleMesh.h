@@ -204,7 +204,7 @@ public:
       }
   }
 
-  void is_Boundary_edge(std::vector<bool> & isBdEdge)
+  void is_boundary_edge(std::vector<bool> & isBdEdge)
   {
       auto NE = number_of_edges();
       isBdEdge.resize(NE);
@@ -216,11 +216,11 @@ public:
       }
   }
 
-  void is_Boundary_node(std::vector<bool> & isBdNode)
+  void is_boundary_node(std::vector<bool> & isBdNode)
   {
-      auto NN = number_of_edges();
-      isBdNode.resize(NN);
-      for(int i = 0; i < NN; i++)
+      auto NE = number_of_edges();
+      isBdNode.resize(NE);
+      for(int i = 0; i < NE; i++)
       {
           if(edge_to_cell(i)[0]==edge_to_cell(i)[1])
           {
