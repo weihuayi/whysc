@@ -14,6 +14,7 @@
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TriangleMesh.h"
+#include "mesh/QuadMesh.h"
 #include "mesh/ParallelMesh.h"
 #include "mesh/MeshFactory.h"
 #include "mesh/VTKMeshWriter.h"
@@ -35,11 +36,14 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
-typedef PMesh::Cell Cell;
-typedef PMesh::Toplogy Toplogy;
-typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PTMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PQMesh;
+
+typedef WHYSC::Mesh::VTKMeshReader<PTMesh> TReader;
+typedef WHYSC::Mesh::VTKMeshWriter<PTMesh> TWriter;
+typedef WHYSC::Mesh::VTKMeshReader<PQMesh> QReader;
+typedef WHYSC::Mesh::VTKMeshWriter<PQMesh> QWriter;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 FT sphere_function (Point_3 p) 
@@ -74,13 +78,14 @@ int main()
   Surface_mesh sm;
   CGAL::facets_in_complex_2_to_triangle_mesh(c2t3, sm);
 
-  PMesh mesh(1);
+  PTMesh mesh(1);
   MF::cgal_surface_mesh_to_triangle_mesh(sm, mesh);
   
   //MF::one_triangle_mesh(mesh);
   //mesh.uniform_refine(9);
 
-  std::vector<PMesh> submeshes;
+  std::vector<PTMesh> submeshes;
+
   MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");
 
 }

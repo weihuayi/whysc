@@ -2,11 +2,13 @@
 #include <vector>
 #include <mpi.h>
 
-
-#include "GhostFillingAlg.h"
+//#include "GhostFillingAlg.h"
 
 namespace WHYSC {
 namespace Mesh {
+
+template<typename PMesh>
+class GhostFillingAlg;
 
 template<typename PMesh>
 class ParallelMeshColoringAlg
@@ -30,8 +32,7 @@ public:
     auto NE = mesh->number_of_edges();
     auto & pds = mesh->parallel_data_structure();
 
-    Communication communication(mesh, m_comm);
-    auto & isGhostNode = communication.get_ghost_node();
+    auto & isGhostNode = m_set_ghost_alg->get_ghost_node();
 
     std::vector<int> randVal(NN);
     std::vector<bool> isMin(NN, true);
@@ -60,7 +61,7 @@ public:
         randVal[idx] = rand();
       }
 
-      communication.communicate(randVal); // 通信影像节点上的随机值
+      m_set_ghost_alg->fill(randVal); // 通信影像节点上的随机值
 
       for(auto it = edges.begin(); it != edges.end();)
       {
@@ -98,7 +99,7 @@ public:
         }
       }
 
-      communication.communicate(color); // 通信影像节点上的颜色值
+      m_set_ghost_alg->fill(color); // 通信影像节点上的颜色值
 
       int lnum = nColored.size();
       MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);

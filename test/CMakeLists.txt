@@ -19,8 +19,6 @@ add_executable(house_test house_test.cpp)
 
 add_executable(qr_test qr_test.cpp)
 
-
-
 add_executable(MeshGeometry_test MeshGeometry_test.cpp)
 
 add_executable(DataArray_test DataArray_test.cpp)
@@ -77,6 +75,14 @@ if(${VTK_FOUND})
         TARGETS QuadMesh_test 
         MODULES ${VTK_LIBRARIES}
     )
+
+    add_executable(pmesh_generation pmesh_generation.cpp)
+    target_link_libraries(pmesh_generation PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS pmesh_generation 
+        MODULES ${VTK_LIBRARIES}
+    )
+
 endif()
 
 if(${CGAL_FOUND} AND ${VTK_FOUND})
@@ -93,9 +99,9 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(cgal_surface_mesh_generation PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    #add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
-    #target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
-    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
+    target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
     add_executable(cgal_remesh_test cgal_remesh_test.cpp )
     message("${CGAL_LIBRARIES}")
@@ -121,6 +127,12 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(parallel_optimization parallel_optimization.cpp)
+    target_link_libraries(parallel_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
 
 endif()
 

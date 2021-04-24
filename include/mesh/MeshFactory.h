@@ -39,6 +39,34 @@ public:
     return;
   }
 
+  template<typename QuadMesh>
+  static void three_quad_mesh(QuadMesh & mesh)
+  {
+    typedef typename QuadMesh::Node Node;
+    typedef typename QuadMesh::Cell Cell;
+    auto & nodes = mesh.nodes();
+    nodes.reserve(7);
+
+    double a = sqrt(3);
+
+    nodes.push_back(Node{0.0, 0.0, 0.0});
+    nodes.push_back(Node{2.0, 0.0, 0.0});
+    nodes.push_back(Node{1.0, a, 0.0});
+    nodes.push_back(Node{1.0, 0.0, 0.0});
+    nodes.push_back(Node{1.5, a/2, 0.0});
+    nodes.push_back(Node{0.5, a/2, 0.0});
+    nodes.push_back(Node{1.0, a/3, 0.0});
+
+    auto & cells = mesh.cells();
+    cells.reserve(3);
+    cells.push_back(Cell{0, 3, 6, 5});
+    cells.push_back(Cell{3, 1, 4, 6});
+    cells.push_back(Cell{6, 4, 2, 5});
+    mesh.init_top();
+    return;
+  }
+
+
   template<typename TriMesh>
   static void one_triangle_mesh(TriMesh & mesh, const std::string type="equ")
   {
@@ -198,7 +226,6 @@ public:
     }
 
     auto & cells = mesh.cells();
-    std::cout<< sm.number_of_faces() <<std::endl;
     cells.resize(sm.number_of_faces());
     auto fr = sm.faces();
 
@@ -218,7 +245,7 @@ public:
   }
 
   template<typename Mesh>
-  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
+  static void mesh_node_partition_metis(Mesh & mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
   {
     typedef typename Mesh::Toplogy Toplogy;
 
@@ -240,25 +267,27 @@ public:
   static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
       std::string fname="")
   {
-    typedef typename Mesh::Toplogy Toplogy;
-    typedef VTKMeshWriter<Mesh> Writer;
-
-    Toplogy cell2node;
-    mesh.cell_to_node(cell2node);
-
     idx_t ne = mesh.number_of_cells();
     idx_t nn = mesh.number_of_nodes();
 
-    std::vector<int> cid(ne);
-    std::vector<int> nid(nn);
+    std::vector<int> nid(ne);
+    std::vector<int> cid(nn);
 
-    idx_t objval;
-    auto r = METIS_PartMeshNodal(&ne, &nn, cell2node.locations().data(), cell2node.neighbors().data(),
-            NULL, NULL, &nparts, NULL,
-            NULL, &objval, cid.data(), nid.data());
+    mesh_node_partition_metis(mesh, nparts, nid, cid);
+
     submeshes.resize(nparts);
+    mesh_node_partition(mesh, nparts, submeshes, nid, cid, fname);
+  }
 
+  template<typename Mesh>
+  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
+      std::vector<int> & nid,  std::vector<int> & cid, std::string fname="")
+  {
+    typedef typename Mesh::Toplogy Toplogy;
+    typedef VTKMeshWriter<Mesh> Writer;
 
+    idx_t ne = mesh.number_of_cells();
+    idx_t nn = mesh.number_of_nodes();
     auto & cells = mesh.cells();
     auto & nodes = mesh.nodes();
 
@@ -314,37 +343,39 @@ public:
       }
     }
 
+    auto NN = mesh.number_of_nodes();
+    std::vector<bool> isBdNode;
+    mesh.is_boundary_node(isBdNode);
+    std::vector<int> isbdnode(NN, 0);
+    for(int i = 0; i < NN; i++)
+    {
+      if(isBdNode[i])
+        isbdnode[i] = 1;
+    }
+
     if(!fname.empty())
     {
-      std::vector<std::vector<int>> nids;
-      nids.resize(nparts);
       for(int i = 0; i < nparts; i++)
       {
         int NN = submeshes[i].number_of_nodes();
-        nids[i].resize(NN);
-        for(auto & j : nids[i])
+        auto & gid = submeshes[i].node_global_id();
+
+        std::vector<int> fixednode(NN);//设置 fixednode
+        std::vector<int> nids(NN);//设置 nids
+        for(int j = 0; j < NN; j++)
         {
-          j = i;
+          fixednode[j] = isbdnode[gid[j]];
+          nids[j] = nid[gid[j]];
         }
-        auto pds = submeshes[i].parallel_data_structure();
-        for(int j = 0; j < 4; j++)
-        {
-          auto it = pds.find(j);
-          if(it != pds.end())
-          {
-            for(auto k : it->second)
-            {
-              nids[i][k] = j;
-            }
-          }
-        }
+
         std::stringstream ss;
         ss << fname <<"_"<< i << ".vtu";
         Writer writer(&submeshes[i]);
         writer.set_points();
         writer.set_cells();
-        writer.set_point_data(nids[i], 1, "nid");
-        writer.set_point_data(submeshes[i].node_global_id(), 1, "gid");
+        writer.set_point_data(nids, 1, "nid");
+        writer.set_point_data(fixednode, 1, "fixed");
+        writer.set_point_data(gid, 1, "gid");
         writer.write(ss.str());
       }
     }

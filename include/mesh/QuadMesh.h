@@ -6,6 +6,9 @@
 #include <map>
 
 #include "MeshToplogy.h"
+#include "thirdparty/json.hpp"
+
+using json = nlohmann::json;
 
 namespace WHYSC {
 namespace Mesh {
@@ -259,6 +262,84 @@ public:
     }
   }
 
+  void node_to_cell(Toplogy & top)
+  {
+    auto NN = number_of_nodes();
+    auto NE = number_of_edges();
+    auto NC = number_of_cells();
+
+    auto & loc = top.locations();
+    loc.resize(NN+1, 0);
+    for(I i=0; i < NC; i++)
+    {
+      for(auto v : m_cell[i])
+        loc[v+1] += 1;
+    }
+    for(I i=0; i < NN; i++)
+    {
+      loc[i+1] += loc[i];
+    }
+
+    auto & nei = top.neighbors();
+    nei.resize(loc[NN]);
+    std::vector<I> start(loc);
+    for(I i = 0; i < NC; i++)
+    {
+      for(auto v : m_cell[i])
+        nei[start[v]++] = i;
+    }
+  }
+
+  void cell_to_node(Toplogy & top)
+  {
+      auto NC = number_of_cells();
+      auto NN = number_of_nodes();
+      auto nn = number_of_vertices_of_each_cell();
+
+      top.init(2, 0, NC, NN);
+
+      auto & loc = top.locations();
+      loc.resize(NC+1, 0);
+      auto & nei = top.neighbors();
+      nei.resize(NC*nn);
+
+      for(I i = 0; i < NC; i++)
+      {
+          loc[i+1] = loc[i] + nn;
+          nei[nn*i] = m_cell[i][0];
+          nei[nn*i + 1] = m_cell[i][1];
+          nei[nn*i + 2] = m_cell[i][2];
+          nei[nn*i + 2] = m_cell[i][3];
+      }
+  }
+
+  void is_boundary_edge(std::vector<bool> & isBdEdge)
+  {
+      auto NE = number_of_edges();
+      isBdEdge.resize(NE);
+      for(int i = 0; i < NE; i++)
+      {
+          isBdEdge[i] = false;
+          if(edge_to_cell(i)[0]==edge_to_cell(i)[1])
+              isBdEdge[i] = true;
+      }
+  }
+
+  void is_boundary_node(std::vector<bool> & isBdNode)
+  {
+      auto NN = number_of_nodes();
+      auto NE = number_of_edges();
+      isBdNode.resize(NN);
+      for(int i = 0; i < NE; i++)
+      {
+          if(edge_to_cell(i)[0]==edge_to_cell(i)[1])
+          {
+              isBdNode[edge(i)[0]] = true;
+              isBdNode[edge(i)[1]] = true;
+          }
+      }
+  }
+
   NodeIterator node_begin()
   {
     return m_node.begin();
@@ -344,6 +425,11 @@ public:
     return m_cell2edge[i];
   }
 
+  json & data()
+  {
+    return m_data;
+  }
+
   F cell_measure(const I i)
   {
     F a=0.0;
@@ -379,6 +465,13 @@ public:
     auto & e = m_edge[i];
     node[0] = (m_node[e[0]][0] + m_node[e[1]][0])/2.0;
     node[1] = (m_node[e[0]][1] + m_node[e[1]][1])/2.0;
+  }
+
+  void cell_barycenter(const I i, Node & node)
+  {
+    auto & c = m_cell[i];
+    for(int i = 0; i < geo_dimension(); i++)
+      node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i] + m_node[c[3]][i])/4.0;
   }
 
   F edge_measure(const I i)
@@ -417,33 +510,39 @@ public:
       {
           auto NN = number_of_nodes();
           auto NE = number_of_edges();
-          std::cout << NN << " " << NE << std::endl;
-          m_node.resize(NN + NE);
-          std::cout << m_node.size() << std::endl;
+          auto NC = number_of_cells();
+          m_node.resize(NN + NE + NC);
           for(I j = 0; j < NE; j++)
           {
              edge_barycenter(j, m_node[NN+j]); 
           }
-          auto NC = number_of_cells();
+          for(I j = 0; j < NC; j++)
+          {
+             cell_barycenter(j, m_node[NN+NE+j]); 
+          }
           m_cell.resize(4*NC);
           for(I j = 0; j < NC; j++)
           { //TODO: 考虑不同的排列顺序是否影响程序的效率
               auto c = m_cell[j]; 
               m_cell[j][0] = c[0];
-              m_cell[j][1] = m_cell2edge[j][2] + NN;
-              m_cell[j][2] = m_cell2edge[j][1] + NN;
+              m_cell[j][1] = m_cell2edge[j][0] + NN;
+              m_cell[j][2] = NN + NE + j;
+              m_cell[j][3] = m_cell2edge[j][3] + NN;
 
               m_cell[NC + j][0] = c[1];
-              m_cell[NC + j][1] = m_cell2edge[j][0] + NN;
-              m_cell[NC + j][2] = m_cell2edge[j][2] + NN;
+              m_cell[NC + j][1] = m_cell2edge[j][1] + NN;
+              m_cell[NC + j][2] = NN + NE + j;
+              m_cell[NC + j][3] = m_cell2edge[j][0] + NN;
 
               m_cell[2*NC + j][0] = c[2];
-              m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
-              m_cell[2*NC + j][2] = m_cell2edge[j][0] + NN;
+              m_cell[2*NC + j][1] = m_cell2edge[j][2] + NN;
+              m_cell[2*NC + j][2] = NN + NE + j;
+              m_cell[2*NC + j][3] = m_cell2edge[j][1] + NN;
 
-              m_cell[3*NC + j][0] = m_cell2edge[j][0] + NN; 
-              m_cell[3*NC + j][1] = m_cell2edge[j][1] + NN;
-              m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
+              m_cell[3*NC + j][0] = c[3]; 
+              m_cell[3*NC + j][1] = m_cell2edge[j][3] + NN;
+              m_cell[3*NC + j][2] = NN + NE + j;
+              m_cell[3*NC + j][3] = m_cell2edge[j][2] + NN;
           }
           m_edge.clear();
           m_cell2edge.clear();
@@ -510,6 +609,7 @@ private:
   std::vector<Cell> m_cell; 
   std::vector<Edge2cell> m_edge2cell;
   std::vector<Cell2edge> m_cell2edge;
+  json m_data;
 };
 
 

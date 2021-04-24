@@ -6,6 +6,9 @@
 #include <map>
 
 #include "MeshToplogy.h"
+#include "thirdparty/json.hpp"
+
+using json = nlohmann::json;
 
 namespace WHYSC {
 namespace Mesh {
@@ -218,8 +221,9 @@ public:
 
   void is_boundary_node(std::vector<bool> & isBdNode)
   {
+      auto NN = number_of_nodes();
       auto NE = number_of_edges();
-      isBdNode.resize(NE);
+      isBdNode.resize(NN);
       for(int i = 0; i < NE; i++)
       {
           if(edge_to_cell(i)[0]==edge_to_cell(i)[1])
@@ -286,6 +290,33 @@ public:
     {
       nei[start[m_edge[i][0]]++] = m_edge[i][1];
       nei[start[m_edge[i][1]]++] = m_edge[i][0];
+    }
+  }
+
+  void node_to_cell(Toplogy & top)
+  {
+    auto NN = number_of_nodes();
+    auto NC = number_of_cells();
+
+    auto & loc = top.locations();
+    loc.resize(NN+1, 0);
+    for(I i=0; i < NC; i++)
+    {
+      for(auto v : m_cell[i])
+        loc[v+1] += 1;
+    }
+    for(I i=0; i < NN; i++)
+    {
+      loc[i+1] += loc[i];
+    }
+
+    auto & nei = top.neighbors();
+    nei.resize(loc[NN]);
+    std::vector<I> start(loc);
+    for(I i = 0; i < NC; i++)
+    {
+      for(auto v : m_cell[i])
+        nei[start[v]++] = i;
     }
   }
 
@@ -375,6 +406,11 @@ public:
     return m_cell2edge[i];
   }
 
+  json & data()
+  {
+    return m_data;
+  }
+
   F cell_measure(const I i)
   {//TODO: 需要考虑 inline 函数吗?
     auto & c = m_cell[i];
@@ -406,6 +442,12 @@ public:
       node[i] = (m_node[e[0]][i] + m_node[e[1]][i])/2.0;
   }
 
+  void cell_barycenter(const I i, Node & node)
+  {
+    auto & c = m_cell[i];
+    for(int i = 0; i < geo_dimension(); i++)
+      node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i])/3.0;
+  }
 
   F edge_measure(const I i)
   {
@@ -443,9 +485,7 @@ public:
     {
       auto NN = number_of_nodes();
       auto NE = number_of_edges();
-      std::cout << NN << " " << NE << std::endl;
       m_node.resize(NN + NE);
-      std::cout << m_node.size() << std::endl;
       for(I j = 0; j < NE; j++)
       {
          edge_barycenter(j, m_node[NN+j]); 
@@ -558,6 +598,7 @@ private:
   std::vector<Cell> m_cell; 
   std::vector<Edge2cell> m_edge2cell;
   std::vector<Cell2edge> m_cell2edge;
+  json m_data;
 };
 
 

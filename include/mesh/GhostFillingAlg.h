@@ -1,19 +1,20 @@
 #include <memory>
 #include <mpi.h>
 #include <vector>
+#include <array>
 
 namespace WHYSC {
 namespace Mesh {
 
 template<typename PMesh>
-class GhostFillAlg 
+class GhostFillingAlg 
 {
 public:
   typedef typename PMesh::I I;
   typedef typename PMesh::Toplogy Toplogy;
 
 public:
-  GhostFillAlg(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
+  GhostFillingAlg(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
   {
     int NN = mesh->number_of_nodes();
     m_comm = comm;
@@ -29,15 +30,9 @@ public:
       else
         isGhostNode[i] = true;
     }
-  }
 
-  template<typename F>
-  void fill(std::vector<F> & data)
-  {
-    auto mesh = get_mesh();
-    auto & isGhostNode = get_ghost_node();
     auto & pds = mesh->parallel_data_structure();
-    for(auto map : pds)
+    for(auto & map : pds)
     {
       auto & target = map.first; 
       auto & meshOverlap = map.second; 
@@ -46,39 +41,101 @@ public:
       auto & locid = overlap.loc_index();
       auto & adjid = overlap.adj_index();
 
-      int N = adjid.size();
-      int adjData[2*N];
+      m_dataid[target][0] = &locid;
+      m_dataid[target][1] = &adjid;
+    }
+  }
 
+  template<typename F>
+  void fill(std::vector<F> & data, int n)
+  {
+    auto mesh = get_mesh();
+    auto & isGhostNode = get_ghost_node();
+    for(auto & map : m_dataid)
+    {
+      auto & target = map.first; 
+      auto & locid = map.second[0];
+      auto & adjid = map.second[1];
+
+      int N = adjid->size();
+      double adjData[(n+1)*N];
+      for(int j = 0; j < N; j++)
+      {
+        adjData[j*(n+1)] = -1;
+        if(!isGhostNode[locid->at(j)])//只发送自己的数据
+        {
+          adjData[j*(n+1)] = (double)adjid->at(j);
+          for(int k = 1; k < n+1; k++)
+            adjData[j*(n+1)+k] = (double)data[locid->at(j)][k-1];
+        }
+      }
+      MPI_Send(adjData, N*(n+1), MPI_DOUBLE, target, 1, m_comm);
+    }//发送数据完成
+
+    for(auto & map : m_dataid)
+    {
+      auto & target = map.first; 
+      auto & adjid = map.second[1];
+
+      int N = adjid->size();
+      double locData[(n+1)*N];
+
+      MPI_Recv(locData, N*(n+1), MPI_DOUBLE, target, 1, m_comm, MPI_STATUS_IGNORE);
+      for(int k = 0; k < N; k++)
+      {
+        if(locData[(n+1)*k] >= 0)
+        {
+          if(isGhostNode[(int)locData[k*(n+1)]])//只接收别人的数据
+          {
+            for(int j = 1; j < n+1; j++)
+              data[(int)locData[(n+1)*k]][j-1] = locData[k*(n+1)+j];//填充影像节点数据
+          }
+        }
+      }
+    }//接收数据完成
+  }
+
+  template<typename F>
+  void fill(std::vector<F> & data)
+  {
+    auto mesh = get_mesh();
+    auto & isGhostNode = get_ghost_node();
+    for(auto & map : m_dataid)
+    {
+      auto & target = map.first; 
+      auto & locid = map.second[0];
+      auto & adjid = map.second[1];
+
+      int N = adjid->size();
+      double adjData[2*N];
       for(int j = 0; j < N; j++)
       {
         adjData[j*2] = -1;
-        if(!isGhostNode[locid[j]])//只发送自己的数据
+        if(!isGhostNode[locid->at(j)])//只发送自己的数据
         {
-          adjData[j*2] = adjid[j];
-          adjData[j*2+1] = data[locid[j]];
+          adjData[j*2] = (double)adjid->at(j);
+          adjData[j*2+1] = (double)data[locid->at(j)];
         }
       }
-      MPI_Send(adjData, N*2, MPI_INT, target, 1, m_comm);
+      MPI_Send(adjData, N*2, MPI_DOUBLE, target, 1, m_comm);
     }//发送数据完成
 
-    for(auto map : pds)
+    for(auto & map : m_dataid)
     {
       auto & target = map.first; 
-      auto & meshOverlap = map.second; 
-      auto & overlap = meshOverlap.entity_overlap(0);
-      auto & adjid = overlap.adj_index();
+      auto & adjid = map.second[1];
 
-      int N = adjid.size();
-      int locData[2*N];
+      int N = adjid->size();
+      double locData[2*N];
 
-      MPI_Recv(locData, N*2, MPI_INT, target, 1, m_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(locData, N*2, MPI_DOUBLE, target, 1, m_comm, MPI_STATUS_IGNORE);
       for(int k = 0; k < N; k++)
       {
         if(locData[2*k] >= 0)
         {
-          if(isGhostNode[locData[k*2]])//只接收别人的数据
+          if(isGhostNode[(int)locData[k*2]])//只接收别人的数据
           {
-            data[locData[2*k]] = locData[k*2+1];//填充影像节点数据
+            data[(int)locData[2*k]] = locData[k*2+1];//填充影像节点数据
           }
         }
       }
@@ -98,6 +155,7 @@ public:
 private:
   MPI_Comm m_comm;
   std::shared_ptr<PMesh> m_mesh;
+  std::map<int, std::array<std::vector<int>*, 2> > m_dataid;
   std::vector<bool> m_isGhostNode;
 };
 } // end of namespace Mesh

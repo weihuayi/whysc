@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 namespace WHYSC {
 namespace Mesh {

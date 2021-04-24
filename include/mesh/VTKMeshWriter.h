@@ -62,6 +62,14 @@ public:
         m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
     }
 
+    VTKMeshWriter(std::shared_ptr<Mesh> mesh)
+    {
+        m_mesh = &(*mesh);
+        m_points = vtkSmartPointer<vtkPoints>::New();
+        m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
+        m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
+    }
+
     void set_points()
     {
         auto NN = m_mesh->number_of_nodes();

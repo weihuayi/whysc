@@ -6,6 +6,9 @@
 #include <map>
 
 #include "MeshToplogy.h"
+#include "thirdparty/json.hpp"
+
+using json = nlohmann::json;
 
 namespace WHYSC {
 namespace Mesh {
@@ -96,7 +99,7 @@ public:
 
   I number_of_faces()
   {
-    return m_edge.size();
+    return m_face.size();
   }
 
   static I number_of_nodes_of_each_cell()
@@ -223,7 +226,6 @@ public:
     auto r = 3.0*vol/s;
     return R/r/3.0;
   }
-
 
   void cell_quality(std::vector<F> & q)
   {
@@ -386,6 +388,10 @@ public:
       return m_cell2edge[i];
   }
 
+  json & data()
+  {
+    return m_data;
+  }
   // 实体测度 
 
   F edge_measure(const I i)
@@ -463,6 +469,13 @@ public:
       return Node(x, y, z);
   }
 
+  void cell_barycenter(const I i, Node & node)
+  {
+    auto & c = m_cell[i];
+    for(int i = 0; i < geo_dimension(); i++)
+      node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i] + m_node[c[3]][i])/4.0;
+  }
+
   void uniform_refine(const I n=1)
   {
       for(I i=0; i < n; i++)
@@ -538,6 +551,36 @@ public:
           m_face2cell.clear();
           m_cell2face.clear();
           init_top(); 
+      }
+  }
+
+  void is_boundary_face(std::vector<bool> & isBdFace)
+  {
+      auto NF = number_of_faces();
+      isBdFace.resize(NF);
+      for(int i = 0; i < NF; i++)
+      {
+          isBdFace[i] = false;
+          if(face_to_cell(i)[0]==face_to_cell(i)[1])
+          {
+              isBdFace[i] = true;
+          }
+      }
+  }
+
+  void is_boundary_node(std::vector<bool> & isBdNode)
+  {
+      auto NN = number_of_nodes();
+      auto NF = number_of_faces();
+      isBdNode.resize(NN);
+      for(int i = 0; i < NF; i++)
+      {
+          if(face_to_cell(i)[0]==face_to_cell(i)[1])
+          {
+              isBdNode[face(i)[0]] = true;
+              isBdNode[face(i)[1]] = true;
+              isBdNode[face(i)[2]] = true;
+          }
       }
   }
 
@@ -625,6 +668,33 @@ public:
       }
   }
 
+  void node_to_cell(Toplogy & top)
+  {
+    auto NN = number_of_nodes();
+    auto NC = number_of_cells();
+
+    auto & loc = top.locations();
+    loc.resize(NN+1, 0);
+    for(I i=0; i < NC; i++)
+    {
+      for(auto v : m_cell[i])
+        loc[v+1] += 1;
+    }
+    for(I i=0; i < NN; i++)
+    {
+      loc[i+1] += loc[i];
+    }
+
+    auto & nei = top.neighbors();
+    nei.resize(loc[NN]);
+    std::vector<I> start(loc);
+    for(I i = 0; i < NC; i++)
+    {
+      for(auto v : m_cell[i])
+        nei[start[v]++] = i;
+    }
+  }
+
   void print()
   {
       std::cout << "Nodes:" << std::endl;
@@ -707,6 +777,7 @@ private:
     std::vector<Face2cell> m_face2cell;
     std::vector<Cell2face> m_cell2face;
     std::vector<Cell2edge> m_cell2edge;
+    json m_data;
 };
 
 template<typename GK, typename Node, typename Vector>

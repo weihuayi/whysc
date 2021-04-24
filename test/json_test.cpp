@@ -41,8 +41,8 @@ int main(int argc, char * argv[])
     std::cout << i << std::endl;
 
 
-  for(auto i : j["pds"]["2"])
-    std::cout << i << std::endl;
+  for(auto i : j)
+    std::cout << i << "ceshi" << std::endl;
 
   // instead, you could also write (which looks very similar to the JSON above)
   json j2 = {

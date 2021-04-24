@@ -27,7 +27,6 @@ public:
     MPI_Comm_rank(m_comm, &m_rank);
     m_pmesh = std::make_shared<PMesh>(m_rank);
 
-
     std::stringstream ss;
     ss << fnamebase << "_" << m_rank << fnameextent;
     std::string fname = ss.str();
@@ -41,6 +40,10 @@ public:
     auto & npid = m_pmesh->node_process_id();
     reader.get_node_data("nid", npid);
 
+    std::vector<int> fixednode(npid.size());
+    reader.get_node_data("fixed", fixednode);
+    m_pmesh->data()["fixednode"] = fixednode;
+
     build_mesh();
   }
 
@@ -49,11 +52,7 @@ public:
   void build_mesh()
   {
     auto mesh = get_mesh();
-
-    Toplogy node2node;
-    mesh->node_to_node(node2node);
-    auto & loc = node2node.locations();
-    auto & nei = node2node.neighbors();
+    auto & cell = mesh->cells();
 
     auto id = mesh->id();
     auto NN = mesh->number_of_nodes();
@@ -61,21 +60,28 @@ public:
     auto & gid = mesh->node_global_id();
     auto & npid = mesh->node_process_id();
     std::map<I, std::map<I, I> > ng2l; //每个重叠区的节点全局编号到局部编号的映射
-    for(I i=0; i < NN; i++)
+    for(auto & c : cell)
     {
       //不是本进程的点的周围的点就是 overlap 的点
-      if(npid[i] != id) // i 是其他进程的点, 那么他相邻的点也是 npid[i] 网格的点
+      std::set<int> idx;
+      for(auto v: c)
       {
-        ng2l[npid[i]][gid[i]] = i;
-        for(int k = loc[i]; k < loc[i+1]; k++)
+        if(npid[v]!=id)
+          idx.insert(npid[v]); // cell 在其节点所在网格
+      }
+
+      for(auto i: idx)
+      {
+        for(auto v : c)
         {
-          ng2l[npid[i]][gid[nei[k]]] = nei[k];
+          ng2l[i][gid[v]] = v;
         }
       }
     }//完成 ng2l 的构建
+
     communicate_index(ng2l, 0);
-    build_overlap(mesh->edges(), 1);
-    build_overlap(mesh->cells(), 2);
+    //build_overlap(mesh->edges(), 1);
+    //build_overlap(mesh->cells(), 2);
   }
 
   void communicate_index(std::map<I, std::map<I, I> > & g2l, int d)
