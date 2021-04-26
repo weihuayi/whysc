@@ -52,7 +52,7 @@ int main()
   writer.set_cells();
   writer.write("init_mesh.vtu");
 
-  int nparts = 3;
+  int nparts = 4;
   submeshes.resize(nparts);
 
   auto & cells = mesh.cells();

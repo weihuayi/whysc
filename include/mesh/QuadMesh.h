@@ -452,6 +452,27 @@ public:
         measure[i] = cell_measure(i);
   }
 
+  F angle_of_edges(int e0, int e1)
+  {
+    auto V0 = m_node[m_edge[e0][0]] - m_node[m_edge[e0][1]];
+    auto V1 = m_node[m_edge[e1][0]] - m_node[m_edge[e1][1]];
+    return acos(V0.dot(V1)/pow(V0.squared_length()*V1.squared_length(), 0.5));
+  }
+
+  F cell_quality(const I c)
+  {
+    auto & cell = m_cell[c];
+    std::vector<F> angle(4);
+    for(int i = 0; i < 4; i++)
+    {
+      auto V0 = m_node[cell[(i+1)%4]] - m_node[cell[i]];
+      auto V1 = m_node[cell[(i+2)%4]] - m_node[cell[(i+1)%4]];
+      angle[i] = acos(V0.dot(V1)/pow(V0.squared_length()*V1.squared_length(), 0.5));
+    }
+    auto angminmax = std::minmax_element(angle.begin(), angle.end());
+    return (*angminmax.first)/(*angminmax.second);
+  }
+
   Node edge_barycenter(const I i)
   {
     auto & e = m_edge[i];

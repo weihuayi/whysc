@@ -215,7 +215,6 @@ public:
       }
   }
 
-
   F cell_quality(const I i)
   {
     auto s = cell_surface_area(i);
@@ -224,7 +223,7 @@ public:
     auto vol = cell_measure(i);
     auto R = l/vol/12.0;
     auto r = 3.0*vol/s;
-    return R/r/3.0;
+    return r*3.0/R;
   }
 
   void cell_quality(std::vector<F> & q)

@@ -1,3 +1,5 @@
+
+#include "Python.h"
 #include <string>
 #include <iostream>
 #include <list>
@@ -36,6 +38,44 @@ typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::EntityOverlap<int> EntityOverlap;
 
+template<typename I>
+void plot(std::vector<I> & data0, std::vector<I> & data1)
+{
+  int N0 = data0.size();
+  int N1 = data1.size();
+
+  Py_Initialize();
+	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("sys.path.append('../test')");
+
+	PyObject* pModule = PyImport_ImportModule("plot");
+	PyObject* pFunc = PyObject_GetAttrString(pModule, "Histogram_plot");//要运行的函数
+
+  PyObject* plist0 = PyList_New(N0);//函数的参数是一个list
+  PyObject* ptuple0 = PyTuple_New(1);//把参数用 tuple 装起来
+  PyObject* plist1 = PyList_New(N1);//函数的参数是一个list
+  PyObject* ptuple1 = PyTuple_New(1);//把参数用 tuple 装起来
+
+  for(int i = 0; i < N0; i++)
+  {
+    PyObject*  pra = Py_BuildValue("d", data0[i]);
+    PyList_SetItem(plist0, i, pra);
+  }
+
+  for(int i = 0; i < N1; i++)
+  {
+    PyObject*  pra = Py_BuildValue("d", data1[i]);
+    PyList_SetItem(plist1, i, pra);
+  }
+
+  PyTuple_SetItem(ptuple0, 0, plist0);
+  PyTuple_SetItem(ptuple1, 0, plist1);
+
+	PyObject_CallObject(pFunc, ptuple0);//运行函数
+	PyObject_CallObject(pFunc, ptuple1);//运行函数
+	Py_Finalize();
+}
+
 int main(int argc, char * argv[])
 {
   MPI_Init(&argc, &argv);
@@ -50,14 +90,32 @@ int main(int argc, char * argv[])
   PCA colorAlg(mesh, MPI_COMM_WORLD);
 
   auto NN = mesh->number_of_nodes();
+  auto NC = mesh->number_of_cells();
   std::vector<int> color(NN);
+  std::vector<double> cellQualityInit(NC);
+  std::vector<double> cellQualityOpt(NC);
 
-  colorAlg.coloring(color);
-  colorAlg.color_test(color);
+  for(int i = 0; i < NC; i++)
+  {
+    cellQualityInit[i] = mesh->cell_quality(i);
+  }
+
+  colorAlg.coloring(color);//染色
+  colorAlg.color_test(color);//染色测试
 
   PMeshOpt optAlg(mesh, color, MPI_COMM_WORLD);
-  for(int i = 0; i < 30; i++)
-    optAlg.mesh_optimization();
+  for(int i = 0; i < 40; i++)
+    optAlg.mesh_optimization();//优化
+
+  for(int i = 0; i < NC; i++)
+  {
+    cellQualityOpt[i] = mesh->cell_quality(i);
+  }
+
+  if(mesh->id() == 1)
+  {
+    plot(cellQualityInit, cellQualityOpt);
+  }
 
   std::stringstream ss;
   ss << "opt_"<< mesh->id() << ".vtu";
