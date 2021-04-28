@@ -50,12 +50,12 @@ public:
         if(m_color[j] == i & fixed[j] == 0)
         {
           int N = loc[j+1] - loc[j];
-          std::vector<int> path(N);
+          std::vector<int> patch(N);
           for(int k = 0; k < N; k++)
           {
-            path[k] = nei[loc[j]+k];
+            patch[k] = nei[loc[j]+k];
           }
-          path_optimization(j, path);
+          patch_optimization(j, patch);
         }
       }
       m_set_ghost_alg->fill(m_node, GD);
@@ -63,10 +63,10 @@ public:
     }
   }
 
-  void path_optimization(int i, std::vector<int> & path)
+  void patch_optimization(int i, std::vector<int> & patch)
   {
     int GD = m_mesh->geo_dimension();
-    int NP = path.size();
+    int NP = patch.size();
     Node node{0, 0, 0}; 
     for(int k = 0; k < NP; k++)
     {

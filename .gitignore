@@ -18,3 +18,5 @@ _minted*
 .DS_Store
 *.bbl
 *.blg
+*.pyc
+__pycache__
