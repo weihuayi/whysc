@@ -1,5 +1,5 @@
-#ifndef TetrahedronMesh_h
-#define TetrahedronMesh_h
+#ifndef HexahedronMesh_h
+#define HexahedronMesh_h
 
 #include <vector>
 #include <array>
@@ -23,7 +23,7 @@ namespace Mesh {
  *
  */
 template<typename GK, typename NODE, typename VECTOR>
-class TetrahedronMesh 
+class HexahedronMesh 
 {
 public:
   typedef NODE Node;
@@ -33,8 +33,8 @@ public:
 
   // 实体类型
   typedef typename std::array<I, 2> Edge;
-  typedef typename std::array<I, 3> Face;
-  typedef typename std::array<I, 4> Cell;
+  typedef typename std::array<I, 4> Face;
+  typedef typename std::array<I, 8> Cell;
 
   // 规则化的实体关系类型，这里的规则化是指一种实体有固定个数的另一种邻接实体
   // 每个单元有 4 个三角形面
@@ -68,7 +68,7 @@ public:
 
 public:
 
-  TetrahedronMesh()
+  HexahedronMesh()
   {
   }
 
@@ -104,12 +104,12 @@ public:
 
   static I number_of_nodes_of_each_cell()
   {
-      return 4;
+      return 8;
   }
 
   static I number_of_vertices_of_each_cell()
   {
-      return 4;
+      return 8;
   }
 
   static I geo_dimension()
@@ -125,13 +125,13 @@ public:
   I vtk_cell_type(I TD=3)
   {
       if(TD == 3)
-          return 10; // VTK_TETRA = 10
+          return 72; // VTK_TETRA = 10
       else if(TD == 2)
-          return 5; // VTK_TRIANGLE = 5
+          return 70; // VTK_TRIANGLE = 5
       else if(TD == 1)
           return 3; // VTK_LINE = 1
       else
-          return 0; // VTK_EMPLTY_CELL = 0
+          return 68; // VTK_EMPLTY_CELL = 0
   }
 
   /*
@@ -157,10 +157,10 @@ public:
       std::map<I, I> idxmap;
 
       I NF = 0;
-      // 偏历所有单元
+      // 遍历所有单元
       for(I i = 0; i < NC; i++)
       {
-          for(I j = 0; j < 4; j++)
+          for(I j = 0; j < 6; j++)
           {
              auto s = local_face_index(i, j);
              auto it = idxmap.find(s);
@@ -189,6 +189,7 @@ public:
           m_face[i][0] = c[m_localface[j][0]];
           m_face[i][1] = c[m_localface[j][1]];
           m_face[i][2] = c[m_localface[j][2]];
+          m_face[i][3] = c[m_localface[j][3]];
       }
 
       m_cell2edge.resize(NC);
@@ -215,7 +216,7 @@ public:
       }
   }
 
-  F cell_quality(const I i)
+  F cell_quality(const I i)//TODO
   {
     auto s = cell_surface_area(i);
     auto d = direction(i, 0);
@@ -234,16 +235,18 @@ public:
       q[i] = cell_quality(i);
   }
 
-  F cell_surface_area(const I i)
+  F cell_surface_area(const I i) // 单元表面积
   {
     auto s = face_measure(m_cell2face[i][0]);
     s += face_measure(m_cell2face[i][1]);
     s += face_measure(m_cell2face[i][2]);
     s += face_measure(m_cell2face[i][3]);
+    s += face_measure(m_cell2face[i][4]);
+    s += face_measure(m_cell2face[i][5]);
     return s;
   }
 
-  Vector direction(const I i, const I j)
+  Vector direction(const I i, const I j) //TODO
   {
     auto v10 = m_node[m_cell[i][m_index[3*j][0]]] - m_node[m_cell[i][m_index[3*j][1]]];
     auto v20 = m_node[m_cell[i][m_index[3*j][0]]] - m_node[m_cell[i][m_index[3*j][2]]];
@@ -272,7 +275,7 @@ public:
     }
   }
 
-  void cell_dihedral_angle(const I i, F & max, F & min)
+  void cell_dihedral_angle(const I i, F & max, F & min)//TODO
   {
     std::array<Vector, 4> ns;
     for(I j = 0; j < 4; j++)
@@ -413,7 +416,8 @@ public:
       auto & f = m_face[i];
       auto v1 = m_node[f[1]] - m_node[f[0]];
       auto v2 = m_node[f[2]] - m_node[f[0]];
-      return 0.5*std::sqrt(cross(v1, v2).squared_length());
+      auto v3 = m_node[f[3]] - m_node[f[0]];
+      return 0.5*(std::sqrt(cross(v1, v2).squared_length()) + std::sqrt(cross(v2, v3).squared_length()));
   }
 
   void face_measure(std::vector<F> & measure)
@@ -462,9 +466,9 @@ public:
   Node face_barycenter(const I i)
   {
       auto & f = m_face[i];
-      F x = (m_node[f[0]][0] + m_node[f[1]][0] + m_node[f[2]][0])/3.0;
-      F y = (m_node[f[0]][1] + m_node[f[1]][1] + m_node[f[2]][1])/3.0;
-      F z = (m_node[f[0]][2] + m_node[f[1]][2] + m_node[f[2]][2])/3.0;
+      F x = (m_node[f[0]][0] + m_node[f[1]][0] + m_node[f[2]][0] + m_node[f[3]][0])/3.0;
+      F y = (m_node[f[0]][1] + m_node[f[1]][1] + m_node[f[2]][1] + m_node[f[3]][1])/3.0;
+      F z = (m_node[f[0]][2] + m_node[f[1]][2] + m_node[f[2]][2] + m_node[f[3]][2])/3.0;
       return Node(x, y, z);
   }
 
@@ -472,10 +476,14 @@ public:
   {
     auto & c = m_cell[i];
     for(int i = 0; i < geo_dimension(); i++)
-      node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i] + m_node[c[3]][i])/4.0;
+    {
+      node[i] = m_node[c[0]][i]/8.0;
+      for(int j = 1; j < 8; j++)
+        node[i] += m_node[c[j]][i]/8.0;
+    }
   }
 
-  void uniform_refine(const I n=1)
+  void uniform_refine(const I n=1)//TODO
   {
       for(I i=0; i < n; i++)
       {
@@ -579,6 +587,7 @@ public:
               isBdNode[face(i)[0]] = true;
               isBdNode[face(i)[1]] = true;
               isBdNode[face(i)[2]] = true;
+              isBdNode[face(i)[3]] = true;
           }
       }
   }
@@ -603,6 +612,10 @@ public:
           nei[nn*i + 1] = m_cell[i][1];
           nei[nn*i + 2] = m_cell[i][2];
           nei[nn*i + 3] = m_cell[i][3];
+          nei[nn*i + 4] = m_cell[i][4];
+          nei[nn*i + 5] = m_cell[i][5];
+          nei[nn*i + 6] = m_cell[i][6];
+          nei[nn*i + 7] = m_cell[i][7];
       }
   }
 
@@ -741,13 +754,15 @@ private:
      */
     I local_face_index(I i, I j)
     {
-        I f[3] = {
+        I f[4] = 
+        {
             m_cell[i][m_localface[j][0]], 
             m_cell[i][m_localface[j][1]], 
-            m_cell[i][m_localface[j][2]]
+            m_cell[i][m_localface[j][2]],
+            m_cell[i][m_localface[j][3]]
         };
         std::sort(f, f+3);
-        return  f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2]+1)*(f[2]+2)/6;
+        return  f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2]+1)*(f[2]+2)/6 + f[2]*(f[2]+1)*(f[2]+2)*(f[3]+3)/24;
     }
 
     /*
@@ -764,9 +779,9 @@ private:
     }
 
 private:
-    static int m_localedge[6][2];
-    static int m_localface[4][3];
-    static int m_localface2edge[4][3];
+    static int m_localedge[12][2];
+    static int m_localface[6][6];
+    static int m_localface2edge[6][4];
     static int m_refine[3][6];
     static int m_index[12][4];
     std::vector<Node> m_node;
@@ -780,27 +795,30 @@ private:
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::m_localedge[6][2] = {
-    {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}
+int HexahedronMesh<GK, Node, Vector>::m_localedge[12][2] = {
+  {0, 1}, {0, 2}, {0, 4}, {1, 3}, {1, 5}, {2, 3}, 
+  {2, 6}, {3, 7}, {4, 5}, {4, 6}, {5, 7}, {6, 7}
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::m_localface[4][3] = {
-    {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1}
+int HexahedronMesh<GK, Node, Vector>::m_localface[6][6] = {
+  {0, 2, 6, 4}, {1, 5, 7, 3}, {0, 1, 3, 2}, 
+  {4, 6, 7, 5}, {0, 4, 5, 1}, {6, 2, 3, 7}
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::m_localface2edge[4][3] = {
-    {5, 4, 3}, {5, 1, 2}, {4, 2, 0}, {3, 0, 1}
+int HexahedronMesh<GK, Node, Vector>::m_localface2edge[6][4] = {
+  {1,  6, 9, 2}, {4, 10, 7,  3}, {0,  3, 5, 1}, 
+  {9, 11, 10, 8}, {2,  8, 4, 0}, {6, 5, 7,  11} 
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::m_refine[3][6] = {
+int HexahedronMesh<GK, Node, Vector>::m_refine[3][6] = {
     {1, 3, 4, 2, 5, 0}, {0, 2, 5, 3, 4, 1}, {0, 4, 5, 1, 3, 2}
 };
 
 template<typename GK, typename Node, typename Vector>
-int TetrahedronMesh<GK, Node, Vector>::m_index[12][4] = {
+int HexahedronMesh<GK, Node, Vector>::m_index[12][4] = {
     {0, 1, 2, 3}, {0, 2, 3, 1}, {0, 3, 1, 2},
     {1, 2, 0, 3}, {1, 0, 3, 2}, {1, 3, 2, 0},
     {2, 0, 1, 3}, {2, 1, 3, 0}, {2, 3, 0, 1},
@@ -811,4 +829,4 @@ int TetrahedronMesh<GK, Node, Vector>::m_index[12][4] = {
 
 } // end of namespace WHYSC
 
-#endif // end of TetrahedronMesh_h
+#endif // end of HexahedronMesh_h

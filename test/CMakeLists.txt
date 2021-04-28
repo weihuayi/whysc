@@ -62,6 +62,13 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(hexmesh_test hexmesh_test.cpp)
+    target_link_libraries(hexmesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS hexmesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
     add_executable(TriangleMesh_test TriangleMesh_test.cpp)
     target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(

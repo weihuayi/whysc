@@ -165,6 +165,26 @@ public:
     return;
   }
 
+  template<typename HexMesh>
+  static void cube_hexahedron_mesh(HexMesh & mesh)
+  {
+    typedef typename HexMesh::Node Node;
+    typedef typename HexMesh::Cell Cell;
+    mesh.insert(Node{0.0, 0.0, 0.0});
+    mesh.insert(Node{1.0, 0.0, 0.0});
+    mesh.insert(Node{1.0, 1.0, 0.0});
+    mesh.insert(Node{0.0, 1.0, 0.0});
+    mesh.insert(Node{0.0, 0.0, 1.0});
+    mesh.insert(Node{1.0, 0.0, 1.0});
+    mesh.insert(Node{1.0, 1.0, 1.0});
+    mesh.insert(Node{0.0, 1.0, 1.0});
+
+    mesh.insert(Cell{0, 1, 2, 3, 4, 5, 6, 7});
+    mesh.init_top();
+    return;
+  }
+
+
   template<typename C3T3,  typename TetMesh>
   static void cgal_c3t3_to_tetmesh(C3T3 & c3t3, TetMesh & mesh)
   {
