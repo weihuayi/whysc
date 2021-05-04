@@ -18,7 +18,7 @@ namespace Mesh {
  *
  * Notes
  * -----
- *  四面体网格类, 用 std::vector 做为容器, 用整数数组代表 edge, face, 和 cell
+ *  六面体网格类, 用 std::vector 做为容器, 用整数数组代表 edge, face, 和 cell
  *  实体.
  *
  */
@@ -37,12 +37,12 @@ public:
   typedef typename std::array<I, 8> Cell;
 
   // 规则化的实体关系类型，这里的规则化是指一种实体有固定个数的另一种邻接实体
-  // 每个单元有 4 个三角形面
-  // 每个单元有 6 条边
+  // 每个单元有 6 个四边形面
+  // 每个单元有 12 条边
   typedef typename std::array<I, 4> Face2cell; // 如果边界面则左右单元的编号一样
-  typedef typename std::array<I, 4> Cell2face;
-  typedef typename std::array<I, 4> Cell2cell;
-  typedef typename std::array<I, 6> Cell2edge;
+  typedef typename std::array<I, 6> Cell2face;
+  typedef typename std::array<I, 6> Cell2cell;
+  typedef typename std::array<I, 12> Cell2edge;
 
   // 非规则化的拓扑关系， 如共享一个节点的单元个数是不固定的
   // 共享一条边的单元个数也是不固定的
@@ -122,6 +122,11 @@ public:
       return 3;
   }
 
+  int* vtk_idx()
+  {
+    return m_vtkidx;
+  }
+
   I vtk_cell_type(I TD=3)
   {
       if(TD == 3)
@@ -196,7 +201,7 @@ public:
       I NE = 0;
       for(I i = 0; i < NC; i++)
       {
-          for(I j = 0; j < 6; j++)
+          for(I j = 0; j < 12; j++)
           { 
               auto & c = m_cell[i];
               auto s = local_edge_index(i, j); 
@@ -466,10 +471,33 @@ public:
   Node face_barycenter(const I i)
   {
       auto & f = m_face[i];
-      F x = (m_node[f[0]][0] + m_node[f[1]][0] + m_node[f[2]][0] + m_node[f[3]][0])/3.0;
-      F y = (m_node[f[0]][1] + m_node[f[1]][1] + m_node[f[2]][1] + m_node[f[3]][1])/3.0;
-      F z = (m_node[f[0]][2] + m_node[f[1]][2] + m_node[f[2]][2] + m_node[f[3]][2])/3.0;
+      F x = (m_node[f[0]][0] + m_node[f[1]][0] + m_node[f[2]][0] + m_node[f[3]][0])/4.0;
+      F y = (m_node[f[0]][1] + m_node[f[1]][1] + m_node[f[2]][1] + m_node[f[3]][1])/4.0;
+      F z = (m_node[f[0]][2] + m_node[f[1]][2] + m_node[f[2]][2] + m_node[f[3]][2])/4.0;
       return Node(x, y, z);
+  }
+
+  void face_barycenter(const I i, Node & node)
+  {
+      auto & f = m_face[i];
+      node[0] = (m_node[f[0]][0] + m_node[f[1]][0] + m_node[f[2]][0] + m_node[f[3]][0])/4.0;
+      node[1] = (m_node[f[0]][1] + m_node[f[1]][1] + m_node[f[2]][1] + m_node[f[3]][1])/4.0;
+      node[2] = (m_node[f[0]][2] + m_node[f[1]][2] + m_node[f[2]][2] + m_node[f[3]][2])/4.0;
+  }
+
+  Node cell_barycenter(const I i)
+  {
+    auto & c = m_cell[i];
+    F x = m_node[c[0]][0]/8.0;
+    F y = m_node[c[0]][1]/8.0;
+    F z = m_node[c[0]][2]/8.0;
+    for(int j = 1; j < 8; j++)
+    {
+      x += m_node[c[j]][0]/8.0;
+      y += m_node[c[j]][1]/8.0;
+      z += m_node[c[j]][2]/8.0;
+    }
+    return Node(x, y, z);
   }
 
   void cell_barycenter(const I i, Node & node)
@@ -489,67 +517,36 @@ public:
       {
           auto NN = number_of_nodes();
           auto NE = number_of_edges();
-          m_node.resize(NN + NE);
+          auto NF = number_of_faces();
+          auto NC = number_of_cells();
+          m_node.resize(NN + NE + NF + NC);
           for(I j = 0; j < NE; j++)
           {
              edge_barycenter(j, m_node[NN+j]); 
           }
-          auto NC = number_of_cells();
+          for(I j = 0; j < NF; j++)
+          {
+             face_barycenter(j, m_node[NN+NE+j]); 
+          }
+          for(I j = 0; j < NC; j++)
+          {
+             cell_barycenter(j, m_node[NN+NE+NF+j]); 
+          }
           m_cell.resize(8*NC);
           for(I j = 0; j < NC; j++)
           { 
               auto c = m_cell[j]; 
-              m_cell[j][0] = c[0];
-              m_cell[j][1] = m_cell2edge[j][0] + NN;
-              m_cell[j][2] = m_cell2edge[j][1] + NN;
-              m_cell[j][3] = m_cell2edge[j][2] + NN;
-
-              m_cell[NC + j][0] = c[1];
-              m_cell[NC + j][1] = m_cell2edge[j][3] + NN;
-              m_cell[NC + j][2] = m_cell2edge[j][0] + NN;
-              m_cell[NC + j][3] = m_cell2edge[j][4] + NN;
-
-              m_cell[2*NC + j][0] = c[2];
-              m_cell[2*NC + j][1] = m_cell2edge[j][1] + NN;
-              m_cell[2*NC + j][2] = m_cell2edge[j][3] + NN;
-              m_cell[2*NC + j][3] = m_cell2edge[j][5] + NN;
-
-              m_cell[3*NC + j][0] = c[3];
-              m_cell[3*NC + j][1] = m_cell2edge[j][4] + NN;
-              m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
-              m_cell[3*NC + j][3] = m_cell2edge[j][5] + NN;
-
-              m_cell[3*NC + j][0] = c[3];
-              m_cell[3*NC + j][1] = m_cell2edge[j][4] + NN;
-              m_cell[3*NC + j][2] = m_cell2edge[j][2] + NN;
-              m_cell[3*NC + j][3] = m_cell2edge[j][5] + NN;
-
-              auto v0 = m_node[m_cell2edge[j][0] + NN] - m_node[m_cell2edge[j][5] + NN];
-              auto v1 = m_node[m_cell2edge[j][1] + NN] - m_node[m_cell2edge[j][4] + NN]; 
-              auto v2 = m_node[m_cell2edge[j][2] + NN] - m_node[m_cell2edge[j][3] + NN]; 
-
-              std::vector<F> v{v0.squared_length(), v1.squared_length(), v2.squared_length()};
-              auto idx = std::distance(v.begin(), std::min_element(v.begin(), v.end()));
-
-              m_cell[4*NC + j][0] = m_cell2edge[j][m_refine[idx][0]] + NN; 
-              m_cell[4*NC + j][1] = m_cell2edge[j][m_refine[idx][1]] + NN;
-              m_cell[4*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
-              m_cell[4*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
-
-              m_cell[5*NC + j][0] = m_cell2edge[j][m_refine[idx][1]] + NN; 
-              m_cell[5*NC + j][1] = m_cell2edge[j][m_refine[idx][2]] + NN;
-              m_cell[5*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
-              m_cell[5*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
-
-              m_cell[6*NC + j][0] = m_cell2edge[j][m_refine[idx][2]] + NN; 
-              m_cell[6*NC + j][1] = m_cell2edge[j][m_refine[idx][3]] + NN;
-              m_cell[6*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
-              m_cell[6*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
-
-              m_cell[7*NC + j][0] = m_cell2edge[j][m_refine[idx][3]] + NN; 
-              m_cell[7*NC + j][1] = m_cell2edge[j][m_refine[idx][0]] + NN;
-              m_cell[7*NC + j][2] = m_cell2edge[j][m_refine[idx][4]] + NN;
-              m_cell[7*NC + j][3] = m_cell2edge[j][m_refine[idx][5]] + NN;
+              for(I k = 0; k < 8; k++)
+              {
+                m_cell[k*NC + j][0] = c[k];
+                m_cell[k*NC + j][1] = NN+m_cell2edge[j][m_refine[k][1]];
+                m_cell[k*NC + j][2] = NN+m_cell2edge[j][m_refine[k][2]];
+                m_cell[k*NC + j][3] = NN+NE+m_cell2face[j][m_refine[k][3]];
+                m_cell[k*NC + j][4] = NN+m_cell2edge[j][m_refine[k][4]];
+                m_cell[k*NC + j][5] = NN+NE+m_cell2face[j][m_refine[k][5]];
+                m_cell[k*NC + j][6] = NN+NE+m_cell2face[j][m_refine[k][6]];
+                m_cell[k*NC + j][7] = NN+NE+NF+j;
+              }
           }
 
           m_edge.clear();
@@ -782,8 +779,9 @@ private:
     static int m_localedge[12][2];
     static int m_localface[6][6];
     static int m_localface2edge[6][4];
-    static int m_refine[3][6];
+    static int m_refine[8][8];
     static int m_index[12][4];
+    static int m_vtkidx[8];
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
@@ -812,9 +810,13 @@ int HexahedronMesh<GK, Node, Vector>::m_localface2edge[6][4] = {
   {9, 11, 10, 8}, {2,  8, 4, 0}, {6, 5, 7,  11} 
 };
 
+//单元加密时, 子单元顶点的局部编号, 每个单元的顺序是{n, e, e, f, e, f, f, c}
 template<typename GK, typename Node, typename Vector>
-int HexahedronMesh<GK, Node, Vector>::m_refine[3][6] = {
-    {1, 3, 4, 2, 5, 0}, {0, 2, 5, 3, 4, 1}, {0, 4, 5, 1, 3, 2}
+int HexahedronMesh<GK, Node, Vector>::m_refine[8][8] = {
+    {0, 0, 1, 2, 2, 4, 0, 0}, {1, 4, 3, 1, 0, 4, 2, 0},
+    {2, 5, 6, 5, 1, 2, 0, 0}, {3, 3, 7, 1, 5, 2, 5, 0},
+    {4, 8, 2, 4, 9, 3, 0, 0}, {5, 4, 8, 4, 10, 1, 3, 0},
+    {6, 11, 9, 3, 6, 5, 0, 0}, {7, 7, 10, 1, 11, 5, 3, 0}
 };
 
 template<typename GK, typename Node, typename Vector>
@@ -824,6 +826,9 @@ int HexahedronMesh<GK, Node, Vector>::m_index[12][4] = {
     {2, 0, 1, 3}, {2, 1, 3, 0}, {2, 3, 0, 1},
     {3, 0, 2, 1}, {3, 2, 1, 0}, {3, 1, 0, 2}
 };
+
+template<typename GK, typename Node, typename Vector>
+int HexahedronMesh<GK, Node, Vector>::m_vtkidx[8] = {0, 4, 6, 2, 1, 5, 7, 3};
 
 } // end of namespace Mesh 
 

@@ -140,6 +140,11 @@ public:
         return 0;// VTK_EMPLTY_CELL = 0
   }
 
+  int* vtk_idx()
+  {
+    return m_vtkidx;
+  }
+
   int geo_dimension()
   {
       return Node::dimension();
@@ -591,6 +596,7 @@ private:
 private:
   static int m_localedge[3][2];
   static int m_localface[3][2];
+  static int m_vtkidx[3];
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
   std::vector<Node> m_node;
@@ -611,6 +617,9 @@ template<typename GK, typename NODE, typename VECTOR>
 int TriangleMesh<GK, NODE, VECTOR>::m_localface[3][2] = {
     {1, 2}, {2, 0}, {0, 1}
 };
+
+template<typename GK, typename NODE, typename VECTOR>
+int TriangleMesh<GK, NODE, VECTOR>::m_vtkidx[3] = {0, 1, 2};
 
 } // end of namespace Mesh 
 

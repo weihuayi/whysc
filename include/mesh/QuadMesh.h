@@ -129,6 +129,11 @@ public:
       return m_edge.size();
   }
 
+  int* vtk_idx()
+  {
+    return m_vtkidx;
+  }
+
   I vtk_cell_type(int TD=2)
   {
       if(TD == 2)
@@ -623,6 +628,7 @@ private:
 private:
   static int m_localedge[4][2];
   static int m_localface[4][2];
+  static int m_vtkidx[4];
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
   std::vector<Node> m_node;
@@ -643,6 +649,10 @@ template<typename GK, typename NODE, typename VECTOR>
 int QuadMesh<GK, NODE, VECTOR>::m_localface[4][2] = {
     {0, 1}, {1, 2}, {2, 3}, {3, 0}
 };
+
+template<typename GK, typename NODE, typename VECTOR>
+int QuadMesh<GK, NODE, VECTOR>::m_vtkidx[4] = {0, 1, 2, 3};
+
 } // end of namespace Mesh
 
 } // end of namespace WHYSC

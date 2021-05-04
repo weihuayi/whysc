@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def Histogram_plot(b):
-    a = np.abs(np.array(b)-1)
+    a = np.array(b)
     A = np.linspace(0, 1, 51)
     B = np.zeros(50)
     for i in range(50):

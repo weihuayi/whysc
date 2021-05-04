@@ -122,6 +122,11 @@ public:
       return 3;
   }
 
+  int* vtk_idx()
+  {
+    return m_vtkidx;
+  }
+
   I vtk_cell_type(I TD=3)
   {
       if(TD == 3)
@@ -769,6 +774,7 @@ private:
     static int m_localface2edge[4][3];
     static int m_refine[3][6];
     static int m_index[12][4];
+    static int m_vtkidx[4];
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
@@ -806,6 +812,9 @@ int TetrahedronMesh<GK, Node, Vector>::m_index[12][4] = {
     {2, 0, 1, 3}, {2, 1, 3, 0}, {2, 3, 0, 1},
     {3, 0, 2, 1}, {3, 2, 1, 0}, {3, 1, 0, 2}
 };
+
+template<typename GK, typename Node, typename Vector>
+int TetrahedronMesh<GK, Node, Vector>::m_vtkidx[4] = {0, 1, 2, 3};
 
 } // end of namespace Mesh 
 

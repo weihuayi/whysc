@@ -69,6 +69,14 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
+    target_link_libraries(halfedge_mesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS halfedge_mesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+
     add_executable(TriangleMesh_test TriangleMesh_test.cpp)
     target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(

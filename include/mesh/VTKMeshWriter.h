@@ -101,12 +101,12 @@ public:
         auto nn = m_mesh->number_of_nodes_of_each_cell();
         auto cellArray = vtkSmartPointer<vtkCellArray>::New();
         cellArray->AllocateExact(NC, NC*nn); 
-        for(auto it=m_mesh->cell_begin(); it != m_mesh->cell_end(); it++)
+        for(auto & cell : m_mesh->cells())
         {
             cellArray->InsertNextCell(nn);
-            for(auto id:*it)
+            for(int i = 0; i < nn; i++)
             {
-                cellArray->InsertCellPoint(id);
+                cellArray->InsertCellPoint(cell[m_mesh->vtk_idx()[i]]);
             }
         }
         //Toplogy top;
