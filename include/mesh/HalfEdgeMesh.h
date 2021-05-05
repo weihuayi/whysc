@@ -37,13 +37,13 @@ public:
   typedef typename std::array<I, 4> Face;
   typedef typename std::array<I, 8> Cell;
 
-  // 迭代子类型
   typedef std::vector<Node> NodeArray;
   typedef std::vector<Edge> EdgeArray;
   typedef std::vector<HalfEdge> HalfEdgeArray;
   typedef std::vector<Face> FaceArray;
   typedef std::vector<Cell> CellArray;
 
+  // 迭代子类型
   typedef typename NodeArray::iterator NodeIterator;
   typedef typename NodeArray::const_iterator ConstNodeIterator;
 

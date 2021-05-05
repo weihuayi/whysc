@@ -122,7 +122,7 @@ public:
       return 3;
   }
 
-  int* vtk_idx()
+  int* vtk_cell_index()
   {
     return m_vtkidx;
   }
@@ -418,6 +418,8 @@ public:
 
   F face_measure(const I i)
   {
+    /* TODO: 面积定义？
+     */
       auto & f = m_face[i];
       auto v1 = m_node[f[1]] - m_node[f[0]];
       auto v2 = m_node[f[2]] - m_node[f[0]];
@@ -435,6 +437,9 @@ public:
 
   F cell_measure(const I i)
   {
+    /*
+     * TODO: 体积定义
+     */
       auto & c = m_cell[i];
       auto v01 = m_node[c[1]] - m_node[c[0]];
       auto v02 = m_node[c[2]] - m_node[c[0]];
