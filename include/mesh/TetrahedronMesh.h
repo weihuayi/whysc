@@ -122,7 +122,7 @@ public:
       return 3;
   }
 
-  int* vtk_idx()
+  int* vtk_cell_index()
   {
     return m_vtkidx;
   }

@@ -140,7 +140,7 @@ public:
         return 0;// VTK_EMPLTY_CELL = 0
   }
 
-  int* vtk_idx()
+  int* vtk_cell_index()
   {
     return m_vtkidx;
   }
