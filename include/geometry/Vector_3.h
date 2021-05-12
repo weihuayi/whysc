@@ -159,6 +159,15 @@ inline Vector_3<F> operator * (const Vector_3<F> & v0, const F w)
     return v;
 }
 
+template<typename F>
+inline Vector_3<F> operator / (const Vector_3<F> & v0, const F w)
+{
+    Vector_3<F> v;
+    for(int d = 0; d < 3; d++)
+        v[d] = v0[d]/w;
+    return v;
+}
+
 template<typename OS, typename F>
 OS& operator << (OS & os, const Vector_3<F> & v)
 {

@@ -20,6 +20,7 @@
 #include "mesh/GhostFillingAlg.h"
 #include "mesh/ParallelMeshColoringAlg.h"
 #include "mesh/ParallelMeshOptimization.h"
+#include "mesh/TetrahedronMeshQuality.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
@@ -30,9 +31,10 @@ typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
+typedef WHYSC::Mesh::TetrahedronMeshQuality<PMesh> TetMeshQuality;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
-typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh> PMeshOpt;
+typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality> PMeshOpt;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
@@ -100,10 +102,10 @@ int main(int argc, char * argv[])
     cellQualityInit[i] = mesh->cell_quality(i);
   }
 
-  colorAlg.coloring(color);//染色
+  int cmax = colorAlg.coloring(color);//染色
   colorAlg.color_test(color);//染色测试
 
-  PMeshOpt optAlg(mesh, color, MPI_COMM_WORLD);
+  PMeshOpt optAlg(mesh, color, cmax, MPI_COMM_WORLD);
   for(int i = 0; i < 40; i++)
     optAlg.mesh_optimization();//优化
 

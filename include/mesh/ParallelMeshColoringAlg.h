@@ -25,7 +25,7 @@ public:
     m_comm = comm;
   }
 
-  void coloring(std::vector<int> & color)
+  int coloring(std::vector<int> & color)
   {
     auto mesh = get_mesh();
     auto NN = mesh->number_of_nodes();
@@ -104,6 +104,7 @@ public:
       int lnum = nColored.size();
       MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     }
+    return cmax;
   }
 
   void color_test(std::vector<int> & color)

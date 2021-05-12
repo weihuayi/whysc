@@ -10,18 +10,20 @@ namespace Mesh {
 template<typename PMesh>
 class GhostFillingAlg;
 
-template<typename PMesh>
+template<typename PMesh, typename MeshQuality>
 class ParallelMeshOptimization
 {
 public:
   typedef typename PMesh::Node Node;
+  typedef typename PMesh::NodeArray NodeArray;
   typedef typename PMesh::Toplogy Toplogy;
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
-  typedef PatchOptimization<PMesh> PatchOpt;
+  typedef PatchOptimization<PMesh, MeshQuality> PatchOpt;
 
 public:
-  ParallelMeshOptimization(std::shared_ptr<PMesh> mesh, std::vector<int> & color, MPI_Comm comm)
+  ParallelMeshOptimization(std::shared_ptr<PMesh> mesh, std::vector<int> & color, int cmax, MPI_Comm comm)
   {
+    m_cmax = cmax;
     m_comm = comm;
     m_mesh = mesh;
     m_color = color;
@@ -30,7 +32,7 @@ public:
     m_patch = std::make_shared<PatchOpt>(mesh);
   }
 
-  void mesh_optimization()
+  void mesh_optimization(std::string method="bar")
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
@@ -38,17 +40,17 @@ public:
     auto fixed = m_mesh->data()["fixednode"];
     auto & isghostnode = m_set_ghost_alg->get_ghost_node();
 
-    int cMax;
-    auto cmax = *max_element(m_color.begin(), m_color.end());
-    MPI_Allreduce(&cmax, &cMax, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    //int cMax;
+    //auto cmax = *max_element(m_color.begin(), m_color.end());
+    //MPI_Allreduce(&cmax, &cMax, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
-    for(int i = 1; i <= cMax; i++)
+    for(int i = 1; i <= m_cmax; i++)
     {
       for(int j = 0; j < NN; j++)
       {
         if((m_color[j] == i) & (fixed[j] == 0) & (!isghostnode[j]))
         {
-          m_patch->optimization(j, m_node[j]);
+          m_patch->optimization(j, m_node[j], method);
         }
       }
       m_set_ghost_alg->fill(m_node, GD);
@@ -57,12 +59,14 @@ public:
   }
  
 private:
+  int m_cmax;
   MPI_Comm m_comm;
+  NodeArray m_node;
   std::shared_ptr<PMesh> m_mesh;
+  std::shared_ptr<PMesh> m_auxmesh;
   std::vector<int> m_color;
-  std::vector<Node> m_node;
   std::shared_ptr<GhostFillingAlg<PMesh> > m_set_ghost_alg;
-  std::shared_ptr<PatchOptimization<PMesh> > m_patch;
+  std::shared_ptr<PatchOpt> m_patch;
 };
 
 } // end of namespace Mesh
