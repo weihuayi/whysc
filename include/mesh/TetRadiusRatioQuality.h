@@ -1,5 +1,5 @@
-#ifndef TetrahedronMeshQuality_h
-#define TetrahedronMeshQuality_h
+#ifndef TetRadiusRatioQuality_h
+#define TetRadiusRatioQuality_h
 
 #include <vector>
 #include <array>
@@ -10,16 +10,24 @@ using json = nlohmann::json;
 namespace WHYSC {
 namespace Mesh {
 
-template<typename PMesh>
-class TetrahedronMeshQuality
+/*
+ *  
+ * Note
+ * ----
+ * 四面体外接球与内接球半径之比
+ *       mu = R/r/3
+ */
+template<typename TMesh>
+class TetRadiusRatioQuality
 {
 public:
-  TetrahedronMeshQuality(std::shared_ptr<PMesh> mesh)
+  TetRadiusRatioQuality(std::shared_ptr<TMesh> mesh)
   {
     m_mesh = mesh;
   }
 
-  double cell_quality(int i)
+  // 计算第 i 个单元的质量
+  double quality(int i)
   {
     auto & cell = m_mesh->cells();
     auto & node = m_mesh->nodes();
@@ -48,24 +56,24 @@ public:
   double patch_quality(std::vector<int> cidx)
   {
     int N = cidx.size();
-    double quality = 0; 
+    double q = 0; 
     for(int i:cidx)
     {
-      quality += cell_quality(i);
+      q += quality(i);
     }
-    return quality;
+    return q;
   }
 
-  void mesh_quality(std::vector<double> & quality)
+  void mesh_quality(std::vector<double> & qs)
   {
     auto NC = m_mesh->number_of_cells();
     auto & cell = m_mesh->cells();
     auto & node = m_mesh->nodes();
 
-    quality.resize(NC);
+    qs.resize(NC);
     for(int i = 0; i < NC; i++)
     {
-      quality[i] = cell_quality(i);
+      qs[i] = quality(i);
     }
   }
 
@@ -123,16 +131,11 @@ public:
   }
 
 private:
-  std::shared_ptr<PMesh> m_mesh;
-  static int m_index[4][3];
-};
-
-template<typename PMesh>
-int TetrahedronMeshQuality<PMesh>::m_index[4][3] = {
-  {1, 2, 3}, {2, 0, 3}, {3, 0, 1}, {0, 2, 1}
+  std::shared_ptr<Mesh> m_mesh;
 };
 
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
-#endif // end of TetrahedronMeshQuality_h
+
+#endif // end of TetRadiusRatioQuality_h
