@@ -134,6 +134,7 @@ private:
   static int m_index[4][3];
   std::shared_ptr<TMesh> m_mesh;
 };
+
 template<typename Mesh>
 int TetRadiusRatioQuality<Mesh>::m_index[4][3] = {
     {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1}

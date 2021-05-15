@@ -66,6 +66,13 @@ public:
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;
 
+  static int m_localedge[6][2];
+  static int m_localface[4][3];
+  static int m_localface2edge[4][3];
+  static int m_refine[3][6];
+  static int m_index[12][4];
+  static int m_vtkidx[4];
+
 public:
 
   TetrahedronMesh()
@@ -775,12 +782,6 @@ private:
     }
 
 private:
-    static int m_localedge[6][2];
-    static int m_localface[4][3];
-    static int m_localface2edge[4][3];
-    static int m_refine[3][6];
-    static int m_index[12][4];
-    static int m_vtkidx[4];
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;

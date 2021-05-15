@@ -7,19 +7,17 @@
 namespace WHYSC {
 namespace Mesh {
 
-template<typename PMesh>
-class GhostFillingAlg;
 
-template<typename PMesh, typename MeshQuality>
+template<typename Mesh, typename MeshQuality>
 class PatchOptimization
 {
 public:
-  typedef typename PMesh::Node Node;
-  typedef typename PMesh::Vector Vector;
-  typedef typename PMesh::Toplogy Toplogy;
+  typedef typename Mesh::Node Node;
+  typedef typename Mesh::Vector Vector;
+  typedef typename Mesh::Toplogy Toplogy;
 
 public:
-  PatchOptimization(std::shared_ptr<PMesh> mesh)
+  PatchOptimization(std::shared_ptr<Mesh> mesh)
   {
     m_mesh = mesh;
     m_quality = std::make_shared<MeshQuality>(mesh);
@@ -145,7 +143,7 @@ public:
 private:
   Toplogy m_top;
   Toplogy m_n2n;
-  std::shared_ptr<PMesh> m_mesh;
+  std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<MeshQuality> m_quality;
 };
 

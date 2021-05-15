@@ -200,6 +200,8 @@ private:
     I m_NB; // the number of B entity
 };
 
+
+
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
