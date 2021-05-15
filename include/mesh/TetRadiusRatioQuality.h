@@ -47,15 +47,15 @@ public:
 
     auto S = S12+S23+S31+S123;
     auto d = L1*cross(v2, v3) + L2*cross(v3, v1) + L3*cross(v1, v2);
+    auto Ld = std::sqrt(d.squared_length());
     auto V = dot(cross(v1, v2), v3)/6;
     auto r = 3*V/S;
-    auto R = d/V/12;
+    auto R = Ld/V/12;
     return R/r/3;
   }
 
-  double patch_quality(std::vector<int> cidx)
+  double patch_quality(std::vector<int> & cidx)
   {
-    int N = cidx.size();
     double q = 0; 
     for(int i:cidx)
     {
@@ -131,8 +131,14 @@ public:
   }
 
 private:
-  std::shared_ptr<Mesh> m_mesh;
+  static int m_index[4][3];
+  std::shared_ptr<TMesh> m_mesh;
 };
+template<typename Mesh>
+int TetRadiusRatioQuality<Mesh>::m_index[4][3] = {
+    {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1}
+};
+
 
 } // end of namespace Mesh
 

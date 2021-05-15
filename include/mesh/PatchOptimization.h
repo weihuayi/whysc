@@ -24,6 +24,7 @@ public:
     m_mesh = mesh;
     m_quality = std::make_shared<MeshQuality>(mesh);
     mesh->node_to_cell(m_top);
+    mesh->node_to_node(m_n2n);
   }
 
   void optimization(int i, Node & node, std::string method = "bar")
@@ -34,7 +35,7 @@ public:
       tet_optimization(i, node);
   }
 
-  void bar_optimization(int i, Node & node)
+  void bar_optimization(int i, Node & node)//点周围单元的重心作为点位置
   {
     int GD = m_mesh->geo_dimension();
     for(int n = 0; n < GD; n++)
@@ -52,37 +53,73 @@ public:
     }
   }
 
-  void tet_optimization(int i, Node & node)
+  void tet_optimization(int i, Node & node)//给每个点一个方向, 求这个方向上质量的最小值
   {
     int NP = patch_size(i);
     std::vector<int> cidx(NP);
     Vector v = {0};
+    double w;
     for(int k = 0; k < NP; k++)
     {
       cidx[k] = patch(i, k);
       Vector tmpVector;
-      double w;
-      m_quality->nabla_quality(patch(i, k), local_index(i, k), tmpVector, w);
-      v = v + w*tmpVector;
+      double tmpw;
+      m_quality->nabla_quality(patch(i, k), local_index(i, k), tmpVector, tmpw);
+      v = v + tmpVector;
+      w = w + tmpw;
     }
-
-    Node tmpNode(m_mesh->nodes(i));
+    v = v/w;
+    //v = v/std::sqrt(v.squared_length());
+    auto tmpNode = m_mesh->node(i);
 
     double a = 0;
-    double b = 10;//TODO 把这个改为边长
-    double Qa = m_quality->patch_quality(cidx);
-    m_mesh->nodes(i) = tmpNode + b*v;
-    double Qb = m_quality->patch_quality(cidx);
+    double b = min_edge_length(i);
+    double c = a + (1 - 0.618)*(b-a);
+    double d = a + 0.618*(b-a);
 
-    while(abs(b-a)>0.001)//TODO 0.618法
+    m_mesh->node(i) = tmpNode + c*v;
+    double Qc = m_quality->patch_quality(cidx);
+    m_mesh->node(i) = tmpNode + d*v;
+    double Qd = m_quality->patch_quality(cidx);
+
+    while(abs(Qc-Qd)>0.0001)// 0.618法
     {
-      int c = (a+b)/2;
-      m_mesh->nodes(i) = tmpNode + c*v;
-      double Qc = m_quality->patch_quality(cidx);
-
-      L*v;
-      m_mesh
+      if(Qc > Qd)
+      {
+        a = c;
+        c = d;
+        d = a + 0.618*(b-a);
+        Qc = Qd;
+        m_mesh->node(i) = tmpNode + d*v;
+        Qd = m_quality->patch_quality(cidx);
+      }
+      else
+      {
+        b = d;
+        d = c;
+        c = a + (1 - 0.618)*(b-a);
+        Qd = Qc;
+        m_mesh->node(i) = tmpNode + c*v;
+        Qc = m_quality->patch_quality(cidx);
+      }
     }
+    node = m_mesh->node(i);
+    m_mesh->node(i) = tmpNode;
+  }
+
+  double min_edge_length(int k)//点 k 周围的边的长度最小值
+  {
+    auto & loc = m_n2n.locations();
+    auto & nei = m_n2n.neighbors();
+    double l = 10000000;
+    for(int i = loc[k]; i < loc[k+1]; i++)
+    {
+      auto v = m_mesh->node(nei[i]) - m_mesh->node(k);
+      auto l0 = std::sqrt(v.squared_length());
+      if(l > l0)
+        l = l0;
+    }
+    return l;
   }
 
   int local_index(int i, int j)
@@ -107,6 +144,7 @@ public:
   
 private:
   Toplogy m_top;
+  Toplogy m_n2n;
   std::shared_ptr<PMesh> m_mesh;
   std::shared_ptr<MeshQuality> m_quality;
 };

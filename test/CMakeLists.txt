@@ -69,6 +69,14 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(TetRadiusRatioQuality_test TetRadiusRatioQuality_test.cpp)
+    target_link_libraries(TetRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS TetRadiusRatioQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+
     add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
     target_link_libraries(halfedge_mesh_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
@@ -122,8 +130,6 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     message("${CGAL_LIBRARIES}")
     target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
-
-
 
 endif()
 

@@ -1,4 +1,3 @@
-
 #include "Python.h"
 #include <string>
 #include <iostream>
@@ -20,7 +19,8 @@
 #include "mesh/GhostFillingAlg.h"
 #include "mesh/ParallelMeshColoringAlg.h"
 #include "mesh/ParallelMeshOptimization.h"
-#include "mesh/TetrahedronMeshQuality.h"
+#include "mesh/TetRadiusRatioQuality.h"
+#include "mesh/MeshFactory.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
@@ -31,7 +31,7 @@ typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
-typedef WHYSC::Mesh::TetrahedronMeshQuality<PMesh> TetMeshQuality;
+typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> TetMeshQuality;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
 typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality> PMeshOpt;
@@ -106,8 +106,8 @@ int main(int argc, char * argv[])
   colorAlg.color_test(color);//染色测试
 
   PMeshOpt optAlg(mesh, color, cmax, MPI_COMM_WORLD);
-  for(int i = 0; i < 40; i++)
-    optAlg.mesh_optimization();//优化
+  for(int i = 0; i < 50; i++)
+    optAlg.mesh_optimization("tet");//优化
 
   for(int i = 0; i < NC; i++)
   {
