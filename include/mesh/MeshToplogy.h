@@ -16,17 +16,30 @@ public:
   typedef typename Container::iterator          Iterator;
   typedef typename Container::const_iterator    ConstIterator;
 
+  class AdjEntities
+  {
+  public:
+    AdjEntities(I i, Iterator offset_begin, Iterator adj_begin):
+      m_index(i), m_offset_begin(offset_begin), m_adj_begin(adj_begin)
+    {
+    }
+
+  private:
+    I m_index;
+    Iterator m_offset_begin;
+    Iterator m_adj_begin;
+  };
+
   class AdjEntitiesIterator
   {
   public:
 
     AdjEntitiesIterator(
-        Iterator offset_it, 
-        Iterator adj_begin,
-        Iterator loc_begin):
+        Iterator offset_it, // 偏移数组的迭代子
+        Iterator adj_begin  // 邻接数组的起始迭代子
+        ):
       m_offset_it(offset_it), 
-      m_adj_begin(adj_begin),
-      m_loc_begin(loc_begin) {}
+      m_adj_begin(adj_begin) {}
 
     ~AdjEntitiesIterator(){}
 
@@ -45,29 +58,29 @@ public:
       return *(m_offset_it+1) - *(m_offset_it);
     }
 
+    size_t number_of_adj_entities()
+    {
+      return *(m_offset_it+1) - *(m_offset_it);
+    }
+
     Reference operator[](std::size_t i)
+    {
+      return m_adj_begin[*m_offset_it + i];
+    }
+
+    ConstReference operator[](std::size_t i) const
     {
       return m_adj_begin[*m_offset_it + i];
     }
 
     Iterator adj_begin()
     {
-      return m_adj_begin[*m_offset_it];
+      return m_adj_begin + *m_offset_it;
     }
 
     Iterator adj_end()
     {
-      return m_adj_begin[*(m_offset_it + 1)];
-    }
-
-    Iterator loc_begin()
-    {
-      return m_loc_begin[*m_offset_it];
-    }
-
-    Iterator loc_end()
-    {
-      return m_loc_begin[*(m_offset_it + 1)];
+      return m_adj_begin + *(m_offset_it + 1);
     }
 
     bool operator==(const AdjEntitiesIterator& it) const
@@ -83,7 +96,6 @@ public:
   private:
     Iterator m_offset_it;
     Iterator m_adj_begin;
-    Iterator m_loc_begin;
   };
 
 public:
@@ -137,6 +149,7 @@ public:
 
 public: // new interface
 
+    /*  第 i 个 A 实体相邻的 B 实体的个数 */
     I number_of_adj_entities(const I i)
     {
       return m_offset[i+1] - m_offset[i];
@@ -192,7 +205,7 @@ public: // deprecated interface
 
 private:
     Container m_adj; // 存储每个 A 实体相邻的 B 实体编号
-    Container m_loc; // 存储每个 A 实体在相邻的 B 实体中的局部编号
+    Container m_loc; // 存储每个 A 实体在相邻的 B 实体中的局部编号, 如 A 是拓扑维数高于 B 的实体， m_loc 是空
     Container m_offset; // 每个 A 实体邻接实体的偏移量 
     I m_TA; // A 实体的拓扑维数
     I m_TB; // B 实体的拓扑维数
