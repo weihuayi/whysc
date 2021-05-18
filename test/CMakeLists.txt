@@ -162,4 +162,9 @@ if(${MPI_FOUND})
     target_link_libraries(mpi_test PRIVATE ${MPI_LIBRARIES})
 endif()
 
+#if(${GMSH_FOUND})
+    add_executable(gmsh_test gmsh_test.cpp)
+    target_link_libraries(gmsh_test PRIVATE ${GMSH_LIBRARIES})
+#endif()
+
 add_subdirectory(cpp)
