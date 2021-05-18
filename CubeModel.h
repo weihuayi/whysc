@@ -1,5 +1,5 @@
-#ifndef SphereModel_h
-#define SphereModel_h
+#ifndef CubeModel_h
+#define CubeModel_h
 
 #include <map>
 #include<math.h>
@@ -8,19 +8,41 @@ namespace WHYSC {
 namespace GeometryModel {
 
 template<class GK>
-class SphereModel
+class CubeModel
 {
 public:
   typedef typename GK::Point_3 Point;
+  typedef std::array<int, 2> Line;
+  typedef std::vector<int> Face;
   typedef typename GK::Vector_3 Vector;
   typedef typename GK::Float F;
   typedef typename GK::Int I;
 public:
-  SphereModel():m_center(F(0.0), F(0.0), F(0.0)), m_r(F(1)) {}
-  SphereModel(const F x, const F y, const F z, const F r):m_center(x, y, z), m_r(r){}
+  CubeModel(){ m_num = 0;}
+
+  void add_point(Point & p)
+  {
+    m_points[m_num] = p;
+    m_num++;
+  }
+
+  void add_line(int i, int j)
+  {
+    m_lines[m_num] = Line{i, j};
+    m_num++;
+  }
+
+  void add_face(std::vector<int> & f)
+  {
+    m_faces[m_num] = f;
+    m_num++;
+  }
+
   void project_to_face(const int fid, Point & p)
   {
-      auto v = p - m_center; 
+      auto f = m_faces[fid]; 
+      auto l0 = m_lines[f[0]];
+      auto l1 = m_lines[f[1]]
       auto l = std::sqrt(v.squared_length());
       v /= l;
       p = m_center + m_r*v;
@@ -35,12 +57,14 @@ public:
 
   virtual void get_point_tangent(const int eid, const Point p, Vector & t) = 0;
 private:
-    Point m_center;
-    F m_r;
+  int m_num; //点边面的个数之和
+  std::map<int, Point> m_points;
+  std::map<int, Line> m_lines;
+  std::map<int, Face> m_faces;
 };
 
 }
 }
 
 
-#endif // end of SphereModel_h
+#endif // end of CubeModel_h

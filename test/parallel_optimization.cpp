@@ -1,4 +1,3 @@
-#include "Python.h"
 #include <string>
 #include <iostream>
 #include <list>
@@ -21,6 +20,7 @@
 #include "mesh/ParallelMeshOptimization.h"
 #include "mesh/TetRadiusRatioQuality.h"
 #include "mesh/MeshFactory.h"
+#include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
