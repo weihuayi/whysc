@@ -84,4 +84,26 @@ else()
     message("Found PARMETIS! ${PARMETIS_INCLUDE_DIR}")
 endif()
 
+# Gmsh
+find_path(GMSH_INCLUDE_DIR gmsh.h
+  $ENV{HOME}/.local/lib/python3.8/site-packages/gmsh-4.8.4-Linux64-sdk/include 
+)
+find_library(GMSH_LIBRARY gmsh 
+  $ENV{HOME}/.local/lib/python3.8/site-packages/gmsh-4.8.4-Linux64-sdk/lib
+)
+
+if(GMSH_INCLUDE_DIR)
+  if(GMSH_LIBRARY)
+    set(GMSH_LIBRARIES ${GMSH_LIBRARY})
+    set(GMSH_FOUND TRUE )
+  endif()
+endif()
+
+if(NOT ${GMSH_FOUND})
+    message("GMSH not found")
+else()
+    include_directories(${GMSH_INCLUDE_DIR})
+    message("Found GMSH! ${GMSH_INCLUDE_DIR}")
+endif()
+
 add_subdirectory(test)

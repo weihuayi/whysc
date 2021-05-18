@@ -131,6 +131,11 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
+    add_executable(PolyhedronModel_test PolyhedronModel_test.cpp )
+    message("${CGAL_LIBRARIES}")
+    target_link_libraries(PolyhedronModel_test PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${GMSH_LIBRARIES})
+
 endif()
 
 if(${VTK_FOUND} AND ${MPI_FOUND})
@@ -161,5 +166,10 @@ if(${MPI_FOUND})
     add_executable(mpi_test mpi_test.cpp)
     target_link_libraries(mpi_test PRIVATE ${MPI_LIBRARIES})
 endif()
+
+#if(${GMSH_FOUND})
+    add_executable(gmsh_test gmsh_test.cpp)
+    target_link_libraries(gmsh_test PRIVATE ${GMSH_LIBRARIES})
+#endif()
 
 add_subdirectory(cpp)
