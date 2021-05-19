@@ -24,7 +24,10 @@ public:
   typedef typename std::vector<int> Face;
   typedef typename std::vector<int> Polyhedron;
 public:
-  PolyhedronModel(){}
+  PolyhedronModel()
+  {
+    m_mesh = std::make_shared<Mesh>();
+  }
 
   void add_point(std::initializer_list<double> point, int tag)
   {
@@ -82,10 +85,8 @@ public:
     if(open)
       gmsh::fltk::run();//打开 gmsh
 
-    std::cout<< "ha" <<std::endl;
     auto & node = m_mesh->nodes();
     auto & cell = m_mesh->cells();
-    std::cout<< "ha" <<std::endl;
 
     std::vector<long unsigned int> nodeTag; //网格中每个节点的 tag
     std::vector<double> nodeCoord; //每个节点的坐标
@@ -93,10 +94,7 @@ public:
     gmsh::model::mesh::getNodes(nodeTag, nodeCoord, nodeParaCoord);
 
     int NN = nodeTag.size();
-    std::cout<< "NN = " << NN <<std::endl;
     node.resize(NN);
-    std::cout<< "NN = " << NN <<std::endl;
-    std::cout<< "NT = " << nodeCoord.size() <<std::endl;
     for(int i = 0; i < NN; i++)
     {
       node[i][0] = nodeCoord[3*i+0];
@@ -110,7 +108,6 @@ public:
 
     nodedim.resize(NN);
     nodetag.resize(NN);
-    std::cout<< "ha" <<std::endl;
     for(auto it : m_polyhedrons)
     {
       auto id = it.first;
@@ -191,7 +188,6 @@ public:
         nodedim[A] = 0; //出现的点都是 3 维的
       }
     }
-    std::cout<< "ha" <<std::endl;
     m_mesh->init_top();
     gmsh::finalize();//退出 gmsh 环境
   }
