@@ -6,9 +6,7 @@
 #include <map>
 
 #include "MeshToplogy.h"
-#include "thirdparty/json.hpp"
-
-using json = nlohmann::json;
+#include "MeshData.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -395,9 +393,9 @@ public:
       return m_cell2edge[i];
   }
 
-  json & data()
+  NodeData & nodedata()
   {
-    return m_data;
+    return m_nodedata;
   }
   // 实体测度 
 
@@ -794,7 +792,7 @@ private:
     std::vector<Face2cell> m_face2cell;
     std::vector<Cell2face> m_cell2face;
     std::vector<Cell2edge> m_cell2edge;
-    json m_data;
+    NodeData m_nodedata;
 };
 
 template<typename GK, typename Node, typename Vector>

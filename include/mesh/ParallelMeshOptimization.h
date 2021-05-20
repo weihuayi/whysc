@@ -37,7 +37,7 @@ public:
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
     auto NC = m_mesh->number_of_cells();
-    auto fixed = m_mesh->data()["fixednode"];
+    auto gdof = m_mesh->nodedata().gdof;
     auto & isghostnode = m_set_ghost_alg->get_ghost_node();
 
     //int cMax;
@@ -48,7 +48,7 @@ public:
     {
       for(int j = 0; j < NN; j++)
       {
-        if((m_color[j] == i) & (fixed[j] == 0) & (!isghostnode[j]))
+        if((m_color[j] == i) & (gdof[j] > 0) & (!isghostnode[j]))
         {
           m_patch->optimization(j, m_node[j], method);
         }

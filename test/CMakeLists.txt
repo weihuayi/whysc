@@ -136,6 +136,10 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(PolyhedronModel_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${GMSH_LIBRARIES})
 
+    add_executable(Cube_test Cube_test.cpp )
+    message("${CGAL_LIBRARIES}")
+    target_link_libraries(Cube_test PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${GMSH_LIBRARIES})
 endif()
 
 if(${VTK_FOUND} AND ${MPI_FOUND})

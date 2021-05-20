@@ -370,7 +370,9 @@ public:
     for(int i = 0; i < NN; i++)
     {
       if(isBdNode[i])
-        isbdnode[i] = 1;
+        isbdnode[i] = 0;
+      else
+        isbdnode[i] = mesh.geo_dimension();
     }
 
     if(!fname.empty())
@@ -380,11 +382,11 @@ public:
         int NN = submeshes[i].number_of_nodes();
         auto & gid = submeshes[i].node_global_id();
 
-        std::vector<int> fixednode(NN);//设置 fixednode
+        std::vector<int> gdof(NN);//设置 fixednode
         std::vector<int> nids(NN);//设置 nids
         for(int j = 0; j < NN; j++)
         {
-          fixednode[j] = isbdnode[gid[j]];
+          gdof[j] = isbdnode[gid[j]];
           nids[j] = nid[gid[j]];
         }
 
@@ -394,7 +396,7 @@ public:
         writer.set_points();
         writer.set_cells();
         writer.set_point_data(nids, 1, "nid");
-        writer.set_point_data(fixednode, 1, "fixed");
+        writer.set_point_data(gdof, 1, "gdof");
         writer.set_point_data(gid, 1, "gid");
         writer.write(ss.str());
       }

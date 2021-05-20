@@ -41,8 +41,7 @@ public:
     reader.get_node_data("nid", npid);
 
     std::vector<int> fixednode(npid.size());
-    reader.get_node_data("fixed", fixednode);
-    m_pmesh->data()["fixednode"] = fixednode;
+    reader.get_node_data("gdof", m_pmesh->nodedata().gdof);
 
     build_mesh();
   }

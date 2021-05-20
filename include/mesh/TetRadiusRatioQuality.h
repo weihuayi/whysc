@@ -4,8 +4,7 @@
 #include <vector>
 #include <array>
 #include <map>
-
-using json = nlohmann::json;
+#include <memory>
 
 namespace WHYSC {
 namespace Mesh {
