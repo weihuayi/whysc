@@ -6,9 +6,8 @@
 namespace WHYSC {
 namespace Mesh {
 
-class NodeData
+struct NodeData
 {
-public:
   NodeData(){}
   void resize(int n)
   {
