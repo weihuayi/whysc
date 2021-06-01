@@ -65,6 +65,7 @@ public:
   {
     m_lines[tag] = Line(line);
   }
+  void hahha(){}
 
   void add_face(std::initializer_list<int> face, int tag)
   {
@@ -155,6 +156,7 @@ public:
   {
     return m_lines;
   }
+
   std::map<int, Face> & get_faces()
   {
     return m_faces;

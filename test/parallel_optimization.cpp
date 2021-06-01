@@ -38,6 +38,7 @@ typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality> PMeshOpt;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef WHYSC::Mesh::EntityOverlap<int> EntityOverlap;
 
 template<typename I>
@@ -47,11 +48,11 @@ void plot(std::vector<I> & data0, std::vector<I> & data1)
   int N1 = data1.size();
 
   Py_Initialize();
-	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append('../test')");
+  PyRun_SimpleString("import sys");
+  PyRun_SimpleString("sys.path.append('../test')");
 
-	PyObject* pModule = PyImport_ImportModule("plot");
-	PyObject* pFunc = PyObject_GetAttrString(pModule, "Histogram_plot");//要运行的函数
+  PyObject* pModule = PyImport_ImportModule("plot");
+  PyObject* pFunc = PyObject_GetAttrString(pModule, "Histogram_plot");//要运行的函数
 
   PyObject* plist0 = PyList_New(N0);//函数的参数是一个list
   PyObject* ptuple0 = PyTuple_New(1);//把参数用 tuple 装起来
@@ -126,7 +127,7 @@ int main(int argc, char * argv[])
   writer.set_points();
   writer.set_cells();
   writer.write(ss.str());
- 
+
   MPI_Finalize();
   return 0;
 }

@@ -265,15 +265,15 @@ public:
   }
 
   template<typename Mesh>
-  static void mesh_node_partition_metis(Mesh & mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
+  static void mesh_node_partition_metis(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
   {
     typedef typename Mesh::Toplogy Toplogy;
 
     Toplogy cell2node;
-    mesh.cell_to_node(cell2node);
+    mesh->cell_to_node(cell2node);
 
-    idx_t ne = mesh.number_of_cells();
-    idx_t nn = mesh.number_of_nodes();
+    idx_t ne = mesh->number_of_cells();
+    idx_t nn = mesh->number_of_nodes();
     cid.resize(ne);
     nid.resize(nn);
 
@@ -284,11 +284,11 @@ public:
   }
 
   template<typename Mesh>
-  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
+  static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
       std::string fname="")
   {
-    idx_t ne = mesh.number_of_cells();
-    idx_t nn = mesh.number_of_nodes();
+    idx_t ne = mesh->number_of_cells();
+    idx_t nn = mesh->number_of_nodes();
 
     std::vector<int> nid(ne);
     std::vector<int> cid(nn);
@@ -300,16 +300,15 @@ public:
   }
 
   template<typename Mesh>
-  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
+  static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
       std::vector<int> & nid,  std::vector<int> & cid, std::string fname="")
   {
     typedef typename Mesh::Toplogy Toplogy;
     typedef VTKMeshWriter<Mesh> Writer;
 
-    idx_t ne = mesh.number_of_cells();
-    idx_t nn = mesh.number_of_nodes();
-    auto & cells = mesh.cells();
-    auto & nodes = mesh.nodes();
+    idx_t nn = mesh->number_of_nodes();
+    auto & cells = mesh->cells();
+    auto & nodes = mesh->nodes();
 
     //将 cell 分到每个 mesh
     for(auto & cell : cells)
@@ -363,16 +362,16 @@ public:
       }
     }
 
-    auto NN = mesh.number_of_nodes();
+    auto NN = mesh->number_of_nodes();
     std::vector<bool> isBdNode;
-    mesh.is_boundary_node(isBdNode);
+    mesh->is_boundary_node(isBdNode);
     std::vector<int> isbdnode(NN, 0);
     for(int i = 0; i < NN; i++)
     {
       if(isBdNode[i])
         isbdnode[i] = 0;
       else
-        isbdnode[i] = mesh.geo_dimension();
+        isbdnode[i] = mesh->geo_dimension();
     }
 
     if(!fname.empty())

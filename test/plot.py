@@ -10,7 +10,7 @@ def Histogram_plot(b):
         B[i] = flag.sum()
         s = 0
     plt.bar(A[:-1], B, 0.018)
-    plt.ylim(0, 70)
+    plt.ylim(0, 120)
     plt.show()
 
 

@@ -6,14 +6,17 @@
 #include <CGAL/Labeled_mesh_domain_3.h>
 #include <CGAL/make_mesh_3.h>
 
-#include <vtkDoubleArray.h>
+#include <memory>
 #include <vtkIntArray.h>
+#include <vtkDoubleArray.h>
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TetrahedronMesh.h"
 #include "mesh/MeshFactory.h"
 #include "mesh/ParallelMesh.h"
 #include "mesh/VTKMeshWriter.h"
+#include "mesh/VTKMeshReader.h"
+#include <iostream>
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
@@ -23,6 +26,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
@@ -62,9 +66,13 @@ int main()
     // Mesh generation
     C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria);
 
-    PMesh mesh(1);
+    //PMesh mesh(1);
+    //MF::cgal_c3t3_to_tetmesh(c3t3, mesh);
 
-    MF::cgal_c3t3_to_tetmesh(c3t3, mesh);
+    auto mesh = std::make_shared<PMesh>(1);
+    Reader reader(mesh);
+    reader.read("cube.vtu");
+
     //MF::cube_tetrahedron_mesh(mesh);
     //mesh.uniform_refine(1);
     std::vector<PMesh> submeshes;
@@ -72,7 +80,7 @@ int main()
     MF::mesh_node_partition(mesh, 4, submeshes, "test_tet_surface");
 
     std::vector<bool> isBdNode;
-    mesh.is_boundary_node(isBdNode);
+    mesh->is_boundary_node(isBdNode);
 
     std::vector<int> fixednode;
     for(auto i : isBdNode)
@@ -84,18 +92,18 @@ int main()
     }
 
     std::vector<bool> isBdFace;
-    mesh.is_boundary_face(isBdFace);
+    mesh->is_boundary_face(isBdFace);
 
-    std::vector<int> fixedCell(mesh.number_of_cells());
+    std::vector<int> fixedCell(mesh->number_of_cells());
     for(int i = 0; i < isBdFace.size(); i++)
     {
       if(isBdFace[i])
       {
-        fixedCell[mesh.face_to_cell(i)[0]] = true;
+        fixedCell[mesh->face_to_cell(i)[0]] = true;
       }
     }
 
-    Writer writer(&mesh);
+    Writer writer(mesh);
     writer.set_points();
     writer.set_cells();
     writer.set_point_data(fixednode, 1, "fixed");

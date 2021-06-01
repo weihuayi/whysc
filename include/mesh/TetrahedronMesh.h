@@ -4,6 +4,9 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <math.h>
+#include <iostream>
+#include <algorithm>
 
 #include "MeshToplogy.h"
 #include "MeshData.h"
