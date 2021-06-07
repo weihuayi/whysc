@@ -211,6 +211,7 @@ public:
         return GK::point_3(p);
     }
 };
+
 template<class GK>
 class Signed_distance_sphere_3
 {

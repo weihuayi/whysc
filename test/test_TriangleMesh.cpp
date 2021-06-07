@@ -34,7 +34,7 @@ void test_vector_construction()
 
 void test_insert_construction()
 {
-    TriMesh mesh();
+    TriMesh mesh;
 
     mesh.insert(Node{0.0, 0.0});
     mesh.insert(Node{1.0, 0.0});

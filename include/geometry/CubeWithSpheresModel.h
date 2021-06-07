@@ -1,5 +1,5 @@
-#ifndef CubeAndSphereModel_h
-#define CubeAndSphereModel_h
+#ifndef CubeWithSpheresModel_h
+#define CubeWithSpheresModel_h
 
 #include <map>
 #include <vector>
@@ -10,7 +10,7 @@ namespace WHYSC {
 namespace GeometryModel {
 
 template<class GK>
-class CubeAndSphereModel
+class CubeWithSpheresModel
 {
 public:
   typedef typename GK::Point_3 Point;
@@ -20,12 +20,13 @@ public:
 
   typedef typename std::vector<int> Line;
   typedef typename std::vector<int> Face;
-  typedef typename std::vector<int> CubeAndSphere;
-  typedef typename std::pair<Point, double> Hole;
+  typedef typename std::vector<int> Volume;
+  typedef typename GK::Sphere_3 Sphere;
 
 public:
   CubeAndSphereModel(int N=1)
   {
+    // add point of cube
     add_point({0.0, 0.0, 0.0}, 1);
     add_point({1.0, 0.0, 0.0}, 2);
     add_point({1.0, 1.0, 0.0}, 3);
@@ -57,14 +58,14 @@ public:
 
     if(N == 1)
     {
-      add_hole({0.5, 0.5, 0.5}, 0.4, 7);
-      add_volum({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14}, 1);
+      add_sphere({0.5, 0.5, 0.5}, 0.4, 7);
+      add_volume({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14}, 1);
     }
     else if(N == 2)
     {
-      add_hole({0.32, 0.32, 0.32}, 0.27, 7);
-      add_hole({0.66, 0.66, 0.66}, 0.27, 15);
-      add_volum({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22}, 1);
+      add_sphere({0.32, 0.32, 0.32}, 0.27, 7);
+      add_sphere({0.66, 0.66, 0.66}, 0.27, 15);
+      add_volume({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22}, 1);
     }
                                            
   }
@@ -84,17 +85,17 @@ public:
     m_faces[tag] = Face(face);
   }
 
-  void add_volum(std::initializer_list<int> volum, int tag)
+  void add_volume(std::initializer_list<int> vol, int tag)
   {
-    m_volums[tag] = CubeAndSphere(volum);
+    m_volumes[tag] = Volume(vol);
   }
 
-  void add_hole(std::initializer_list<double> c, double r, int tag)
+  void add_sphere(std::initializer_list<double> c, double r, int tag)
   {
-    m_holes[tag] = Hole(Point(c), r); 
+    m_spheres[tag] = Sphere(Point(c), r); 
   }
 
-  bool hole_flag()
+  bool sphere_flag()
   {
     return true;
   }
@@ -203,21 +204,22 @@ public:
     return m_faces;
   }
 
-  std::map<int, Hole> & get_holes()
+  std::map<int, Sphere> & get_sphere()
   {
-    return m_holes;
+    return m_spheres;
   }
 
-  std::map<int, CubeAndSphere> & get_volums()
+  std::map<int, Volume> & get_volumes()
   {
-    return m_volums;
+    return m_volumes;
   }
+
 private:
   std::map<int, Point> m_points;
   std::map<int, Line> m_lines;
   std::map<int, Face> m_faces;
-  std::map<int, Hole> m_holes;
-  std::map<int, CubeAndSphere> m_volums;
+  std::map<int, Sphere> m_spheres;
+  std::map<int, Volume> m_volumes;
 };
 
 }

@@ -35,7 +35,7 @@ public:
     auto & points = m_model->get_points();
     auto & lines = m_model->get_lines();
     auto & faces = m_model->get_faces();
-    auto & volums = m_model->get_volums();
+    auto & volumes = m_model->get_volumes();
 
     gmsh::initialize();//初始化
     gmsh::model::add(modlename);//创建 gmsh 中的模型
@@ -76,7 +76,7 @@ public:
     }
 
     int NF = faces.size();
-    for(auto & it : volums)
+    for(auto & it : volumes)
     {
       auto tag = it.first;
       auto volum = it.second;
@@ -113,7 +113,7 @@ public:
 
     std::vector<int> nodedim(NN);
     std::vector<int> nodetag(NN);
-    for(auto it : volums)
+    for(auto it : volumes)
     {
       auto id = it.first;
       std::vector<int> cellType; //单元的类型
