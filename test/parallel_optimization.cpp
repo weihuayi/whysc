@@ -112,7 +112,7 @@ int main(int argc, char * argv[])
   colorAlg.color_test(color);//染色测试
 
   PMeshOpt optAlg(mesh, cube, color, cmax, MPI_COMM_WORLD);
-  for(int i = 0; i < 300; i++)
+  for(int i = 0; i < 50; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
     optAlg.mesh_optimization("tet");//优化

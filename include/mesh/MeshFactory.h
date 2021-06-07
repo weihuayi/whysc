@@ -283,8 +283,6 @@ public:
             cell2node.neighbors().data(),
             NULL, NULL, &nparts, NULL,
             NULL, &objval, cid.data(), nid.data());
-    for(auto n : nid)
-      std::cout<< n <<std::endl;
   }
 
   //TODO 将网格分块程序做成参数
