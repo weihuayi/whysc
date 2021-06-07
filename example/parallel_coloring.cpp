@@ -34,7 +34,6 @@ void communication(PMesh & mesh, std::vector<I> & data)
   auto & pds = mesh.parallel_data_structure();
   auto & gid = mesh.node_global_id();
   auto & ng2l = mesh.node_global_to_local_id();
-  auto & num = mesh.number_of_nodes_in_process();
 
   //MPI_Barrier(MPI_COMM_WORLD);
   for(auto it = pds.begin(); it != pds.end(); it++)
@@ -88,7 +87,6 @@ void mesh_coloring(PMesh & mesh, std::vector<int> & color)
 
   std::list<int> edges; //没有被删除的边
   std::list<int> nColored; //没有被染色的点
-  auto & pds = mesh.parallel_data_structure();
 
   for(int i = 0; i < mesh.number_of_local_nodes(); i++)
     nColored.push_back(i);

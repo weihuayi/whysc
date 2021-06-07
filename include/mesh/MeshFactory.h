@@ -264,33 +264,36 @@ public:
     mesh.init_top();
   }
 
+  //根据 metis 将网格分块, 参数为要分块的网格和要分的块数, 输出网格节点与单元的 '块号'.
   template<typename Mesh>
-  static void mesh_node_partition_metis(Mesh & mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
+  static void mesh_node_partition_metis(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
   {
     typedef typename Mesh::Toplogy Toplogy;
 
     Toplogy cell2node;
-    mesh.cell_to_node(cell2node);
+    mesh->cell_to_node(cell2node);
 
-    idx_t ne = mesh.number_of_cells();
-    idx_t nn = mesh.number_of_nodes();
+    idx_t ne = mesh->number_of_cells();
+    idx_t nn = mesh->number_of_nodes();
     cid.resize(ne);
     nid.resize(nn);
 
     idx_t objval;
-    auto r = METIS_PartMeshNodal(&ne, &nn, cell2node.locations().data(), cell2node.neighbors().data(),
+    auto r = METIS_PartMeshNodal(&ne, &nn, cell2node.locations().data(), 
+            cell2node.neighbors().data(),
             NULL, NULL, &nparts, NULL,
             NULL, &objval, cid.data(), nid.data());
   }
 
+  //TODO 将网格分块程序做成参数
   template<typename Mesh>
-  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
+  static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
       std::string fname="")
   {
-    idx_t ne = mesh.number_of_cells();
-    idx_t nn = mesh.number_of_nodes();
+    idx_t nc = mesh->number_of_cells();
+    idx_t nn = mesh->number_of_nodes();
 
-    std::vector<int> nid(ne);
+    std::vector<int> nid(nc);
     std::vector<int> cid(nn);
 
     mesh_node_partition_metis(mesh, nparts, nid, cid);
@@ -299,17 +302,18 @@ public:
     mesh_node_partition(mesh, nparts, submeshes, nid, cid, fname);
   }
 
+  //根据被给的网格以及节点块号将网格分成多个小网格
   template<typename Mesh>
-  static void mesh_node_partition(Mesh & mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
-      std::vector<int> & nid,  std::vector<int> & cid, std::string fname="")
+  static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, 
+      std::vector<Mesh> & submeshes, std::vector<int> & nid,  
+      std::vector<int> & cid, std::string fname="")
   {
     typedef typename Mesh::Toplogy Toplogy;
     typedef VTKMeshWriter<Mesh> Writer;
 
-    idx_t ne = mesh.number_of_cells();
-    idx_t nn = mesh.number_of_nodes();
-    auto & cells = mesh.cells();
-    auto & nodes = mesh.nodes();
+    idx_t nn = mesh->number_of_nodes();
+    auto & cells = mesh->cells();
+    auto & nodes = mesh->nodes();
 
     //将 cell 分到每个 mesh
     for(auto & cell : cells)
@@ -363,18 +367,7 @@ public:
       }
     }
 
-    auto NN = mesh.number_of_nodes();
-    std::vector<bool> isBdNode;
-    mesh.is_boundary_node(isBdNode);
-    std::vector<int> isbdnode(NN, 0);
-    for(int i = 0; i < NN; i++)
-    {
-      if(isBdNode[i])
-        isbdnode[i] = 0;
-      else
-        isbdnode[i] = mesh.geo_dimension();
-    }
-
+    mesh->nodedata().resize(mesh->number_of_nodes());
     if(!fname.empty())
     {
       for(int i = 0; i < nparts; i++)
@@ -382,11 +375,14 @@ public:
         int NN = submeshes[i].number_of_nodes();
         auto & gid = submeshes[i].node_global_id();
 
-        std::vector<int> gdof(NN);//设置 fixednode
         std::vector<int> nids(NN);//设置 nids
+        auto & gdof = submeshes[i].nodedata().gdof;
+        auto & gtag = submeshes[i].nodedata().gtag;
+        submeshes[i].nodedata().resize(NN);
         for(int j = 0; j < NN; j++)
         {
-          gdof[j] = isbdnode[gid[j]];
+          gdof[j] = mesh->nodedata().gdof[gid[j]];
+          gtag[j] = mesh->nodedata().gtag[gid[j]];
           nids[j] = nid[gid[j]];
         }
 
@@ -397,6 +393,7 @@ public:
         writer.set_cells();
         writer.set_point_data(nids, 1, "nid");
         writer.set_point_data(gdof, 1, "gdof");
+        writer.set_point_data(gtag, 1, "gtag");
         writer.set_point_data(gid, 1, "gid");
         writer.write(ss.str());
       }

@@ -63,6 +63,18 @@ public:
       gmsh::model::geo::addPlaneSurface({tag+NL+1}, tag);//根据loop得到曲面
     }
 
+    if(m_model->hole_flag())
+    {
+      auto & holes = m_model->get_holes();
+      for(auto it : holes)
+      {
+        auto tag = it.first;
+        auto r = it.second.second; 
+        auto center = it.second.first; 
+        add_hole(center[0], center[1], center[2], r, lc, tag);//要求洞的编号与面的编号连续
+      }
+    }
+
     int NF = faces.size();
     for(auto & it : volums)
     {
@@ -144,6 +156,33 @@ public:
       }
     }
 
+    if(m_model->hole_flag())
+    {
+      auto holes = m_model->get_holes();
+      for(auto it : holes)
+      {
+        auto i = it.first;
+        for(int id = i; id < i+8; id++)
+        {
+          std::vector<int> cellType; //单元的类型
+          std::vector<std::vector<long unsigned int> > cellTag; //单元的标签
+          std::vector<std::vector<long unsigned int> > c2nList; //单元的顶点 tag
+          gmsh::model::mesh::getElements(cellType, cellTag, c2nList, 2, id);// 2 维, tag 为 id
+
+          std::vector<long unsigned int> cellTag1 = cellTag[0];
+          std::vector<long unsigned int> c2nList1 = c2nList[0];      
+          int N = c2nList1.size();
+          for(int i = 0; i < N; i++)
+          {
+            int A = nTag2Nid[c2nList1[i]]; //单元
+            nodetag[A] = id; //出现的点都属于几何中的 id 
+            nodedim[A] = 2; //出现的点都是 3 维的
+          }
+        }
+      }
+    }
+
+
     for(auto it : lines)
     {
       auto id = it.first;
@@ -186,6 +225,52 @@ public:
     data.gdof = nodedim;
     data.gtag = nodetag;
     gmsh::finalize();//退出 gmsh 环境
+  }
+
+  void add_hole(double x, double y, double z, double r, double lc, int tag)
+  {
+   
+    int p1 = gmsh::model::geo::addPoint(x, y, z, lc);
+    int p2 = gmsh::model::geo::addPoint(x + r, y, z, lc);
+    int p3 = gmsh::model::geo::addPoint(x, y + r, z, lc);
+    int p4 = gmsh::model::geo::addPoint(x, y, z + r, lc);
+    int p5 = gmsh::model::geo::addPoint(x - r, y, z, lc);
+    int p6 = gmsh::model::geo::addPoint(x, y - r, z, lc);
+    int p7 = gmsh::model::geo::addPoint(x, y, z - r, lc);
+
+    int c1 = gmsh::model::geo::addCircleArc(p2, p1, p7);
+    int c2 = gmsh::model::geo::addCircleArc(p7, p1, p5);
+    int c3 = gmsh::model::geo::addCircleArc(p5, p1, p4);
+    int c4 = gmsh::model::geo::addCircleArc(p4, p1, p2);
+    int c5 = gmsh::model::geo::addCircleArc(p2, p1, p3);
+    int c6 = gmsh::model::geo::addCircleArc(p3, p1, p5);
+    int c7 = gmsh::model::geo::addCircleArc(p5, p1, p6);
+    int c8 = gmsh::model::geo::addCircleArc(p6, p1, p2);
+    int c9 = gmsh::model::geo::addCircleArc(p7, p1, p3);
+    int c10 = gmsh::model::geo::addCircleArc(p3, p1, p4);
+    int c11 = gmsh::model::geo::addCircleArc(p4, p1, p6);
+    int c12 = gmsh::model::geo::addCircleArc(p6, p1, p7);
+
+    int l1 = gmsh::model::geo::addCurveLoop({c5, c10, c4});
+    int l2 = gmsh::model::geo::addCurveLoop({c9, -c5, c1});
+    int l3 = gmsh::model::geo::addCurveLoop({c12, -c8, -c1});
+    int l4 = gmsh::model::geo::addCurveLoop({c8, -c4, c11});
+    int l5 = gmsh::model::geo::addCurveLoop({-c10, c6, c3});
+    int l6 = gmsh::model::geo::addCurveLoop({-c11, -c3, c7});
+    int l7 = gmsh::model::geo::addCurveLoop({-c2, -c7, -c12});
+    int l8 = gmsh::model::geo::addCurveLoop({-c6, -c9, c2});
+
+    gmsh::model::geo::addSurfaceFilling({l1}, tag+0);
+    gmsh::model::geo::addSurfaceFilling({l2}, tag+1);
+    gmsh::model::geo::addSurfaceFilling({l3}, tag+2);
+    gmsh::model::geo::addSurfaceFilling({l4}, tag+3);
+    gmsh::model::geo::addSurfaceFilling({l5}, tag+4);
+    gmsh::model::geo::addSurfaceFilling({l6}, tag+5);
+    gmsh::model::geo::addSurfaceFilling({l7}, tag+6);
+    gmsh::model::geo::addSurfaceFilling({l8}, tag+7);
+
+    //gmsh::model::geo::addSurfaceLoop({-s1, -s2, -s3, -s4, -s5, -s6, -s7, -s8}, id);
+    //std::cout<< id <<std::endl;
   }
 
   std::shared_ptr<Mesh> get_mesh()

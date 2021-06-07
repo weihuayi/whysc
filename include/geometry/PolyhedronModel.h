@@ -55,26 +55,34 @@ public:
     gmsh::initialize();//初始化
     gmsh::model::add(modlename);//创建 gmsh 中的模型
 
-    for(auto & [tag, point] : m_points) //(0, 0, 0) 是坐标, lc 是点的大小, 1 是编号(唯一)
+    for(auto & it : m_points) //(0, 0, 0) 是坐标, lc 是点的大小, 1 是编号(唯一)
     {
+      auto tag = it.first;
+      auto point = it.second;
       gmsh::model::geo::addPoint(point[0], point[1], point[2], lc, tag);
     }
 
-    for(auto & [tag, line] : m_lines) //添加直线, 不同维数实体的编号独立
+    for(auto & it : m_lines) //添加直线, 不同维数实体的编号独立
     {
+      auto tag = it.first;
+      auto line = it.second;
       gmsh::model::geo::addLine(line[0], line[1], tag);    
     }
 
     int NL = m_lines.size();
-    for(auto & [tag, face] : m_faces) //添加直线, 不同维数实体的编号独立
+    for(auto & it : m_faces) //添加直线, 不同维数实体的编号独立
     {
+      auto tag = it.first;
+      auto face = it.second;
       gmsh::model::geo::addCurveLoop(face, tag+NL+1);//TODO 这里要求 m_lines tag 连续.
       gmsh::model::geo::addPlaneSurface({tag+NL+1}, tag);//根据loop得到曲面
     }
 
     int NF = m_faces.size();
-    for(auto & [tag, polyhedron] : m_polyhedrons)
+    for(auto & it : m_polyhedrons)
     {
+      auto tag = it.first;
+      auto polyhedron = it.second;
       gmsh::model::geo::addSurfaceLoop(polyhedron, tag+NF+1);
       gmsh::model::geo::addVolume({tag+NF+1}, tag);
     }

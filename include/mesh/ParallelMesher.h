@@ -6,6 +6,8 @@
 #include <array>
 #include <vector>
 #include <mpi.h>
+#include <map>
+#include <set>
 
 #include "VTKMeshReader.h"
 
@@ -40,8 +42,8 @@ public:
     auto & npid = m_pmesh->node_process_id();
     reader.get_node_data("nid", npid);
 
-    std::vector<int> fixednode(npid.size());
     reader.get_node_data("gdof", m_pmesh->nodedata().gdof);
+    reader.get_node_data("gtag", m_pmesh->nodedata().gtag);
 
     build_mesh();
   }
@@ -107,15 +109,6 @@ public:
     }
 
     //接收重叠区的编号信息
-    for(auto map : g2l)
-    {
-      auto target  = map.first;
-      auto & idxmap = map.second;
-
-      int N = idxmap.size();
-      int data[N*2];
-    }
-
     for(auto map : g2l)
     {
       auto target  = map.first;
