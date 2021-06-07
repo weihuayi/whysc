@@ -72,6 +72,11 @@ int main()
     auto mesh = std::make_shared<PMesh>(1);
     Reader reader(mesh);
     reader.read("cube.vtu");
+    mesh->nodedata().resize(mesh->number_of_nodes());
+    auto & gtag = mesh->nodedata().gtag;
+    auto & gdof = mesh->nodedata().gdof;
+    reader.get_node_data("gdof", gdof);
+    reader.get_node_data("gtag", gtag);
 
     //MF::cube_tetrahedron_mesh(mesh);
     //mesh.uniform_refine(1);
@@ -79,36 +84,36 @@ int main()
 
     MF::mesh_node_partition(mesh, 4, submeshes, "test_tet_surface");
 
-    std::vector<bool> isBdNode;
-    mesh->is_boundary_node(isBdNode);
+    //std::vector<bool> isBdNode;
+    //mesh->is_boundary_node(isBdNode);
 
-    std::vector<int> fixednode;
-    for(auto i : isBdNode)
-    {
-      if(i)
-        fixednode.push_back(1);
-      else
-        fixednode.push_back(0);
-    }
+    //std::vector<int> fixednode;
+    //for(auto i : isBdNode)
+    //{
+    //  if(i)
+    //    fixednode.push_back(1);
+    //  else
+    //    fixednode.push_back(0);
+    //}
 
-    std::vector<bool> isBdFace;
-    mesh->is_boundary_face(isBdFace);
+    //std::vector<bool> isBdFace;
+    //mesh->is_boundary_face(isBdFace);
 
-    std::vector<int> fixedCell(mesh->number_of_cells());
-    for(int i = 0; i < isBdFace.size(); i++)
-    {
-      if(isBdFace[i])
-      {
-        fixedCell[mesh->face_to_cell(i)[0]] = true;
-      }
-    }
+    //std::vector<int> fixedCell(mesh->number_of_cells());
+    //for(int i = 0; i < isBdFace.size(); i++)
+    //{
+    //  if(isBdFace[i])
+    //  {
+    //    fixedCell[mesh->face_to_cell(i)[0]] = true;
+    //  }
+    //}
 
-    Writer writer(mesh);
-    writer.set_points();
-    writer.set_cells();
-    writer.set_point_data(fixednode, 1, "fixed");
-    writer.set_cell_data(fixedCell, 1, "fixed");
-    writer.write("test_surface.vtu");
+    //Writer writer(mesh);
+    //writer.set_points();
+    //writer.set_cells();
+    //writer.set_point_data(fixednode, 1, "fixed");
+    //writer.set_cell_data(fixedCell, 1, "fixed");
+    //writer.write("test_surface.vtu");
     return 0;
 }
 

@@ -2,13 +2,14 @@
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
+#include <math.h>
 #include <numeric>
 
 namespace WHYSC {
 namespace Mesh {
 
 
-template<typename Mesh, typename MeshQuality>
+template<typename Mesh, typename MeshQuality, typename Model>
 class PatchOptimization
 {
 public:
@@ -17,9 +18,10 @@ public:
   typedef typename Mesh::Toplogy Toplogy;
 
 public:
-  PatchOptimization(std::shared_ptr<Mesh> mesh)
+  PatchOptimization(std::shared_ptr<Mesh> mesh, std::shared_ptr<Model> model)
   {
     m_mesh = mesh;
+    m_model = model;
     m_quality = std::make_shared<MeshQuality>(mesh);
     mesh->node_to_cell(m_top);
     mesh->node_to_node(m_n2n);
@@ -27,17 +29,30 @@ public:
 
   void optimization(int i, Node & node, std::string method = "bar")
   {
+    Vector move;
     if(method=="bar")
-      bar_optimization(i, node);
+      bar_optimization(i, move);
     else if(method=="tet")
-      tet_optimization(i, node);
+      tet_optimization(i, move);
+
+    node = node + move;
+    auto tag = m_mesh->nodedata().gtag[i];
+    auto dof = m_mesh->nodedata().gdof[i];
+    if(dof==2)
+    {
+      m_model->project_to_face(tag, node);
+    }
+    else if(dof==1)
+    {
+      m_model->project_to_edge(tag, node);
+    }
   }
 
-  void bar_optimization(int i, Node & node)//点周围单元的重心作为点位置
+  void bar_optimization(int i, Vector & move)//点周围单元的重心作为点位置
   {
     int GD = m_mesh->geo_dimension();
-    for(int n = 0; n < GD; n++)
-      node[n] = 0;
+    for(int j = 0; j < GD; j++)
+      move[j] = -m_mesh->node(i)[j];
 
     int NP = patch_size(i);
     for(int k = 0; k < NP; k++)
@@ -46,12 +61,12 @@ public:
       m_mesh->cell_barycenter(patch(i, k), tmpNode);
       for(int j = 0; j < GD; j++)
       {
-        node[j] += tmpNode[j]/NP;
+        move[j] += tmpNode[j]/NP;
       }
     }
   }
 
-  void tet_optimization(int i, Node & node)//给每个点一个方向, 求这个方向上质量的最小值
+  void tet_optimization(int i, Vector & move)//给每个点一个方向, 求这个方向上质量的最小值
   {
     int NP = patch_size(i);
     std::vector<int> cidx(NP);
@@ -101,7 +116,7 @@ public:
         Qc = m_quality->patch_quality(cidx);
       }
     }
-    node = m_mesh->node(i);
+    move = c*v;
     m_mesh->node(i) = tmpNode;
   }
 
@@ -145,6 +160,7 @@ private:
   Toplogy m_n2n;
   std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<MeshQuality> m_quality;
+  std::shared_ptr<Model> m_model;
 };
 
 } // end of namespace Mesh

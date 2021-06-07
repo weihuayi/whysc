@@ -140,6 +140,11 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     message("${CGAL_LIBRARIES}")
     target_link_libraries(Cube_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${GMSH_LIBRARIES})
+
+    add_executable(CubeAndSphere_test CubeAndSphere_test.cpp )
+    message("${CGAL_LIBRARIES}")
+    target_link_libraries(CubeAndSphere_test PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${GMSH_LIBRARIES})
 endif()
 
 if(${VTK_FOUND} AND ${MPI_FOUND})

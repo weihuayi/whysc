@@ -42,8 +42,8 @@ public:
     auto & npid = m_pmesh->node_process_id();
     reader.get_node_data("nid", npid);
 
-    std::vector<int> fixednode(npid.size());
     reader.get_node_data("gdof", m_pmesh->nodedata().gdof);
+    reader.get_node_data("gtag", m_pmesh->nodedata().gtag);
 
     build_mesh();
   }

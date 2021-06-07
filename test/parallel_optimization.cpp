@@ -8,6 +8,8 @@
 #include <time.h>
 
 #include "geometry/Geometry_kernel.h"
+#include "geometry/CubeModel.h"
+#include "geometry/CubeAndSphereModel.h"
 #include "mesh/TriangleMesh.h"
 #include "mesh/QuadMesh.h"
 #include "mesh/TetrahedronMesh.h"
@@ -23,6 +25,8 @@
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
+//typedef WHYSC::GeometryModel::CubeModel<GK> Model;
+typedef WHYSC::GeometryModel::CubeAndSphereModel<GK> Model;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
@@ -34,7 +38,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> TetMeshQuality;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
-typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality> PMeshOpt;
+typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality, Model> PMeshOpt;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
@@ -89,6 +93,7 @@ int main(int argc, char * argv[])
 
   PMesher pmesher(argv[1], ".vtu", MPI_COMM_WORLD);
   auto mesh = pmesher.get_mesh();
+  auto cube = std::make_shared<Model>(2);
 
   PCA colorAlg(mesh, MPI_COMM_WORLD);
 
@@ -106,9 +111,12 @@ int main(int argc, char * argv[])
   int cmax = colorAlg.coloring(color);//染色
   colorAlg.color_test(color);//染色测试
 
-  PMeshOpt optAlg(mesh, color, cmax, MPI_COMM_WORLD);
-  for(int i = 0; i < 50; i++)
+  PMeshOpt optAlg(mesh, cube, color, cmax, MPI_COMM_WORLD);
+  for(int i = 0; i < 300; i++)
+  {
+    std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
     optAlg.mesh_optimization("tet");//优化
+  }
 
   for(int i = 0; i < NC; i++)
   {

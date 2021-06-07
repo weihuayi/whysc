@@ -10,7 +10,7 @@ namespace Mesh {
 template<typename PMesh>
 class GhostFillingAlg;
 
-template<typename PMesh, typename MeshQuality>
+template<typename PMesh, typename MeshQuality, typename Model>
 class ParallelMeshOptimization
 {
 public:
@@ -18,18 +18,19 @@ public:
   typedef typename PMesh::NodeArray NodeArray;
   typedef typename PMesh::Toplogy Toplogy;
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
-  typedef PatchOptimization<PMesh, MeshQuality> PatchOpt;
+  typedef PatchOptimization<PMesh, MeshQuality, Model> PatchOpt;
 
 public:
-  ParallelMeshOptimization(std::shared_ptr<PMesh> mesh, std::vector<int> & color, int cmax, MPI_Comm comm)
+  ParallelMeshOptimization(std::shared_ptr<PMesh> mesh, std::shared_ptr<Model> model, std::vector<int> & color, int cmax, MPI_Comm comm)
   {
     m_cmax = cmax;
     m_comm = comm;
     m_mesh = mesh;
+    m_model = model;
     m_color = color;
     m_node = mesh->nodes();
     m_set_ghost_alg = std::make_shared<SetGhostAlg>(mesh, comm);
-    m_patch = std::make_shared<PatchOpt>(mesh);
+    m_patch = std::make_shared<PatchOpt>(mesh, model);
   }
 
   void mesh_optimization(std::string method="bar")
@@ -63,6 +64,7 @@ private:
   MPI_Comm m_comm;
   NodeArray m_node;
   std::shared_ptr<PMesh> m_mesh;
+  std::shared_ptr<Model> m_model;
   std::shared_ptr<PMesh> m_auxmesh;
   std::vector<int> m_color;
   std::shared_ptr<GhostFillingAlg<PMesh> > m_set_ghost_alg;

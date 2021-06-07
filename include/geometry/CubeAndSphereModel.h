@@ -1,5 +1,5 @@
-#ifndef CubeModel_h
-#define CubeModel_h
+#ifndef CubeAndSphereModel_h
+#define CubeAndSphereModel_h
 
 #include <map>
 #include <vector>
@@ -10,7 +10,7 @@ namespace WHYSC {
 namespace GeometryModel {
 
 template<class GK>
-class CubeModel
+class CubeAndSphereModel
 {
 public:
   typedef typename GK::Point_3 Point;
@@ -20,11 +20,11 @@ public:
 
   typedef typename std::vector<int> Line;
   typedef typename std::vector<int> Face;
-  typedef typename std::vector<int> Cube;
+  typedef typename std::vector<int> CubeAndSphere;
   typedef typename std::pair<Point, double> Hole;
 
 public:
-  CubeModel()
+  CubeAndSphereModel(int N=1)
   {
     add_point({0.0, 0.0, 0.0}, 1);
     add_point({1.0, 0.0, 0.0}, 2);
@@ -54,8 +54,19 @@ public:
     add_face({3, 12, -7, -11}, 4);
     add_face({2, 11, -6, -10}, 5);
     add_face({4, 9, -8, -12}, 6);
+
+    if(N == 1)
+    {
+      add_hole({0.5, 0.5, 0.5}, 0.4, 7);
+      add_volum({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14}, 1);
+    }
+    else if(N == 2)
+    {
+      add_hole({0.32, 0.32, 0.32}, 0.27, 7);
+      add_hole({0.66, 0.66, 0.66}, 0.27, 15);
+      add_volum({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22}, 1);
+    }
                                            
-    add_volum({1, 2, 3, 4, 5, 6}, 1);
   }
 
   void add_point(std::initializer_list<double> point, int tag)
@@ -75,59 +86,78 @@ public:
 
   void add_volum(std::initializer_list<int> volum, int tag)
   {
-    m_volums[tag] = Cube(volum);
+    m_volums[tag] = CubeAndSphere(volum);
+  }
+
+  void add_hole(std::initializer_list<double> c, double r, int tag)
+  {
+    m_holes[tag] = Hole(Point(c), r); 
   }
 
   bool hole_flag()
   {
-    return false;
-  }
-
-  std::map<int, Hole> & get_holes()
-  {
-    return m_holes;
+    return true;
   }
 
   void project_to_face(const int fid, Point & p)
   {
-    Point p0, p1, p2;
-    if(m_faces[fid][0] > 0)
-      p0 = m_points[m_lines[m_faces[fid][0]][0]];
+    if(fid<7)
+    {
+      Point p0, p1, p2;
+      if(m_faces[fid][0] > 0)
+        p0 = m_points[m_lines[m_faces[fid][0]][0]];
+      else
+        p0 = m_points[m_lines[-m_faces[fid][0]][1]];
+
+      if(m_faces[fid][1] > 0)
+        p1 = m_points[m_lines[m_faces[fid][1]][0]];
+      else
+        p1 = m_points[m_lines[-m_faces[fid][1]][1]];
+
+      if(m_faces[fid][2] > 0)
+        p2 = m_points[m_lines[m_faces[fid][2]][0]];
+      else
+        p2 = m_points[m_lines[-m_faces[fid][2]][1]];
+
+      auto v0 = p1 - p0;
+      auto v1 = p2 - p1;
+      auto v2 = p - p0;
+      double a = dot(v0, v0);
+      double b = dot(v0, v1);
+      double c = dot(v1, v1);
+      double f = dot(v2, v0);
+      double g = dot(v2, v1);
+
+      double k = (f*c-b*g)/(a*c-b*b);
+      double m = (a*g-b*f)/(a*c-b*b);
+      p = p0 + k*v0 + m*v1;
+    }
     else
-      p0 = m_points[m_lines[-m_faces[fid][0]][1]];
-
-    if(m_faces[fid][1] > 0)
-      p1 = m_points[m_lines[m_faces[fid][1]][0]];
-    else
-      p1 = m_points[m_lines[-m_faces[fid][1]][1]];
-
-    if(m_faces[fid][2] > 0)
-      p2 = m_points[m_lines[m_faces[fid][2]][0]];
-    else
-      p2 = m_points[m_lines[-m_faces[fid][2]][1]];
-
-    auto v0 = p1 - p0;
-    auto v1 = p2 - p1;
-    auto v2 = p - p0;
-    double a = dot(v0, v0);
-    double b = dot(v0, v1);
-    double c = dot(v1, v1);
-    double f = dot(v2, v0);
-    double g = dot(v2, v1);
-
-    double k = (f*c-b*g)/(a*c-b*b);
-    double m = (a*g-b*f)/(a*c-b*b);
-    p = p0 + k*v0 + m*v1;
+    {
+      auto hole = m_holes[7+8*((fid-7)/8)];
+      auto center = hole.first;
+      auto r = hole.second;
+      auto v = p - center;
+      v = (r/std::sqrt(v.squared_length()))*v;
+      p = center+v;
+    }
   }
 
   void project_to_edge(const int eid, Point & p)
   {
-    auto & p0 = m_points[m_lines[eid][0]];
-    auto & p1 = m_points[m_lines[eid][1]];
-    auto v = p1 - p0;
+    if(eid<13)
+    {
+      auto & p0 = m_points[m_lines[eid][0]];
+      auto & p1 = m_points[m_lines[eid][1]];
+      auto v = p1 - p0;
 
-    double k = dot(p-p0, v)/dot(v, v);
-    p = p0 + k*v;
+      double k = dot(p-p0, v)/dot(v, v);
+      p = p0 + k*v;
+    }
+    else
+    {
+      project_to_face(7+8*((eid-13)/12), p);
+    }
   }
 
   void get_point_normal(const int fid, const Point p, Vector & n)
@@ -172,7 +202,13 @@ public:
   {
     return m_faces;
   }
-  std::map<int, Cube> & get_volums()
+
+  std::map<int, Hole> & get_holes()
+  {
+    return m_holes;
+  }
+
+  std::map<int, CubeAndSphere> & get_volums()
   {
     return m_volums;
   }
@@ -180,12 +216,12 @@ private:
   std::map<int, Point> m_points;
   std::map<int, Line> m_lines;
   std::map<int, Face> m_faces;
-  std::map<int, Cube> m_volums;
   std::map<int, Hole> m_holes;
+  std::map<int, CubeAndSphere> m_volums;
 };
 
 }
 }
 
 
-#endif // end of CubeModel_h
+#endif // end of CubeAndSphereModel_h
