@@ -137,6 +137,8 @@ public:
     {
         return GK::point_3(p);
     }
+    Point_3 center() { return _center;}
+    Float radius() { return _r;}
 
 private:
     Point_3 _center;

@@ -21,7 +21,7 @@ public:
   typedef typename std::vector<int> Line;
   typedef typename std::vector<int> Face;
   typedef typename std::vector<int> Cube;
-  typedef typename std::pair<Point, double> Hole;
+  typedef typename GK::Sphere_3 Sphere;
 
 public:
   CubeModel()
@@ -55,7 +55,7 @@ public:
     add_face({2, 11, -6, -10}, 5);
     add_face({4, 9, -8, -12}, 6);
                                            
-    add_volum({1, 2, 3, 4, 5, 6}, 1);
+    add_volume({1, 2, 3, 4, 5, 6}, 1);
   }
 
   void add_point(std::initializer_list<double> point, int tag)
@@ -73,19 +73,19 @@ public:
     m_faces[tag] = Face(face);
   }
 
-  void add_volum(std::initializer_list<int> volum, int tag)
+  void add_volume(std::initializer_list<int> vol, int tag)
   {
-    m_volums[tag] = Cube(volum);
+    m_volumes[tag] = Cube(vol);
   }
 
-  bool hole_flag()
+  bool sphere_flag()
   {
     return false;
   }
 
-  std::map<int, Hole> & get_holes()
+  std::map<int, Sphere> & get_spheres()
   {
-    return m_holes;
+    return m_spheres;
   }
 
   void project_to_face(const int fid, Point & p)
@@ -172,16 +172,16 @@ public:
   {
     return m_faces;
   }
-  std::map<int, Cube> & get_volums()
+  std::map<int, Cube> & get_volumes()
   {
-    return m_volums;
+    return m_volumes;
   }
 private:
   std::map<int, Point> m_points;
   std::map<int, Line> m_lines;
   std::map<int, Face> m_faces;
-  std::map<int, Cube> m_volums;
-  std::map<int, Hole> m_holes;
+  std::map<int, Cube> m_volumes;
+  std::map<int, Sphere> m_spheres;
 };
 
 }

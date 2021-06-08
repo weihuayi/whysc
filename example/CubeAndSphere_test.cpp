@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "geometry/Geometry_kernel.h"
-#include "geometry/CubeAndSphereModel.h"
+#include "geometry/CubeWithSpheresModel.h"
 #include "mesh/TetrahedronMesh.h"
 #include "mesh/GMesher.h"
 #include "mesh/VTKMeshReader.h"
@@ -17,7 +17,7 @@ typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
-typedef WHYSC::GeometryModel::CubeAndSphereModel<GK> Model;
+typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
 typedef WHYSC::Mesh::GMesher<GK, PMesh, Model> GMesher;
 typedef WHYSC::Mesh::MeshFactory MF;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;

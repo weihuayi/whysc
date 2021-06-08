@@ -9,7 +9,7 @@
 
 #include "geometry/Geometry_kernel.h"
 #include "geometry/CubeModel.h"
-#include "geometry/CubeAndSphereModel.h"
+#include "geometry/CubeWithSpheresModel.h"
 #include "mesh/TriangleMesh.h"
 #include "mesh/QuadMesh.h"
 #include "mesh/TetrahedronMesh.h"
@@ -26,7 +26,7 @@
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 //typedef WHYSC::GeometryModel::CubeModel<GK> Model;
-typedef WHYSC::GeometryModel::CubeAndSphereModel<GK> Model;
+typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
@@ -53,7 +53,7 @@ void plot(std::vector<I> & data0, std::vector<I> & data1)
 
   Py_Initialize();
   PyRun_SimpleString("import sys");
-  PyRun_SimpleString("sys.path.append('../test')");
+  PyRun_SimpleString("sys.path.append('../example')");
 
   PyObject* pModule = PyImport_ImportModule("plot");
   PyObject* pFunc = PyObject_GetAttrString(pModule, "Histogram_plot");//要运行的函数
