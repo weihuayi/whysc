@@ -63,15 +63,15 @@ public:
       gmsh::model::geo::addPlaneSurface({tag+NL+1}, tag);//根据loop得到曲面
     }
 
-    if(m_model->hole_flag())
+    if(m_model->sphere_flag())
     {
-      auto & holes = m_model->get_holes();
-      for(auto it : holes)
+      auto & spheres = m_model->get_spheres();
+      for(auto it : spheres)
       {
         auto tag = it.first;
-        auto r = it.second.second; 
-        auto center = it.second.first; 
-        add_hole(center[0], center[1], center[2], r, lc, tag);//要求洞的编号与面的编号连续
+        auto r = it.second.radius(); 
+        auto center = it.second.center(); 
+        add_sphere(center[0], center[1], center[2], r, lc, tag);//要求洞的编号与面的编号连续
       }
     }
 
@@ -156,10 +156,10 @@ public:
       }
     }
 
-    if(m_model->hole_flag())
+    if(m_model->sphere_flag())
     {
-      auto holes = m_model->get_holes();
-      for(auto it : holes)
+      auto spheres = m_model->get_spheres();
+      for(auto it : spheres)
       {
         auto i = it.first;
         for(int id = i; id < i+8; id++)
@@ -227,7 +227,7 @@ public:
     gmsh::finalize();//退出 gmsh 环境
   }
 
-  void add_hole(double x, double y, double z, double r, double lc, int tag)
+  void add_sphere(double x, double y, double z, double r, double lc, int tag)
   {
    
     int p1 = gmsh::model::geo::addPoint(x, y, z, lc);

@@ -24,7 +24,7 @@ public:
   typedef typename GK::Sphere_3 Sphere;
 
 public:
-  CubeAndSphereModel(int N=1)
+  CubeWithSpheresModel(int N=1)
   {
     // add point of cube
     add_point({0.0, 0.0, 0.0}, 1);
@@ -58,13 +58,13 @@ public:
 
     if(N == 1)
     {
-      add_sphere({0.5, 0.5, 0.5}, 0.4, 7);
+      add_sphere(0.5, 0.5, 0.5, 0.4, 7);
       add_volume({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14}, 1);
     }
     else if(N == 2)
     {
-      add_sphere({0.32, 0.32, 0.32}, 0.27, 7);
-      add_sphere({0.66, 0.66, 0.66}, 0.27, 15);
+      add_sphere(0.32, 0.32, 0.32, 0.27, 7);
+      add_sphere(0.66, 0.66, 0.66, 0.27, 15);
       add_volume({1, 2, 3, 4, 5, 6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18, -19, -20, -21, -22}, 1);
     }
                                            
@@ -90,9 +90,9 @@ public:
     m_volumes[tag] = Volume(vol);
   }
 
-  void add_sphere(std::initializer_list<double> c, double r, int tag)
+  void add_sphere(double x, double y, double z, double r, int tag)
   {
-    m_spheres[tag] = Sphere(Point(c), r); 
+    m_spheres[tag] = Sphere(x, y, z, r); 
   }
 
   bool sphere_flag()
@@ -135,9 +135,9 @@ public:
     }
     else
     {
-      auto hole = m_holes[7+8*((fid-7)/8)];
-      auto center = hole.first;
-      auto r = hole.second;
+      auto sphere = m_spheres[7+8*((fid-7)/8)];
+      auto center = sphere.center();
+      auto r = sphere.radius();
       auto v = p - center;
       v = (r/std::sqrt(v.squared_length()))*v;
       p = center+v;
@@ -204,7 +204,7 @@ public:
     return m_faces;
   }
 
-  std::map<int, Sphere> & get_sphere()
+  std::map<int, Sphere> & get_spheres()
   {
     return m_spheres;
   }

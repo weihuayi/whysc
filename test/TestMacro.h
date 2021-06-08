@@ -1,8 +1,8 @@
 #ifndef TEST_Macro_H
 #define TEST_Macro_H
 
-#define CMAKE_SOURCE_DIR         "/home/why/git/whysc"
-#define CMAKE_CURRENT_BINARY_DIR "/home/why/git/whysc/build/test"
+#define CMAKE_SOURCE_DIR         "/home/cbtxs/repository/whysc"
+#define CMAKE_CURRENT_BINARY_DIR "/home/cbtxs/repository/whysc/build/test"
 /* #undef CMAKE_PROJECT_BINARY_DIR */
 
 #define CMAKE_MAJOR_VERSION      "3"
