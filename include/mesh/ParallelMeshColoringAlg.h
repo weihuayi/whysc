@@ -1,6 +1,8 @@
 #include <memory>
+#include <iostream>
 #include <vector>
 #include <mpi.h>
+#include <list>
 
 //#include "GhostFillingAlg.h"
 
@@ -133,11 +135,11 @@ public:
     }
     if(a==0)
     {
-      std::cout<< "染色成功  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<endl; 
+      std::cout<< "染色成功  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<std::endl; 
     }
     else
     {
-      std::cout<< "染色失败  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<endl; 
+      std::cout<< "染色失败  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<std::endl; 
     }
   }
 

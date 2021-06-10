@@ -39,8 +39,6 @@ typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> TetMeshQuality;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
 typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality, Model> PMeshOpt;
-typedef PMesh::Cell Cell;
-typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef WHYSC::Mesh::EntityOverlap<int> EntityOverlap;
@@ -108,11 +106,12 @@ int main(int argc, char * argv[])
     cellQualityInit[i] = mesh->cell_quality(i);
   }
 
+  std::cout<< "开始染色..." <<std::endl;
   int cmax = colorAlg.coloring(color);//染色
   colorAlg.color_test(color);//染色测试
 
   PMeshOpt optAlg(mesh, cube, color, cmax, MPI_COMM_WORLD);
-  for(int i = 0; i < 50; i++)
+  for(int i = 0; i < 100; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
     optAlg.mesh_optimization("tet");//优化
