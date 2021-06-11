@@ -16,86 +16,59 @@ public:
   typedef typename Container::iterator          Iterator;
   typedef typename Container::const_iterator    ConstIterator;
 
-  class AdjEntities
+  class AdjEntitySet 
   {
-  public:
-    AdjEntities(I i, Iterator offset_begin, Iterator adj_begin):
-      m_index(i), m_offset_begin(offset_begin), m_adj_begin(adj_begin)
-    {
-    }
+    public:
+      AdjEntitySet(I num, I * adj)
+      {
+        m_num = num;
+        m_adj = adj;
+      }
 
-  private:
-    I m_index;
-    Iterator m_offset_begin;
-    Iterator m_adj_begin;
+      I & operator [] (const int i)
+      {
+          return m_adj[i];
+      }
+
+      const I & operator [] (const int i) const
+      {
+          return m_adj[i];
+      }
+
+      I adj_entity(const int i)
+      {
+        return m_adj[i];
+      }
+      
+    private:
+      I m_num;
+      I * m_adj;
   };
 
-  class AdjEntitiesIterator
+  class AdjEntitySetWithLoc
   {
-  public:
+    public:
+      AdjEntitySetWithLoc(I num, I * adj, I * loc)
+      {
+        m_num = num;
+        m_adj = adj;
+        m_loc = loc;
+      }
 
-    AdjEntitiesIterator(
-        Iterator offset_it, // 偏移数组的迭代子
-        Iterator adj_begin  // 邻接数组的起始迭代子
-        ):
-      m_offset_it(offset_it), 
-      m_adj_begin(adj_begin) {}
+      I adj_entity(const int i)
+      {
+        return m_adj[i];
+      }
 
-    ~AdjEntitiesIterator(){}
+      I adj_local_index(const int i)
+      {
+        return m_loc[i];
+      }
 
-    void operator++() // prefix
-    {
-      ++m_offset_it;
-    }
-
-    void operator++(int) //postfix
-    {
-      m_offset_it++;
-    }
-
-    size_t size()
-    {
-      return *(m_offset_it+1) - *(m_offset_it);
-    }
-
-    size_t number_of_adj_entities()
-    {
-      return *(m_offset_it+1) - *(m_offset_it);
-    }
-
-    Reference operator[](std::size_t i)
-    {
-      return m_adj_begin[*m_offset_it + i];
-    }
-
-    ConstReference operator[](std::size_t i) const
-    {
-      return m_adj_begin[*m_offset_it + i];
-    }
-
-    Iterator adj_begin()
-    {
-      return m_adj_begin + *m_offset_it;
-    }
-
-    Iterator adj_end()
-    {
-      return m_adj_begin + *(m_offset_it + 1);
-    }
-
-    bool operator==(const AdjEntitiesIterator& it) const
-    {
-      return (m_offset_it == it.m_offset_it) && (m_adj_begin == m_adj_begin); 
-    }
-
-    bool operator!=(const AdjEntitiesIterator& it) const
-    {
-      return (m_offset_it != it.m_offset_it) || (m_adj_begin != m_adj_begin); 
-    }
-
-  private:
-    Iterator m_offset_it;
-    Iterator m_adj_begin;
+    private:
+      I m_num;
+      I * m_adj;
+      I * m_loc;
   };
 
 public:
@@ -160,19 +133,19 @@ public: // new interface
       return &m_adj[m_offset[i]];
     }
 
-    AdjEntitiesIterator operator[](std::size_t i)
+    I * adj_local_index(const I i)
     {
-      return AdjEntitiesIterator(m_offset.begin()+i, m_adj.begin(), m_loc.begin());
+      return &m_loc[m_offset[i]];
     }
 
-    AdjEntitiesIterator adj_begin()
+    AdjEntitySet adj_entities(const I i)
     {
-      return AdjEntitiesIterator(m_offset.begin(), m_adj.begin(), m_loc.begin());
+      return AdjEntitySet(i, &m_adj[m_offset[i]]);
     }
 
-    AdjEntitiesIterator adj_end()
+    AdjEntitySetWithLoc adj_entities_with_local(const I i)
     {
-      return AdjEntitiesIterator(--m_offset.end(), m_adj.begin(), m_loc.begin());
+      return AdjEntitySetWithLoc(i, &m_adj[m_offset[i]], &m_loc[m_offset[i]]);
     }
 
 public: // deprecated interface
@@ -201,7 +174,6 @@ public: // deprecated interface
     {
       return m_offset[i+1] - m_offset[i];
     }
-
 
 private:
     Container m_adj; // 存储每个 A 实体相邻的 B 实体编号
