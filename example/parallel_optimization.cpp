@@ -41,7 +41,6 @@ typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
 typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
-typedef WHYSC::Mesh::EntityOverlap<int> EntityOverlap;
 
 template<typename I>
 void plot(std::vector<I> & data0, std::vector<I> & data1)

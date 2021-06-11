@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
-  mesher.mesher(0.04);
+  mesher.mesher3d(0.04);
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};

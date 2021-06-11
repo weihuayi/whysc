@@ -1,5 +1,5 @@
-#ifndef TetRadiusRatioQuality_h
-#define TetRadiusRatioQuality_h
+#ifndef TetRadiusRatioQualityNew_h
+#define TetRadiusRatioQualityNew_h
 
 #include <vector>
 #include <array>
@@ -17,13 +17,16 @@ namespace Mesh {
  * 四面体外接球与内接球半径之比
  *       mu = R/r/3
  */
-template<typename TMesh>
+template<typename Patch>
 class TetRadiusRatioQuality
 {
 public:
-  TetRadiusRatioQuality(std::shared_ptr<TMesh> mesh)
+  typedef typename Patch::Mesh Mesh;
+public:
+  TetRadiusRatioQuality(std::shared_ptr<Patch> patch)
   {
-    m_mesh = mesh;
+    m_patch = patch;
+    m_mesh = patch->get_mesh();
   }
 
   // 计算第 i 个单元的质量
@@ -130,9 +133,65 @@ public:
     w = w_d+w_s;
   }
 
+  template<typename Vector>
+  void tet_optimization(int i, Vector & move)//给每个点一个方向, 求这个方向上质量的最小值
+  {
+    int NP = m_patch.patch_size(i);
+    std::vector<int> cidx(NP);
+    Vector v = {0};
+    double w;
+    for(int k = 0; k < NP; k++)
+    {
+      cidx[k] = patch(i, k);
+      Vector tmpVector;
+      double tmpw;
+      nabla_quality(patch(i, k), local_index(i, k), tmpVector, tmpw);
+      v = v + tmpVector;
+      w = w + tmpw;
+    }
+    v = v/w;
+    //v = v/std::sqrt(v.squared_length());
+    auto tmpNode = m_mesh->node(i);
+
+    double a = 0;
+    double b = min_edge_length(i);
+    double c = a + (1 - 0.618)*(b-a);
+    double d = a + 0.618*(b-a);
+
+    m_mesh->node(i) = tmpNode + c*v;
+    double Qc = patch_quality(cidx);
+    m_mesh->node(i) = tmpNode + d*v;
+    double Qd = patch_quality(cidx);
+
+    while(abs(Qc-Qd)>0.0001)// 0.618法
+    {
+      if(Qc > Qd)
+      {
+        a = c;
+        c = d;
+        d = a + 0.618*(b-a);
+        Qc = Qd;
+        m_mesh->node(i) = tmpNode + d*v;
+        Qd = patch_quality(cidx);
+      }
+      else
+      {
+        b = d;
+        d = c;
+        c = a + (1 - 0.618)*(b-a);
+        Qd = Qc;
+        m_mesh->node(i) = tmpNode + c*v;
+        Qc = patch_quality(cidx);
+      }
+    }
+    move = c*v;
+    m_mesh->node(i) = tmpNode;
+  }
+
 private:
   static int m_index[4][3];
-  std::shared_ptr<TMesh> m_mesh;
+  std::shared_ptr<Mesh>  m_mesh;
+  std::shared_ptr<Patch> m_patch;
 };
 
 template<typename Mesh>
@@ -145,4 +204,4 @@ int TetRadiusRatioQuality<Mesh>::m_index[4][3] = {
 
 } // end of namespace WHYSC
 
-#endif // end of TetRadiusRatioQuality_h
+#endif // end of TetRadiusRatioQualityNew_h

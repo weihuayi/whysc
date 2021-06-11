@@ -58,7 +58,7 @@ public:
     for(int k = 0; k < NP; k++)
     {
       Node tmpNode;
-      m_mesh->cell_barycenter(patch(i, k), tmpNode);
+      m_mesh->cell_barycenter(patch_to_cell(i, k), tmpNode);
       for(int j = 0; j < GD; j++)
       {
         move[j] += tmpNode[j]/NP;
@@ -74,10 +74,10 @@ public:
     double w;
     for(int k = 0; k < NP; k++)
     {
-      cidx[k] = patch(i, k);
+      cidx[k] = patch_to_cell(i, k);
       Vector tmpVector;
       double tmpw;
-      m_quality->nabla_quality(patch(i, k), local_index(i, k), tmpVector, tmpw);
+      m_quality->nabla_quality(patch_to_cell(i, k), local_index(i, k), tmpVector, tmpw);
       v = v + tmpVector;
       w = w + tmpw;
     }
@@ -142,7 +142,7 @@ public:
     return locidx[loc[i]+j];
   }
 
-  int patch(int i, int j)
+  int patch_to_cell(int i, int j)
   {
     auto & loc = m_top.locations();
     auto & nei = m_top.neighbors();
@@ -153,6 +153,11 @@ public:
   {
     auto & loc = m_top.locations();
     return loc[i+1] -loc[i];
+  }
+
+  std::shared_ptr<Mesh> get_mesh()
+  {
+    return m_mesh;
   }
   
 private:
