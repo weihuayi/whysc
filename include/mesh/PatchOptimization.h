@@ -36,8 +36,8 @@ public:
       tet_optimization(i, move);
 
     node = node + move;
-    auto tag = m_mesh->nodedata().gtag[i];
-    auto dof = m_mesh->nodedata().gdof[i];
+    auto tag = m_mesh->get_node_int_data()["gtag"][i];
+    auto dof = m_mesh->get_node_int_data()["gdof"][i];
     if(dof==2)
     {
       m_model->project_to_face(tag, node);

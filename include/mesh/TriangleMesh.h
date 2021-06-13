@@ -6,7 +6,7 @@
 #include <map>
 
 #include "MeshToplogy.h"
-#include "MeshData.h"
+#include "NodeData.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -409,11 +409,16 @@ public:
     return m_cell2edge[i];
   }
 
-  NodeData & nodedata()
+  NodeIntData & get_node_int_data()
   {
-    return m_nodedata;
+    return m_nodeintdata;
   }
 
+  NodeDoubleData & get_node_double_data()
+  {
+    return m_nodedoubledata;
+  }
+ 
   F cell_measure(const I i)
   {//TODO: 需要考虑 inline 函数吗?
     auto & c = m_cell[i];
@@ -602,7 +607,8 @@ private:
   std::vector<Cell> m_cell; 
   std::vector<Edge2cell> m_edge2cell;
   std::vector<Cell2edge> m_cell2edge;
-  NodeData m_nodedata;
+  NodeIntData m_nodeintdata;
+  NodeDoubleData m_nodedoubledata;
 };
 
 

@@ -367,7 +367,6 @@ public:
       }
     }
 
-    mesh->nodedata().resize(mesh->number_of_nodes());
     if(!fname.empty())
     {
       for(int i = 0; i < nparts; i++)
@@ -376,13 +375,15 @@ public:
         auto & gid = submeshes[i].node_global_id();
 
         std::vector<int> nids(NN);//设置 nids
-        auto & gdof = submeshes[i].nodedata().gdof;
-        auto & gtag = submeshes[i].nodedata().gtag;
-        submeshes[i].nodedata().resize(NN);
+        auto & nodeIntData = submeshes[i].get_node_int_data();
+        auto & gdof = nodeIntData["gdof"];
+        auto & gtag = nodeIntData["gtag"];
+        gdof.resize(NN);
+        gtag.resize(NN);
         for(int j = 0; j < NN; j++)
         {
-          gdof[j] = mesh->nodedata().gdof[gid[j]];
-          gtag[j] = mesh->nodedata().gtag[gid[j]];
+          gdof[j] = mesh->get_node_int_data()["gdof"][gid[j]];
+          gtag[j] = mesh->get_node_int_data()["gtag"][gid[j]];
           nids[j] = nid[gid[j]];
         }
 

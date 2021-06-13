@@ -37,7 +37,7 @@ public:
     add_line({3, 4}, 3);
     add_line({4, 1}, 4);
 
-    add_circle({0.5, 0.5, 0}, 0.3, 1);
+    add_circle({0.5, 0.5, 0}, 0.3, 5);
     add_face({1, 2, 3, 4, -5, -6, -7, -8}, 1);
   }
   void add_point(std::initializer_list<double> point, int tag)

@@ -30,8 +30,8 @@ int main(int argc, char * argv[])
   mesher.mesher3d();
   auto mesh = mesher.get_mesh();
 
-  auto & dim = mesh->nodedata().gdof;
-  auto & tag = mesh->nodedata().gtag;
+  auto & dim = mesh->get_node_int_data()["gdof"];
+  auto & tag = mesh->get_node_int_data()["gtag"];
 
   Node n0{1, 2, 3};
   std::cout<< n0[0] << " " << n0[1] << " " << n0[2] <<std::endl;

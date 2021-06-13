@@ -128,7 +128,7 @@ public: // new interface
       return m_offset[i+1] - m_offset[i];
     }
 
-    I * adj_entities(const I i)
+    I * adj_entities_begin(const I i)
     {
       return &m_adj[m_offset[i]];
     }

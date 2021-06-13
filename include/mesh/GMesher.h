@@ -51,16 +51,15 @@ public:
       gmsh::model::geo::addLine(line[0], line[1], tag);    
     }
 
-    int NL = lines.size();
     for(auto it : circles)
     {
       auto tag = it.first;
       auto r = it.second.radius; 
       auto center = it.second.center; 
-      add_circle(center[0], center[1], center[2], r, lc, tag+NL);//要求洞的编号与面的编号连续
+      add_circle(center[0], center[1], center[2], r, lc, tag);//要求洞的编号与面的编号连续
     }
 
-    NL = lines.size();
+    int NL = lines.size();
     for(auto & it : faces) //添加直线, 不同维数实体的编号独立
     {
       auto tag = it.first;
@@ -192,7 +191,7 @@ public:
         {
           int A = nTag2Nid[c2nList1[i]]; //单元
           nodetag[A] = id; //出现的点都属于几何中的 id 
-          nodedim[A] = 2; //出现的点都是 3 维的
+          nodedim[A] = 1; //出现的点都是 3 维的
         }
       }
     }
@@ -235,10 +234,9 @@ public:
       }
     }
     m_mesh->init_top();
-    auto & data = m_mesh->nodedata();
-    //data.gdof = nodedim;
-    //data.gtag = nodetag;
-    data.resize(m_mesh->number_of_nodes());
+    auto & data = m_mesh->get_node_int_data();
+    data["gdof"] = nodedim;
+    data["gtag"] = nodetag;
   }
 
   void construct_whysc_mesh3d(double NNC)
@@ -378,9 +376,9 @@ public:
       }
     }
     m_mesh->init_top();
-    auto & data = m_mesh->nodedata();
-    data.gdof = nodedim;
-    data.gtag = nodetag;
+    auto & data = m_mesh->get_node_int_data();
+    data["gdof"] = nodedim;
+    data["gtag"] = nodetag;
   }
 
   void add_sphere(double x, double y, double z, double r, double lc, int tag)

@@ -106,10 +106,10 @@ int main(int argc, char * argv[])
   }
 
   std::cout<< "开始染色..." <<std::endl;
-  int cmax = colorAlg.coloring(color);//染色
-  colorAlg.color_test(color);//染色测试
+  colorAlg.coloring();//染色
+  colorAlg.color_test();//染色测试
 
-  PMeshOpt optAlg(mesh, cube, color, cmax, MPI_COMM_WORLD);
+  PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
   for(int i = 0; i < 100; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;

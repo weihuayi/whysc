@@ -36,9 +36,8 @@ int main()
   std::cout<< n0[0] << " " << n0[1] << " " << n0[2] <<std::endl;
   */
  
-  auto & dim = mesh->nodedata().gdof;
-  auto & tag = mesh->nodedata().gtag;
-
+  auto & dim = mesh->get_node_int_data()["gdof"];
+  auto & tag = mesh->get_node_int_data()["gtag"];
 
   auto NC = mesh->number_of_cells();
   std::vector<double> z(NC);

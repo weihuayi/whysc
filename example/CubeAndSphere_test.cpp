@@ -36,8 +36,8 @@ int main(int argc, char * argv[])
   cube->project_to_face(7, n0);
   std::cout<< n0[0] << " " << n0[1] << " " << n0[2] <<std::endl;
  
-  auto & dim = mesh->nodedata().gdof;
-  auto & tag = mesh->nodedata().gtag;
+  auto & dim = mesh->get_node_int_data()["gdof"];
+  auto & tag = mesh->get_node_int_data()["gtag"];
 
   Writer writer(mesh);
   writer.set_points();
