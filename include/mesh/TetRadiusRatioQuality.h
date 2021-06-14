@@ -16,10 +16,16 @@ namespace Mesh {
  * ----
  * 四面体外接球与内接球半径之比
  *       mu = R/r/3
+ * 
+ * 给定四面体网格, 可以计算这个网格任意一个 patch 的质量.
  */
 template<typename TMesh>
 class TetRadiusRatioQuality
 {
+public:
+  typedef typename TMesh::Node Node;
+  typedef typename TMesh::Vector Vector;
+
 public:
   TetRadiusRatioQuality(std::shared_ptr<TMesh> mesh)
   {
@@ -27,7 +33,7 @@ public:
   }
 
   // 计算第 i 个单元的质量
-  double quality(int i)
+  double quality_of_cell(int i)
   {
     auto & cell = m_mesh->cells();
     auto & node = m_mesh->nodes();
@@ -59,35 +65,22 @@ public:
     double q = 0; 
     for(int i : cidx)
     {
-      q += quality(i);
+      q += quality_of_cell(i);
     }
     return q;
   }
 
-  void mesh_quality(std::vector<double> & qs)
-  {
-    auto NC = m_mesh->number_of_cells();
-    auto & cell = m_mesh->cells();
-    auto & node = m_mesh->nodes();
-
-    qs.resize(NC);
-    for(int i = 0; i < NC; i++)
-    {
-      qs[i] = quality(i);
-    }
-  }
-
-  template<typename Vector>
   void nabla_quality(int c, int i, Vector &v, double &w)//第 c 个单元的质量对单元的第 i 个点求梯度
   {
+    auto & index = TMesh::m_localface;
     auto & node = m_mesh->nodes();
     auto & cell = m_mesh->cell(c);
 
     //四个顶点, n1, n2, n3 是逆时针
     auto n0 = cell[i];
-    auto n1 = cell[m_index[i][0]];
-    auto n2 = cell[m_index[i][1]];
-    auto n3 = cell[m_index[i][2]];
+    auto n1 = cell[index[i][0]];
+    auto n2 = cell[index[i][1]];
+    auto n3 = cell[index[i][2]];
 
     //除去底面外的三条边的向量
     auto v1 = node[n1] - node[n0];
@@ -131,13 +124,7 @@ public:
   }
 
 private:
-  static int m_index[4][3];
   std::shared_ptr<TMesh> m_mesh;
-};
-
-template<typename Mesh>
-int TetRadiusRatioQuality<Mesh>::m_index[4][3] = {
-    {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1}
 };
 
 

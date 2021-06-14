@@ -39,6 +39,11 @@ public:
       {
         return m_adj[i];
       }
+
+      I number_of_adj_entities()
+      {
+        return m_num;
+      }
       
     private:
       I m_num;
@@ -63,6 +68,11 @@ public:
       I adj_local_index(const int i)
       {
         return m_loc[i];
+      }
+
+      I number_of_adj_entities()
+      {
+        return m_num;
       }
 
     private:
@@ -140,12 +150,12 @@ public: // new interface
 
     AdjEntitySet adj_entities(const I i)
     {
-      return AdjEntitySet(i, &m_adj[m_offset[i]]);
+      return AdjEntitySet(number_of_adj_entities(i), &m_adj[m_offset[i]]);
     }
 
     AdjEntitySetWithLoc adj_entities_with_local(const I i)
     {
-      return AdjEntitySetWithLoc(i, &m_adj[m_offset[i]], &m_loc[m_offset[i]]);
+      return AdjEntitySetWithLoc(number_of_adj_entities(i), &m_adj[m_offset[i]], &m_loc[m_offset[i]]);
     }
 
 public: // deprecated interface

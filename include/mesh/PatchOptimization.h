@@ -23,19 +23,22 @@ public:
     m_mesh = mesh;
     m_model = model;
     m_quality = std::make_shared<MeshQuality>(mesh);
-    mesh->node_to_cell(m_top);
-    mesh->node_to_node(m_n2n);
+    //mesh->node_to_cell(m_top);
+    //mesh->node_to_node(m_n2n);
   }
 
-  void optimization(int i, Node & node, std::string method = "bar")
+  template<typename Patch>
+  void optimization(int i, Node & node, Patch & patch)
   {
     Vector move;
-    if(method=="bar")
-      bar_optimization(i, move);
-    else if(method=="tet")
-      tet_optimization(i, move);
+    computerMoveVector(i, move, patch);
 
     node = node + move;
+    project(i, node);
+  }
+
+  void project(int i, Node & node)
+  {
     auto tag = m_mesh->get_node_int_data()["gtag"][i];
     auto dof = m_mesh->get_node_int_data()["gdof"][i];
     if(dof==2)
@@ -48,17 +51,18 @@ public:
     }
   }
 
-  void bar_optimization(int i, Vector & move)//点周围单元的重心作为点位置
+  template<typename Patch>
+  void bar_optimization(int i, Vector & move, Patch & patch)//点周围单元的重心作为点位置
   {
     int GD = m_mesh->geo_dimension();
     for(int j = 0; j < GD; j++)
       move[j] = -m_mesh->node(i)[j];
 
-    int NP = patch_size(i);
+    int NP = patch.number_of_adj_entities(i);
     for(int k = 0; k < NP; k++)
     {
       Node tmpNode;
-      m_mesh->cell_barycenter(patch_to_cell(i, k), tmpNode);
+      m_mesh->cell_barycenter(patch.adj_entity(k), tmpNode);
       for(int j = 0; j < GD; j++)
       {
         move[j] += tmpNode[j]/NP;
@@ -66,27 +70,28 @@ public:
     }
   }
 
-  void tet_optimization(int i, Vector & move)//给每个点一个方向, 求这个方向上质量的最小值
+  template<typename Patch>
+  void computerMoveVector(int i, Vector & move, Patch & patch)//给每个点一个方向, 求这个方向上质量的最小值
   {
-    int NP = patch_size(i);
+    int NP = patch.number_of_adj_entities();
     std::vector<int> cidx(NP);
     Vector v = {0};
     double w;
     for(int k = 0; k < NP; k++)
     {
-      cidx[k] = patch_to_cell(i, k);
+      cidx[k] = patch.adj_entity(k);
       Vector tmpVector;
-      double tmpw;
-      m_quality->nabla_quality(patch_to_cell(i, k), local_index(i, k), tmpVector, tmpw);
+      double tmpW;
+      m_quality->nabla_quality(patch.adj_entity(k), patch.adj_local_index(k), tmpVector, tmpW);
       v = v + tmpVector;
-      w = w + tmpw;
+      w = w + tmpW;
     }
     v = v/w;
     //v = v/std::sqrt(v.squared_length());
     auto tmpNode = m_mesh->node(i);
 
     double a = 0;
-    double b = min_edge_length(i);
+    double b = 1; //min_edge_length(i);
     double c = a + (1 - 0.618)*(b-a);
     double d = a + 0.618*(b-a);
 
@@ -120,6 +125,7 @@ public:
     m_mesh->node(i) = tmpNode;
   }
 
+/*
   double min_edge_length(int k)//点 k 周围的边的长度最小值
   {
     auto & loc = m_n2n.locations();
@@ -155,14 +161,15 @@ public:
     return loc[i+1] -loc[i];
   }
 
+*/
   std::shared_ptr<Mesh> get_mesh()
   {
     return m_mesh;
   }
   
 private:
-  Toplogy m_top;
-  Toplogy m_n2n;
+  //Toplogy m_top;
+  //Toplogy m_n2n;
   std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<MeshQuality> m_quality;
   std::shared_ptr<Model> m_model;

@@ -32,7 +32,7 @@ public:
     m_patch_opt_alg = std::make_shared<PatchOpt>(mesh, model);
   }
 
-  void mesh_optimization(std::string method="bar")
+  void mesh_optimization()
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
@@ -40,6 +40,9 @@ public:
     auto & gdof = m_mesh->get_node_int_data()["gdof"];
     auto & color = m_mesh->get_node_int_data()["color"];
     auto & isghostnode = m_set_ghost_alg->get_ghost_node();
+
+    Toplogy n2c;
+    m_mesh->node_to_cell(n2c);
 
     int cMax;
     auto cmax = *max_element(color.begin(), color.end());
@@ -51,7 +54,8 @@ public:
       {
         if((color[j] == i) & (gdof[j] > 0) & (!isghostnode[j]))
         {
-          m_patch_opt_alg->optimization(j, m_node[j], method);
+          auto patch = n2c.adj_entities_with_local(j);
+          m_patch_opt_alg->optimization(j, m_node[j], patch);
         }
       }
       m_set_ghost_alg->fill(m_node, GD);

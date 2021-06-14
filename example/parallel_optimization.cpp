@@ -113,7 +113,7 @@ int main(int argc, char * argv[])
   for(int i = 0; i < 100; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
-    optAlg.mesh_optimization("tet");//优化
+    optAlg.mesh_optimization();//优化
   }
 
   for(int i = 0; i < NC; i++)
