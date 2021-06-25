@@ -15,7 +15,7 @@ class NodeData: public std::map<std::string, std::vector<T> >
 };
 
 typedef NodeData<int> NodeIntData;
-typedef Nodedata<double> NodeDoubleData;
+typedef NodeData<double> NodeDoubleData;
 
 // NodeIntData["gdof"].resize()
 

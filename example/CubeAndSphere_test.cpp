@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
-  mesher.mesher(0.04);
+  mesher.mesher3d(0.04);
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};
@@ -36,8 +36,8 @@ int main(int argc, char * argv[])
   cube->project_to_face(7, n0);
   std::cout<< n0[0] << " " << n0[1] << " " << n0[2] <<std::endl;
  
-  auto & dim = mesh->nodedata().gdof;
-  auto & tag = mesh->nodedata().gtag;
+  auto & dim = mesh->get_node_int_data()["gdof"];
+  auto & tag = mesh->get_node_int_data()["gtag"];
 
   Writer writer(mesh);
   writer.set_points();

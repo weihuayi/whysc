@@ -12,6 +12,7 @@
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TetrahedronMesh.h"
+#include "mesh/QuadMesh.h"
 #include "mesh/MeshFactory.h"
 #include "mesh/ParallelMesh.h"
 #include "mesh/VTKMeshWriter.h"
@@ -22,7 +23,9 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
+typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
+//typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
@@ -72,9 +75,9 @@ int main()
     auto mesh = std::make_shared<PMesh>(1);
     Reader reader(mesh);
     reader.read("cube.vtu");
-    mesh->nodedata().resize(mesh->number_of_nodes());
-    auto & gtag = mesh->nodedata().gtag;
-    auto & gdof = mesh->nodedata().gdof;
+    auto & gtag = mesh->get_node_int_data()["gtag"];
+    auto & gdof = mesh->get_node_int_data()["gdof"];
+
     reader.get_node_data("gdof", gdof);
     reader.get_node_data("gtag", gtag);
 
