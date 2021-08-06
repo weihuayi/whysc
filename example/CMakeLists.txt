@@ -69,12 +69,19 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    add_executable(TetRadiusRatioQuality_test TetRadiusRatioQuality_test.cpp)
-    target_link_libraries(TetRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
-    vtk_module_autoinit(
-        TARGETS TetRadiusRatioQuality_test 
-        MODULES ${VTK_LIBRARIES}
-    )
+    #add_executable(TetRadiusRatioQuality_test TetRadiusRatioQuality_test.cpp)
+    #target_link_libraries(TetRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
+    #vtk_module_autoinit(
+    #    TARGETS TetRadiusRatioQuality_test 
+    #    MODULES ${VTK_LIBRARIES}
+    #)
+
+    #add_executable(QuadJacobiQuality_test QuadJacobiQuality_test.cpp)
+    #target_link_libraries(QuadJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    #vtk_module_autoinit(
+    #    TARGETS QuadJacobiQuality_test 
+    #    MODULES ${VTK_LIBRARIES}
+    #)
 
 
     add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
@@ -167,12 +174,35 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    add_executable(parallel_optimization parallel_optimization.cpp)
-    target_link_libraries(parallel_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    add_executable(parallel_tetmesh_optimization parallel_tetmesh_optimization.cpp)
+    target_link_libraries(parallel_tetmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
     vtk_module_autoinit(
-        TARGETS parallel_optimization 
+        TARGETS parallel_tetmesh_optimization 
         MODULES ${VTK_LIBRARIES}
     )
+
+    add_executable(parallel_quadmesh_optimization parallel_quadmesh_optimization.cpp)
+    target_link_libraries(parallel_quadmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_quadmesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_trimesh_optimization parallel_trimesh_optimization.cpp)
+    target_link_libraries(parallel_trimesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_trimesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    #add_executable(parallel_optimization parallel_optimization.cpp)
+    #target_link_libraries(parallel_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    #vtk_module_autoinit(
+    #    TARGETS parallel_optimization 
+    #    MODULES ${VTK_LIBRARIES}
+    #)
+
+
 
 endif()
 

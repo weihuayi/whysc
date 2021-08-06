@@ -5,6 +5,7 @@
 #include "geometry/Geometry_kernel.h"
 #include "geometry/CubeWithSpheresModel.h"
 #include "mesh/TetrahedronMesh.h"
+#include "mesh/HexahedronMesh.h"
 #include "mesh/GMesher.h"
 #include "mesh/VTKMeshReader.h"
 #include "mesh/VTKMeshWriter.h"
@@ -15,19 +16,21 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
+typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
+//typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
+typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
 typedef WHYSC::Mesh::GMesher<GK, PMesh, Model> GMesher;
 typedef WHYSC::Mesh::MeshFactory MF;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef typename TetMesh::Toplogy Toplogy;
 
-int main(int argc, char * argv[])
+int main()
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
-  mesher.mesher3d(0.04);
+  mesher.mesher3d(0.1, "hex");
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};

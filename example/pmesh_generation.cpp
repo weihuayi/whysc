@@ -33,21 +33,19 @@ const double pi = acos(-1.0);
 
 int main() 
 {
-  /*
-  PTMesh mesh(1);
-  MF::one_triangle_mesh(mesh);
-  mesh.uniform_refine(9);
+  //auto mesh = std::make_shared<PQMesh>();
+  auto mesh = std::make_shared<PTMesh>();
+  TReader reader(mesh);
+  reader.read("quad.vtu");
+  auto & gtag = mesh->get_node_int_data()["gtag"];
+  auto & gdof = mesh->get_node_int_data()["gdof"];
+
+  reader.get_node_data("gdof", gdof);
+  reader.get_node_data("gtag", gtag);
 
   std::vector<PTMesh> submeshes;
-  */
 
-  PQMesh mesh(1);
-
-  MF::three_quad_mesh(mesh);
-  mesh.uniform_refine(4);
-  std::vector<PQMesh> submeshes;
-
-  QWriter writer(&mesh);
+  TWriter writer(mesh);
   writer.set_points();
   writer.set_cells();
   writer.write("init_mesh.vtu");
@@ -55,9 +53,8 @@ int main()
   int nparts = 4;
   submeshes.resize(nparts);
 
-  auto & cells = mesh.cells();
-  auto & nodes = mesh.nodes();
-  auto NN = mesh.number_of_nodes();
+  auto & nodes = mesh->nodes();
+  auto NN = mesh->number_of_nodes();
 
  //找到网格重心
   Node node_bar;
@@ -79,5 +76,5 @@ int main()
         nid[k] = i;
     }
   }
-  //MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_surface");
+  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_tri_surface");
 }

@@ -10,7 +10,7 @@ namespace Mesh {
 template<typename PMesh>
 class GhostFillingAlg;
 
-template<typename PMesh, typename MeshQuality, typename Model>
+template<typename PMesh, typename ObjectionFunction, typename Model>
 class ParallelMeshOptimization
 {
 public:
@@ -18,7 +18,7 @@ public:
   typedef typename PMesh::NodeArray NodeArray;
   typedef typename PMesh::Toplogy Toplogy;
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
-  typedef PatchOptimization<PMesh, MeshQuality, Model> PatchOpt;
+  typedef PatchOptimization<PMesh, ObjectionFunction, Model> PatchOpt;
 
 public:
   ParallelMeshOptimization(std::shared_ptr<PMesh> mesh, 
@@ -26,8 +26,6 @@ public:
   {
     m_comm = comm;
     m_mesh = mesh;
-    m_model = model;
-    m_node = mesh->nodes();
     m_set_ghost_alg = std::make_shared<SetGhostAlg>(mesh, comm);
     m_patch_opt_alg = std::make_shared<PatchOpt>(mesh, model);
   }
@@ -41,25 +39,20 @@ public:
     auto & color = m_mesh->get_node_int_data()["color"];
     auto & isghostnode = m_set_ghost_alg->get_ghost_node();
 
-    Toplogy n2c;
-    m_mesh->node_to_cell(n2c);
-
     int cMax;
     auto cmax = *max_element(color.begin(), color.end());
     MPI_Allreduce(&cmax, &cMax, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
-    for(int i = 1; i <= cMax; i++)
+    for(int i = 1; i <= cMax; i++)//循环所有的颜色
     {
-      for(int j = 0; j < NN; j++)
+      for(int j = 0; j < NN; j++)//循环所有的点
       {
-        if((color[j] == i) & (gdof[j] > 0) & (!isghostnode[j]))
+        if((color[j] == i) & (gdof[j] > 0) & (!isghostnode[j]))//只优化当前颜色自由度大于0, 且是本网格的点
         {
-          auto patch = n2c.adj_entities_with_local(j);
-          m_patch_opt_alg->optimization(j, m_node[j], patch);
+          m_patch_opt_alg->optimization(j);//优化节点
         }
       }
-      m_set_ghost_alg->fill(m_node, GD);
-      m_mesh->nodes() = m_node;
+      m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
     }
   }
  
@@ -67,7 +60,6 @@ private:
   MPI_Comm m_comm;
   NodeArray m_node;
   std::shared_ptr<PMesh> m_mesh;
-  std::shared_ptr<Model> m_model;
   std::shared_ptr<GhostFillingAlg<PMesh> > m_set_ghost_alg;
   std::shared_ptr<PatchOpt> m_patch_opt_alg;
 };
