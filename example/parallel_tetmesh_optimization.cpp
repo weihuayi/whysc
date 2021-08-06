@@ -8,10 +8,7 @@
 #include <time.h>
 
 #include "geometry/Geometry_kernel.h"
-#include "geometry/CubeModel.h"
 #include "geometry/CubeWithSpheresModel.h"
-#include "mesh/TriangleMesh.h"
-#include "mesh/QuadMesh.h"
 #include "mesh/TetrahedronMesh.h"
 #include "mesh/ParallelMeshNew.h"
 #include "mesh/ParallelMesher.h"
@@ -20,25 +17,20 @@
 #include "mesh/GhostFillingAlg.h"
 #include "mesh/ParallelMeshColoringAlg.h"
 #include "mesh/ParallelMeshOptimization.h"
-#include "mesh/TetRadiusRatioQuality.h"
+#include "mesh/TetRadiusRatioQualityFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-//typedef WHYSC::GeometryModel::CubeModel<GK> Model;
 typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
-typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
-typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
-//typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
-//typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
-typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> TetMeshQuality;
+typedef WHYSC::Mesh::TetRadiusRatioQualityFunction<PMesh> ObjectionFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
-typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, TetMeshQuality, Model> PMeshOpt;
+typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, ObjectionFunction, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 
@@ -90,27 +82,25 @@ int main(int argc, char * argv[])
 
   PMesher pmesher(argv[1], ".vtu", MPI_COMM_WORLD);
   auto mesh = pmesher.get_mesh();
+
   auto cube = std::make_shared<Model>(2);
 
-  PCA colorAlg(mesh, MPI_COMM_WORLD);
-
-  auto NN = mesh->number_of_nodes();
   auto NC = mesh->number_of_cells();
-  std::vector<int> color(NN);
   std::vector<double> cellQualityInit(NC);
   std::vector<double> cellQualityOpt(NC);
-
+  ObjectionFunction mq(mesh);
   for(int i = 0; i < NC; i++)
   {
-    cellQualityInit[i] = mesh->cell_quality(i);
+    cellQualityInit[i] = 1/mq.quality_of_cell(i);
   }
 
   std::cout<< "开始染色..." <<std::endl;
+  PCA colorAlg(mesh, MPI_COMM_WORLD);
   colorAlg.coloring();//染色
   colorAlg.color_test();//染色测试
 
   PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
-  for(int i = 0; i < 100; i++)
+  for(int i = 0; i < 50; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
     optAlg.mesh_optimization();//优化
@@ -118,7 +108,7 @@ int main(int argc, char * argv[])
 
   for(int i = 0; i < NC; i++)
   {
-    cellQualityOpt[i] = mesh->cell_quality(i);
+    cellQualityOpt[i] = 1/mq.quality_of_cell(i);
   }
 
   if(mesh->id() == 1)

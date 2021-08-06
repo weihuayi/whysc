@@ -118,10 +118,9 @@ public:
 
 public:
 
-  ParallelMesh(int id)
-  {
-    m_id = id;
-  }
+  ParallelMesh(int id): m_id(id) {}
+
+  ParallelMesh(): m_id(0) {}
 
   int id()
   {

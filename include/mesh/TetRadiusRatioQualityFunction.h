@@ -1,11 +1,13 @@
-#ifndef TetRadiusRatioQuality_h
-#define TetRadiusRatioQuality_h
+#ifndef TetRadiusRatioQualityFunction_h
+#define TetRadiusRatioQualityFunction_h
 
 #include <vector>
 #include <array>
 #include <map>
 #include <memory>
 #include <math.h>
+
+#include "BaseObjectFunction.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -18,25 +20,30 @@ namespace Mesh {
  *       mu = R/r/3
  * 
  * 给定四面体网格, 可以计算这个网格任意一个 patch 的质量.
- */
+ *
+*/
+
 template<typename TMesh>
-class TetRadiusRatioQuality
+class TetRadiusRatioQualityFunction: public BaseObjectionFunction<TMesh> 
 {
 public:
   typedef typename TMesh::Node Node;
   typedef typename TMesh::Vector Vector;
+  typedef typename TMesh::Toplogy Toplogy;
 
 public:
-  TetRadiusRatioQuality(std::shared_ptr<TMesh> mesh)
+  // 计算第 i 个单元的质量
+  TetRadiusRatioQualityFunction(std::shared_ptr<TMesh> mesh): 
+     BaseObjectionFunction<TMesh>(mesh)
   {
-    m_mesh = mesh;
+    mesh->node_to_cell(m_n2c);
   }
 
-  // 计算第 i 个单元的质量
   double quality_of_cell(int i)
   {
-    auto & cell = m_mesh->cells();
-    auto & node = m_mesh->nodes();
+    auto mesh = this->get_mesh();
+    auto & cell = mesh->cells();
+    auto & node = mesh->nodes();
 
     auto v1 = node[cell[i][1]] - node[cell[i][0]];
     auto v2 = node[cell[i][2]] - node[cell[i][0]];
@@ -60,21 +67,43 @@ public:
     return R/r/3;
   }
 
-  double patch_quality(std::vector<int> & cidx)
+  double get_value(int i)
   {
-    double q = 0; 
-    for(int i : cidx)
+    double q = 0;
+    auto patch = m_n2c.adj_entities_with_local(i);
+
+    int N = patch.number_of_adj_entities();
+    for(int i = 0; i < N; i++)
     {
-      q += quality_of_cell(i);
+      q += quality_of_cell(patch.adj_entity(i));
     }
     return q;
   }
 
-  void nabla_quality(int c, int i, Vector &v, double &w)//第 c 个单元的质量对单元的第 i 个点求梯度
+  void get_grad_value(int i, Vector & v)
+  {
+    auto patch = m_n2c.adj_entities_with_local(i);
+    int NP = patch.number_of_adj_entities();
+
+    double w = 0;
+    Vector v0 = {0};
+    for(int k = 0; k < NP; k++)
+    {
+      Vector tmpVector;
+      double tmpW;
+      nabla(patch.adj_entity(k), patch.adj_local_index(k), tmpVector, tmpW);
+      v0 = v0 + tmpVector;
+      w = w + tmpW;
+    }
+    v = v0/w; //std::sqrt(v0.squared_length());
+  }
+
+  void nabla(int c, int i, Vector &v, double &w)//第 c 个单元的质量对单元的第 i 个点求梯度
   {
     auto & index = TMesh::m_localface;
-    auto & node = m_mesh->nodes();
-    auto & cell = m_mesh->cell(c);
+    auto mesh = this->get_mesh();
+    auto & node = mesh->nodes();
+    auto & cell = mesh->cell(c);
 
     //四个顶点, n1, n2, n3 是逆时针
     auto n0 = cell[i];
@@ -124,12 +153,11 @@ public:
   }
 
 private:
-  std::shared_ptr<TMesh> m_mesh;
+  Toplogy m_n2c;
 };
-
 
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
 
-#endif // end of TetRadiusRatioQuality_h
+#endif // end of TetRadiusRatioQualityFunction_h

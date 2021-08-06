@@ -284,12 +284,18 @@ public:
     }
 
     auto & nei = top.neighbors();
+    auto & locid = top.local_indices();
     nei.resize(loc[NN]);
+    locid.resize(loc[NN]);
     std::vector<I> start(loc);
     for(I i = 0; i < NC; i++)
     {
-      for(auto v : m_cell[i])
+      for(int j = 0; j < 4; j++)
+      {
+        auto v = m_cell[i][j];
+        locid[start[v]] = j;
         nei[start[v]++] = i;
+      }
     }
   }
 

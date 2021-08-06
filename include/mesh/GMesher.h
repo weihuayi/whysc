@@ -36,12 +36,16 @@ public:
     auto & lines = m_model->get_lines();
     auto & faces = m_model->get_faces();
     auto & circles = m_model->get_circles();
+    auto dim = m_mesh->geo_dimension();
 
     for(auto & it : points) //(0, 0, 0) 是坐标, lc 是点的大小, 1 是编号(唯一)
     {
       auto tag = it.first;
       auto p = it.second;
-      gmsh::model::geo::addPoint(p[0], p[1], p[2], lc, tag);
+      if(dim==2)
+        gmsh::model::geo::addPoint(p[0], p[1], 0, lc, tag);
+      else
+        gmsh::model::geo::addPoint(p[0], p[1], p[2], lc, tag);
     }
 
     for(auto & it : lines) //添加直线, 不同维数实体的编号独立
@@ -56,7 +60,10 @@ public:
       auto tag = it.first;
       auto r = it.second.radius; 
       auto center = it.second.center; 
-      add_circle(center[0], center[1], center[2], r, lc, tag);//要求洞的编号与面的编号连续
+      if(dim==2)
+        add_circle(center[0], center[1], 0, r, lc, tag);//要求洞的编号与面的编号连续
+      else
+        add_circle(center[0], center[1], center[2], r, lc, tag);//要求洞的编号与面的编号连续
     }
 
     int NL = lines.size();
@@ -128,6 +135,7 @@ public:
 
     auto & node = m_mesh->nodes();
     auto & cell = m_mesh->cells();
+    int dim = m_mesh->geo_dimension();
 
     std::vector<long unsigned int> nodeTag; //网格中每个节点的 tag
     std::vector<double> nodeCoord; //每个节点的坐标
@@ -140,7 +148,8 @@ public:
     {
       node[i][0] = nodeCoord[3*i+0];
       node[i][1] = nodeCoord[3*i+1];
-      node[i][2] = nodeCoord[3*i+2];
+      if(dim == 3)
+        node[i][2] = nodeCoord[3*i+2];
     }
 
     std::map<int, int> nTag2Nid; //node 的 tag 到 node 编号的 map

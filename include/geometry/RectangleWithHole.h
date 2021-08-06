@@ -12,7 +12,8 @@ template<typename GK>
 class RectangleWithHole
 {
 public:
-  typedef typename GK::Point_3 Point;
+  typedef typename GK::Point_2 Point;
+  typedef typename GK::Vector_2 Vector;
 
   typedef typename std::vector<int> Line;
   typedef typename std::vector<int> Face;
@@ -27,17 +28,17 @@ public:
 public:
   RectangleWithHole()
   {
-    add_point({0, 0, 0}, 1);
-    add_point({1, 0, 0}, 2);
-    add_point({1, 1, 0}, 3);
-    add_point({0, 1, 0}, 4);
+    add_point({0, 0}, 1);
+    add_point({1, 0}, 2);
+    add_point({1, 1}, 3);
+    add_point({0, 1}, 4);
 
     add_line({1, 2}, 1);
     add_line({2, 3}, 2);
     add_line({3, 4}, 3);
     add_line({4, 1}, 4);
 
-    add_circle({0.5, 0.5, 0}, 0.3, 5);
+    add_circle({0.5, 0.5}, 0.3, 5);
     add_face({1, 2, 3, 4, -5, -6, -7, -8}, 1);
   }
   void add_point(std::initializer_list<double> point, int tag)
@@ -63,27 +64,47 @@ public:
     m_circles[tag] = c; 
   }
 
-  void project_to_edge(const int eid, Point & p)
+  template<typename T>
+  void project_to_edge(const int eid, T & p)
   {
     if(eid<5)
     {
       auto & p0 = m_points[m_lines[eid][0]];
       auto & p1 = m_points[m_lines[eid][1]];
       auto v = p1 - p0;
+      auto v0 = p - p0;
 
-      double k = dot(p-p0, v)/dot(v, v);
-      p = p0 + k*v;
+      double k = dot(v0, v)/dot(v, v);
+      p[0] = p0[0] + k*v[0];
+      p[1] = p0[1] + k*v[1];
     }
     else
     {
-      int cirid = (eid-5)/4;
+      int cirid = (eid-5)/4 + 5;
       auto center = m_circles[cirid].center;
       auto r = m_circles[cirid].radius;
       auto v = p - center;
       v = r*v/std::sqrt(v.squared_length());
-      p = v+center;
+      p = center+v;
     }
   }
+
+  void project_to_face(const int eid, Point & p)
+  {
+  }
+
+  void get_point_normal(const int fid, const Point p, Vector & n)
+  {
+    n[0] = 0;
+    n[1] = 0;
+    n[2] = 1;
+  }
+
+  Vector get_point_normal(const int fid, const Point p)
+  {
+    return Vector(0, 0, 1);
+  }
+
 
   std::map<int, Point> & get_points()
   {
