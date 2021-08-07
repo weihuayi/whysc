@@ -16,23 +16,23 @@
 #include "mesh/VTKMeshWriter.h"
 #include "mesh/GhostFillingAlg.h"
 #include "mesh/ParallelMeshColoringAlg.h"
-#include "mesh/ParallelMeshOptimization.h"
-#include "mesh/QuadJacobiQualityFunction.h"
-#include "mesh/QuadJacobiPositiveQualityFunction.h"
+#include "mesh/ParallelMeshOptAlg.h"
+#include "mesh/QuadJacobiQuality.h"
+#include "mesh/SumNodePatchObjectFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
-typedef GK::Point_3 Node;
-typedef GK::Vector_3 Vector;
-typedef WHYSC::Mesh::QuadMesh<GK, GK::Point_2, GK::Vector_2> QuadMesh;
+typedef GK::Point_2 Node;
+typedef GK::Vector_2 Vector;
+typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
+typedef WHYSC::Mesh::QuadJacobiQuality<PMesh> CellQuality;
+typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
-//typedef WHYSC::Mesh::QuadJacobiQualityFunction<PMesh> ObjectionFunction;
-typedef WHYSC::Mesh::QuadJacobiPositiveQualityFunction<PMesh> ObjectionFunction;
 typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
-typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, ObjectionFunction, Model> PMeshOpt;
+typedef WHYSC::Mesh::ParallelMeshOptAlg<PMesh, ObjectFunction, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 
@@ -84,15 +84,21 @@ int main(int argc, char * argv[])
 
   PMesher pmesher(argv[1], ".vtu", MPI_COMM_WORLD);
   auto mesh = pmesher.get_mesh();
-  auto model = std::make_shared<Model>();
+
+  auto cube = std::make_shared<Model>();
 
   auto NC = mesh->number_of_cells();
   std::vector<double> cellQualityInit(NC);
   std::vector<double> cellQualityOpt(NC);
-  ObjectionFunction objfun(mesh);
+  CellQuality mq;
   for(int i = 0; i < NC; i++)
   {
-    cellQualityInit[i] = 4/objfun.quality_of_cell(i);
+    std::vector<const Node*> tcell(4);
+    for(int j = 0; j < 4; j++)
+    {
+      tcell[j] = &(mesh->node(mesh->cell(i)[j]));
+    }
+    cellQualityInit[i] = 4/mq.quality(tcell);
   }
 
   std::cout<< "开始染色..." <<std::endl;
@@ -100,8 +106,8 @@ int main(int argc, char * argv[])
   colorAlg.coloring();//染色
   colorAlg.color_test();//染色测试
 
-  PMeshOpt optAlg(mesh, model, MPI_COMM_WORLD);
-  for(int i = 0; i < 30; i++)
+  PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
+  for(int i = 0; i < 10; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
     optAlg.mesh_optimization();//优化
@@ -109,7 +115,12 @@ int main(int argc, char * argv[])
 
   for(int i = 0; i < NC; i++)
   {
-    cellQualityOpt[i] = 4/objfun.quality_of_cell(i);
+    std::vector<const Node*> tcell(4);
+    for(int j = 0; j < 4; j++)
+    {
+      tcell[j] = &(mesh->node(mesh->cell(i)[j]));
+    }
+    cellQualityOpt[i] = 4/mq.quality(tcell);
   }
 
   if(mesh->id() == 1)

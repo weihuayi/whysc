@@ -60,13 +60,11 @@ public:
   class AdjEntitySetWithLoc
   {
     public:
-      AdjEntitySetWithLoc(I num, I len, I * adj, I * loc)
-      {
-        m_num = num;
-        m_len = len;
-        m_adj = adj;
-        m_loc = loc;
-      }
+      AdjEntitySetWithLoc():
+        m_num(0), m_len(0), m_adj(0), m_loc(0) {}
+
+      AdjEntitySetWithLoc(I num, I len, I * adj, I * loc):
+        m_num(num), m_len(len), m_adj(adj), m_loc(loc) {}
 
       I adj_entity(const int i)
       {

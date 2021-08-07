@@ -34,18 +34,18 @@ const double pi = acos(-1.0);
 int main() 
 {
   //auto mesh = std::make_shared<PQMesh>();
-  auto mesh = std::make_shared<PTMesh>();
-  TReader reader(mesh);
-  reader.read("quad.vtu");
+  auto mesh = std::make_shared<PQMesh>();
+  QReader reader(mesh);
+  reader.read("quad_with_quad.vtu");
   auto & gtag = mesh->get_node_int_data()["gtag"];
   auto & gdof = mesh->get_node_int_data()["gdof"];
 
   reader.get_node_data("gdof", gdof);
   reader.get_node_data("gtag", gtag);
 
-  std::vector<PTMesh> submeshes;
+  std::vector<PQMesh> submeshes;
 
-  TWriter writer(mesh);
+  QWriter writer(mesh);
   writer.set_points();
   writer.set_cells();
   writer.write("init_mesh.vtu");
@@ -76,5 +76,5 @@ int main()
         nid[k] = i;
     }
   }
-  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_tri_surface");
+  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_quad_surface");
 }

@@ -15,7 +15,7 @@ MeshOptAlg
     + pmodel
 
 * NodePatchObjectFunctionBase
-    + value(p)   
+    + value(p)
     + operator() (p) 
     + gradient(p)
 

@@ -73,6 +73,7 @@ public:
   static int m_refine[3][6];
   static int m_index[12][4];
   static int m_vtkidx[4];
+  static int m_num[4][4];
 
 public:
 
@@ -829,6 +830,11 @@ int TetrahedronMesh<GK, Node, Vector>::m_index[12][4] = {
 
 template<typename GK, typename Node, typename Vector>
 int TetrahedronMesh<GK, Node, Vector>::m_vtkidx[4] = {0, 1, 2, 3};
+
+template<typename GK, typename Node, typename Vector>
+int TetrahedronMesh<GK, Node, Vector>::m_num[4][4] = {
+    {0, 1, 2, 3}, {1, 0, 3, 2}, {2, 0, 1, 3}, {3, 0, 2, 1}
+};
 
 } // end of namespace Mesh 
 
