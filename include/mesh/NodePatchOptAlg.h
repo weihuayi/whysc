@@ -1,3 +1,6 @@
+#ifndef NodePatchOptAlg_h
+#define NodePatchOptAlg_h
+
 #include <memory>
 #include <vector>
 #include <algorithm>
@@ -9,8 +12,8 @@ namespace WHYSC {
 namespace Mesh {
 
 
-template<typename Mesh, typename ObjectionFunction, typename Model>
-class PatchOptimization
+template<typename Mesh, typename ObjectFunction, typename Model>
+class NodePatchOptAlg
 {
 public:
   typedef typename Mesh::Node Node;
@@ -18,15 +21,13 @@ public:
   typedef typename Mesh::Toplogy Toplogy;
 
 public:
-  PatchOptimization(std::shared_ptr<Mesh> mesh, std::shared_ptr<Model> model):
-    m_mesh(mesh), m_model(model), m_objfun(std::make_shared<ObjectionFunction>(mesh))
+  NodePatchOptAlg(std::shared_ptr<Mesh> mesh, std::shared_ptr<Model> model):
+    m_mesh(mesh), m_model(model), m_objfun(std::make_shared<ObjectFunction>(mesh))
   {}
 
   void optimization(int i)
   {
-    Vector move;
-    
-    computerMoveVector(i, move);
+    auto move = computerMoveVector(i);
 
     auto & node = m_mesh->node(i);
     node = node + move;
@@ -47,40 +48,18 @@ public:
     }
   }
 
-  template<typename Patch>
-  void bar_optimization(int i, Vector & move, Patch & patch)//点周围单元的重心作为点位置
+  Vector computerMoveVector(int i)//给每个点一个方向, 求这个方向上质量的最小值
   {
-    int GD = m_mesh->geo_dimension();
-    for(int j = 0; j < GD; j++)
-      move[j] = -m_mesh->node(i)[j];
-
-    int NP = patch.number_of_adj_entities(i);
-    for(int k = 0; k < NP; k++)
-    {
-      Node tmpNode;
-      m_mesh->cell_barycenter(patch.adj_entity(k), tmpNode);
-      for(int j = 0; j < GD; j++)
-      {
-        move[j] += tmpNode[j]/NP;
-      }
-    }
-  }
-
-  void computerMoveVector(int i, Vector & move)//给每个点一个方向, 求这个方向上质量的最小值
-  {
-    Vector v;
-    m_objfun->get_grad_value(i, v);
-    auto tmpNode = m_mesh->node(i);
+    m_objfun->set_patch(i); //设置当前 patch
+    auto v = m_objfun->gradient();
 
     double a = 0;
     double b = 1;
     double c = a + (1 - 0.618)*(b-a);
     double d = a + 0.618*(b-a);
 
-    m_mesh->node(i) = tmpNode + c*v;
-    double Qc = m_objfun->get_value(i);
-    m_mesh->node(i) = tmpNode + d*v;
-    double Qd = m_objfun->get_value(i);
+    double Qc = m_objfun->value(m_mesh->node(i)+c*v);
+    double Qd = m_objfun->value(m_mesh->node(i)+d*v);
 
     while(abs(Qc-Qd)>0.0001)// 0.618法
     {
@@ -90,8 +69,7 @@ public:
         c = d;
         d = a + 0.618*(b-a);
         Qc = Qd;
-        m_mesh->node(i) = tmpNode + d*v;
-        Qd = m_objfun->get_value(i);
+        Qd = m_objfun->value(m_mesh->node(i)+d*v);
       }
       else
       {
@@ -99,12 +77,12 @@ public:
         d = c;
         c = a + (1 - 0.618)*(b-a);
         Qd = Qc;
-        m_mesh->node(i) = tmpNode + c*v;
-        Qc = m_objfun->get_value(i);
+        Qc = m_objfun->value(m_mesh->node(i)+c*v);
       }
     }
-    move = c*v;
-    m_mesh->node(i) = tmpNode;
+    if(m_mesh->id()==1)
+      std::cout<<m_objfun->value(m_mesh->node(i)) <<  " " << m_objfun->value(m_mesh->node(i)+c*v) <<std::endl;
+    return c*v;
   }
 
   template<typename Patch>
@@ -137,9 +115,10 @@ public:
 private:
   std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<Model> m_model;
-  std::shared_ptr<ObjectionFunction> m_objfun;
+  std::shared_ptr<ObjectFunction> m_objfun;
 };
 
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
+#endif // end of NodePatchOptAlg_h

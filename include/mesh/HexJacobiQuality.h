@@ -1,12 +1,12 @@
 #ifndef HexJacobiQualityFunction_h
 #define HexJacobiQualityFunction_h
 
-#include <algorithm>
 #include <vector>
 #include <array>
 #include <map>
 #include <memory>
 #include <math.h>
+#include <algorithm>
 
 #include "BaseObjectFunction.h"
 

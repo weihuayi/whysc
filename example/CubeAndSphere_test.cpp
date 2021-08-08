@@ -16,9 +16,9 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
-typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
-//typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
+//typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
+//typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
 typedef WHYSC::Mesh::GMesher<GK, PMesh, Model> GMesher;
@@ -30,7 +30,7 @@ int main()
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
-  mesher.mesher3d(0.1, "hex");
+  mesher.mesher3d(0.04);
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};

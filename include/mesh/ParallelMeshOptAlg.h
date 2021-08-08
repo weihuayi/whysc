@@ -1,8 +1,12 @@
+#ifndef ParallelMeshOptAlg_h
+#define ParallelMeshOptAlg_h
+
 #include <memory>
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
-#include "PatchOptimization.h"
+
+#include "NodePatchOptAlg.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -10,24 +14,22 @@ namespace Mesh {
 template<typename PMesh>
 class GhostFillingAlg;
 
-template<typename PMesh, typename ObjectionFunction, typename Model>
-class ParallelMeshOptimization
+template<typename PMesh, typename ObjectFunction, typename Model>
+class ParallelMeshOptAlg
 {
 public:
   typedef typename PMesh::Node Node;
   typedef typename PMesh::NodeArray NodeArray;
   typedef typename PMesh::Toplogy Toplogy;
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
-  typedef PatchOptimization<PMesh, ObjectionFunction, Model> PatchOpt;
+  typedef NodePatchOptAlg<PMesh, ObjectFunction, Model> PatchOpt;
 
 public:
-  ParallelMeshOptimization(std::shared_ptr<PMesh> mesh, 
-      std::shared_ptr<Model> model, MPI_Comm comm)
+  ParallelMeshOptAlg(std::shared_ptr<PMesh> mesh, std::shared_ptr<Model> model, 
+      MPI_Comm comm): m_comm(comm), m_mesh(mesh)
   {
-    m_comm = comm;
-    m_mesh = mesh;
     m_set_ghost_alg = std::make_shared<SetGhostAlg>(mesh, comm);
-    m_patch_opt_alg = std::make_shared<PatchOpt>(mesh, model);
+    m_node_patch_opt_alg = std::make_shared<PatchOpt>(mesh, model);
   }
 
   void mesh_optimization()
@@ -49,7 +51,7 @@ public:
       {
         if((color[j] == i) & (gdof[j] > 0) & (!isghostnode[j]))//只优化当前颜色自由度大于0, 且是本网格的点
         {
-          m_patch_opt_alg->optimization(j);//优化节点
+          m_node_patch_opt_alg->optimization(j);//优化节点
         }
       }
       m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
@@ -61,9 +63,10 @@ private:
   NodeArray m_node;
   std::shared_ptr<PMesh> m_mesh;
   std::shared_ptr<GhostFillingAlg<PMesh> > m_set_ghost_alg;
-  std::shared_ptr<PatchOpt> m_patch_opt_alg;
+  std::shared_ptr<PatchOpt> m_node_patch_opt_alg;
 };
 
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
+#endif // end of ParallelMeshOptAlg_h
