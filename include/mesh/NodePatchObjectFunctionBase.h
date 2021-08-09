@@ -28,12 +28,12 @@ public:
   NodePatchObjectFunctionBase(std::shared_ptr<Mesh> mesh):m_mesh(mesh)
   {
     mesh->node_to_cell(m_n2c);
-    m_cell_quality = std::make_shared<CellQuality>();
+    m_cell_quality = std::make_shared<CellQuality>(mesh);
   }
 
-  virtual double value(Node) = 0; 
+  virtual double value(Vector) = 0; 
   /* 
-   * 计算当 m_patch 中心为 node 时, patch 的质量
+   * 计算当 m_patch 中心为 node + Vector时, patch 的质量
    */
 
   virtual Vector gradient() = 0; 
@@ -43,8 +43,11 @@ public:
 
   void set_patch(int i) //设置要计算的 patch
   {
+    m_node = m_mesh->node(i);
     m_patch = m_n2c.adj_entities_with_local(i);
   }
+
+  Node & get_node() {return m_node;}
 
   Patch & get_patch() {return m_patch;}
 
@@ -82,6 +85,7 @@ public:
   }
 
 private:
+  Node m_node;
   Patch m_patch;
   Toplogy m_n2c;
   std::shared_ptr<Mesh> m_mesh;

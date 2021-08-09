@@ -25,9 +25,9 @@ public:
   SumNodePatchObjectFunction(const std::shared_ptr<Mesh> mesh):
     NodePatchObjectFunctionBase<Mesh, CellQuality>(mesh){}
 
-  double value(Node); 
+  double value(Vector); 
   /* 
-   * 计算当 m_patch 中心为 node 时, patch 的质量
+   * 计算当 m_patch 中心为 node + Vector时, patch 的质量
    */
 
   Vector gradient(); 
@@ -38,28 +38,22 @@ public:
 
 
 template<typename Mesh, typename CellQuality>
-inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Node node)
+inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Vector v)
 {
   auto mesh = this->get_mesh();
   auto & patch = this->get_patch();
+  auto pid = patch.id();
   auto cell_quality = this->get_cell_quality();
-  int NNC = mesh->number_of_nodes_of_each_cell();
 
-  std::vector<const Node* > nodeArray(NNC);
-  nodeArray[0] = &node;
+  mesh->node(pid) = mesh->node(pid) + v;
 
   double q = 0;
   int N = patch.number_of_adj_entities();
   for(int i = 0; i < N; i++)
   {
-    auto & cell = mesh->cell(patch.adj_entity(i));
-    auto & idx = mesh->m_num[patch.adj_local_index(i)];
-    for(int j = 1; j < NNC; j++)
-    {
-      nodeArray[j] = &(mesh->node(cell[idx[j]]));
-    }
-    q += cell_quality->quality(nodeArray); 
+    q += cell_quality->quality(patch.adj_entity(i)); 
   }
+  mesh->node(pid) = this->get_node();
   return q;
 }
 
@@ -69,21 +63,13 @@ inline typename Mesh::Vector SumNodePatchObjectFunction<Mesh, CellQuality>::grad
   auto mesh = this->get_mesh();
   auto cell_quality = this->get_cell_quality();
   auto & patch = this->get_patch();
-  int NNC = mesh->number_of_nodes_of_each_cell();
 
   Vector v = {0};
-  std::vector<const Node* > nodeArray(NNC);
 
   int NP = patch.number_of_adj_entities();
   for(int i = 0; i < NP; i++)
   {
-    auto & cell = mesh->cell(patch.adj_entity(i));
-    auto & idx = mesh->m_num[patch.adj_local_index(i)];
-    for(int j = 0; j < NNC; j++)
-    {
-      nodeArray[j] = &(mesh->node(cell[idx[j]]));
-    }
-    v = v + cell_quality->nabla(nodeArray); 
+    v = v + cell_quality->gradient(patch.adj_entity(i), patch.adj_local_index(i)); 
   }
   auto w = this->min_len()/3;
   v = w*v/std::sqrt(v.squared_length());

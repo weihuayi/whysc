@@ -15,7 +15,6 @@
 #include "mesh/VTKMeshReader.h"
 #include "mesh/VTKMeshWriter.h"
 #include "mesh/GhostFillingAlg.h"
-#include "mesh/ParallelMeshColoringAlg.h"
 #include "mesh/ParallelMeshOptAlg.h"
 #include "mesh/TetRadiusRatioQuality.h"
 #include "mesh/SumNodePatchObjectFunction.h"
@@ -31,7 +30,6 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> CellQuality;
 typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
-typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
 typedef WHYSC::Mesh::ParallelMeshOptAlg<PMesh, ObjectFunction, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
@@ -90,38 +88,17 @@ int main(int argc, char * argv[])
   auto NC = mesh->number_of_cells();
   std::vector<double> cellQualityInit(NC);
   std::vector<double> cellQualityOpt(NC);
-  CellQuality mq;
-  for(int i = 0; i < NC; i++)
-  {
-    std::vector<const Node*> tcell(4);
-    for(int j = 0; j < 4; j++)
-    {
-      tcell[j] = &(mesh->node(mesh->cell(i)[j]));
-    }
-    cellQualityInit[i] = 1/mq.quality(tcell);
-  }
+  CellQuality mq(mesh);
+  mq.quality_of_mesh(cellQualityInit);
 
   std::cout<< "开始染色..." <<std::endl;
-  PCA colorAlg(mesh, MPI_COMM_WORLD);
-  colorAlg.coloring();//染色
-  colorAlg.color_test();//染色测试
-
   PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
   for(int i = 0; i < 10; i++)
   {
     std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
-    optAlg.mesh_optimization();//优化
+    optAlg.optimization();//优化
   }
-
-  for(int i = 0; i < NC; i++)
-  {
-    std::vector<const Node*> tcell(4);
-    for(int j = 0; j < 4; j++)
-    {
-      tcell[j] = &(mesh->node(mesh->cell(i)[j]));
-    }
-    cellQualityOpt[i] = 1/mq.quality(tcell);
-  }
+  mq.quality_of_mesh(cellQualityOpt);
 
   if(mesh->id() == 1)
   {

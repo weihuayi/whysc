@@ -26,24 +26,31 @@ public:
   typedef typename TMesh::Vector Vector;
 
 public:
-  double quality(const std::vector<const Node*> & vertex);
+  TetRadiusRatioQuality(std::shared_ptr<TMesh> mesh):CellQualityBase<TMesh>(mesh){}
+
+  double quality(int i);
   /*
-   * 以 `vertex` 为顶点的单元的质量
+   * 网格第 i 个单元的质量
    */
 
-  Vector nabla(const std::vector<const Node*> & vertex);
+
+  Vector gradient(int c, int i);
   /*
-   * 以 `vertex` 为顶点的单元的质量对第 0 个顶点的梯度
+   * 网格第 c 个单元的质量关于这个单元的第 i 个点的梯度
    */
 
 };
 
 template<typename TMesh>
-inline double TetRadiusRatioQuality<TMesh>::quality(const std::vector<const Node*> & vertex)
+inline double TetRadiusRatioQuality<TMesh>::quality(int i)
 {
-  auto v1 = *(vertex[1]) - *(vertex[0]);
-  auto v2 = *(vertex[2]) - *(vertex[0]);
-  auto v3 = *(vertex[3]) - *(vertex[0]);
+  auto mesh = this->get_mesh();
+  auto & cell = mesh->cells();
+  auto & node = mesh->nodes();
+
+  auto v1 = node[cell[i][1]] - node[cell[i][0]];
+  auto v2 = node[cell[i][2]] - node[cell[i][0]];
+  auto v3 = node[cell[i][3]] - node[cell[i][0]];
 
   auto L1 = v1.squared_length();
   auto L2 = v2.squared_length();
@@ -64,11 +71,24 @@ inline double TetRadiusRatioQuality<TMesh>::quality(const std::vector<const Node
 }
 
 template<typename TMesh>
-inline typename TMesh::Vector TetRadiusRatioQuality<TMesh>::nabla(const std::vector<const Node*> & vertex)
+inline typename TMesh::Vector TetRadiusRatioQuality<TMesh>::gradient(int c, int i)
 {
-  auto v1 = *(vertex[1]) - *(vertex[0]);
-  auto v2 = *(vertex[2]) - *(vertex[0]);
-  auto v3 = *(vertex[3]) - *(vertex[0]);
+  auto mesh = this->get_mesh();
+  auto & index = TMesh::m_localface;
+  auto & node = mesh->nodes();
+  auto & cell = mesh->cell(c);
+
+  //四个顶点, n1, n2, n3 是逆时针
+  auto n0 = cell[i];
+  auto n1 = cell[index[i][0]];
+  auto n2 = cell[index[i][1]];
+  auto n3 = cell[index[i][2]];
+
+  //除去底面外的三条边的向量
+  auto v1 = node[n1] - node[n0];
+  auto v2 = node[n2] - node[n0];
+  auto v3 = node[n3] - node[n0];
+
 
   //三条边的长度
   auto L1 = v1.squared_length();

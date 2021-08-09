@@ -7,6 +7,9 @@
 #include <mpi.h>
 #include <math.h>
 #include <numeric>
+#include <functional>
+
+#include "OptimizationAlg.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -27,14 +30,28 @@ public:
 
   void optimization(int i)
   {
-    auto move = computerMoveVector(i);
-
     auto & node = m_mesh->node(i);
-    node = node + move;
-    project(i, node);
+    preprocess(i, node);
+    node = node + m_move;
+    proprocess(i, node);
   }
 
-  void project(int i, Node & node)
+  void preprocess(int i, const Node & node)
+  {
+    m_move = computerMoveVector(i);
+    auto tag = m_mesh->get_node_int_data()["gtag"][i];
+    auto dof = m_mesh->get_node_int_data()["gdof"][i];
+    if(dof==2)
+    {
+      m_model->project_vector_to_face(tag, node, m_move);
+    }
+    else if(dof==1)
+    {
+      m_model->project_vector_to_edge(tag, node, m_move);
+    }
+  }
+
+  void proprocess(int i, Node & node)
   {
     auto tag = m_mesh->get_node_int_data()["gtag"][i];
     auto dof = m_mesh->get_node_int_data()["gdof"][i];
@@ -52,7 +69,11 @@ public:
   {
     m_objfun->set_patch(i); //设置当前 patch
     auto v = m_objfun->gradient();
-
+    std::function<double(double)> F = [this, v](double k){return m_objfun->value(k*v);}; 
+    auto k = OptimizationAlg::line_search(F);
+    return k*v;
+  }
+    /*
     double a = 0;
     double b = 1;
     double c = a + (1 - 0.618)*(b-a);
@@ -80,10 +101,9 @@ public:
         Qc = m_objfun->value(m_mesh->node(i)+c*v);
       }
     }
-    if(m_mesh->id()==1)
-      std::cout<<m_objfun->value(m_mesh->node(i)) <<  " " << m_objfun->value(m_mesh->node(i)+c*v) <<std::endl;
     return c*v;
   }
+  */
 
   template<typename Patch>
   double min_len(Patch & patch)
@@ -113,6 +133,7 @@ public:
   }
   
 private:
+  Vector m_move;
   std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<Model> m_model;
   std::shared_ptr<ObjectFunction> m_objfun;
