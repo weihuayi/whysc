@@ -1,16 +1,16 @@
+#ifndef ParallelMeshColoringAlg_h
+#define ParallelMeshColoringAlg_h
+
 #include <memory>
 #include <iostream>
 #include <vector>
 #include <mpi.h>
 #include <list>
 
-//#include "GhostFillingAlg.h"
+#include "GhostFillingAlg.h"
 
 namespace WHYSC {
 namespace Mesh {
-
-template<typename PMesh>
-class GhostFillingAlg;
 
 template<typename PMesh>
 class ParallelMeshColoringAlg
@@ -20,26 +20,22 @@ public:
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
 
 public:
-  ParallelMeshColoringAlg(std::shared_ptr<PMesh> mesh, MPI_Comm comm)
-  {
-    m_mesh = mesh;
-    m_set_ghost_alg = std::make_shared<SetGhostAlg>(mesh, comm);
-    m_comm = comm;
-  }
+  ParallelMeshColoringAlg(std::shared_ptr<PMesh> mesh, 
+      std::shared_ptr<SetGhostAlg> set_ghost_alg, MPI_Comm comm):
+    m_mesh(mesh), m_comm(comm), m_set_ghost_alg(set_ghost_alg) {}
 
-  int coloring()
+  int coloring(bool test = false)
   {
     auto mesh = get_mesh();
     auto NN = mesh->number_of_nodes();
     auto NE = mesh->number_of_edges();
-    auto & color = mesh->get_node_int_data()["color"];
-    color.resize(NN);
 
     auto & isGhostNode = m_set_ghost_alg->get_ghost_node();
 
     std::vector<int> randVal(NN);
     std::vector<bool> isMin(NN, true);
 
+    std::vector<int> color(NN);
     std::list<int> edges; //没有被删除的边
     std::list<int> nColored; //没有被染色的点
 
@@ -57,6 +53,8 @@ public:
     while(tnum > 0)
     {
       cmax++;
+      m_color2node.push_back({});
+
       bool isMin[NN];
       for(auto idx: nColored) // 只对没有染色的点进行循环
       {
@@ -94,6 +92,7 @@ public:
         if(isMin[*it])
         {
           color[*it] = cmax;
+          m_color2node.back().push_back(*it);
           it = nColored.erase(it);
         }
         else
@@ -107,16 +106,16 @@ public:
       int lnum = nColored.size();
       MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     }
-    //return cmax;
+    if(test)
+      color_test(color);
     return 0;
   }
 
-  void color_test()
+  void color_test(std::vector<int> & color)
   {
     //检验染色是否成功
     int a=0;
     auto mesh = get_mesh();
-    auto & color = mesh->get_node_int_data()["color"];
     int NC = mesh->number_of_cells();
     int NE = mesh->number_of_edges();
     int NN = mesh->number_of_nodes();
@@ -146,6 +145,10 @@ public:
     }
   }
 
+  std::vector<std::list<int> > & get_color_to_node()
+  {
+    return m_color2node;
+  }
 
   std::shared_ptr<PMesh> get_mesh()
   {
@@ -154,11 +157,13 @@ public:
 
 private:
   MPI_Comm m_comm;
-  std::shared_ptr<GhostFillingAlg<PMesh> >  m_set_ghost_alg;
   std::shared_ptr<PMesh> m_mesh;
+  std::vector<std::list<int> > m_color2node;
+  std::shared_ptr<SetGhostAlg>  m_set_ghost_alg;
 };
 
 
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
+#endif // end of ParallelMeshColoringAlg_h
