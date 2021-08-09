@@ -31,6 +31,7 @@ public:
   void optimization(int i)
   {
     auto & node = m_mesh->node(i);
+    m_move = computerMoveVector(i);
     preprocess(i, node);
     node = node + m_move;
     proprocess(i, node);
@@ -38,7 +39,6 @@ public:
 
   void preprocess(int i, const Node & node)
   {
-    m_move = computerMoveVector(i);
     auto tag = m_mesh->get_node_int_data()["gtag"][i];
     auto dof = m_mesh->get_node_int_data()["gdof"][i];
     if(dof==2)

@@ -34,7 +34,7 @@ public:
     q.resize(NC);
     for(int i = 0; i < NC; i++)
     {
-      q[i] = 1/quality(i);
+      q[i] = quality(i);
     }
   }
 

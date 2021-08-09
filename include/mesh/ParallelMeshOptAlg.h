@@ -43,13 +43,14 @@ public:
     auto & gdof = m_mesh->get_node_int_data()["gdof"];
     auto & color2node = m_coloring_alg->get_color_to_node();
 
-    for(auto & node : color2node)//循环所有的颜色
+    for(auto & idxs : color2node)//循环所有的颜色
     {
-      for(auto & n : node)//循环所有的点
+      for(auto & i : idxs)//循环所有的点
       {
-        if(gdof[n] > 0)//只优化当前颜色自由度大于0, 且是本网格的点
+        if(gdof[i] > 0)//只优化当前颜色自由度大于0, 且是本网格的点
         {
-          m_node_patch_opt_alg->optimization(n);//优化节点
+
+          m_node_patch_opt_alg->optimization(i);//优化节点
         }
       }
       m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
@@ -58,7 +59,6 @@ public:
 
 private:
   MPI_Comm m_comm;
-  NodeArray m_node;
   std::shared_ptr<PMesh> m_mesh;
   std::shared_ptr<SetGhostAlg> m_set_ghost_alg;
   std::shared_ptr<PMeshColoring> m_coloring_alg;
