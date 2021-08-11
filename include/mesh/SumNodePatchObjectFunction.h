@@ -24,27 +24,27 @@ public:
 public:
   using NodePatchObjectFunctionBase<Mesh, CellQuality>::NodePatchObjectFunctionBase;
 
-  double value(Vector); 
   /* 
    * 计算当 m_patch 中心为 node + Vector时, patch 的质量
    */
+  double value(Node); 
 
-  Vector gradient(); 
   /*
    * 计算当前 patch 的质量关于 patch 中心节点的梯度.
    */
+  Vector gradient(); 
 };
 
 
 template<typename Mesh, typename CellQuality>
-inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Vector v)
+inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Node n)
 {
   auto mesh = this->get_mesh();
   auto patch = this->get_patch();
   auto pid = patch->id();
   auto cell_quality = this->get_cell_quality();
 
-  mesh->node(pid) = mesh->node(pid) + v;
+  mesh->node(pid) = n;
 
   double q = 0;
   int N = patch->number_of_adj_entities();

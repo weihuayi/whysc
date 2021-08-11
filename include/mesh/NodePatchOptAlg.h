@@ -34,12 +34,12 @@ public:
     auto v = -1.0*objfun.gradient();
     preprocess(i, node, v);
 
-    std::function<double(double)> F = [&objfun, v](double k){return objfun.value(k*v);}; 
-    auto k = OptimizationAlg::line_search(F);
+    std::function<double(double)> F = [&objfun, v](double alpha){return objfun.value(node + alpha*v);}; 
+    auto alpha = OptimizationAlg::line_search(F);
 
-    node = node + k*v;
+    node = node + alpha*v;
     proprocess(i, node);
-    return k*std::sqrt(v.squared_length()); 
+    return alpha*std::sqrt(v.squared_length()); 
   }
 
   void preprocess(int i, const Node & node, Vector & v)

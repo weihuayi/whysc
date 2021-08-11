@@ -33,15 +33,17 @@ public:
     m_cell_quality = std::make_shared<CellQuality>(mesh);
   }
 
-  virtual double value(Vector) = 0; 
   /* 
    * 计算当 m_patch 中心为 node + Vector时, patch 的质量
    */
+  virtual double value(Node) = 0; 
 
-  virtual Vector gradient() = 0; 
   /*
    * 计算当前 patch 的质量关于 patch 中心节点的梯度.
    */
+  virtual Vector gradient() = 0; 
+
+  virtual Vector direction() = 0;
 
   Node & get_node() {return m_node;}
 

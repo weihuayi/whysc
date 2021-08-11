@@ -20,7 +20,6 @@ class ParallelMeshOptAlg
 {
 public:
   typedef typename PMesh::Node Node;
-  typedef typename PMesh::NodeArray NodeArray;
   typedef typename PMesh::Toplogy Toplogy;
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
   typedef NodePatchOptAlg<PMesh, ObjectFunction, Model> PatchOpt;
@@ -36,10 +35,12 @@ public:
     m_coloring_alg->coloring(true);
   }
 
-  void optimization()
+  void optimization(double tol=1e-4, int maxit=100)
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
+
+    std::vector<double> ds(NN, 0.0);
 
     Toplogy node2cell;
     m_mesh->node_to_cell(node2cell);
@@ -54,8 +55,6 @@ public:
       std::cout<< "正在优化第 " << it << " 次" <<std::endl;
       it += 1;
 
-      double err = 0.0;
-      double all_err = 0.0;
       for(auto & idxs : color2node)//循环所有的颜色
       {
         for(auto & i : idxs)//循环所有的点
@@ -64,15 +63,17 @@ public:
           {
             auto patch = node2cell.adj_entities_with_local(i);
             ObjectFunction objfun(m_mesh, &patch);
-            double err0 = m_node_patch_opt_alg->optimization(objfun);//优化节点
-            if(err < err0){ err = err0;}
+            ds[i] = m_node_patch_opt_alg->optimization(objfun);//优化节点
           }
         }
         m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
       }
-      MPI_Allreduce(&err, &all_err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+      double l = *std::max_element(ds.begin(), ds.end());
+      double g = 0.0;
+      MPI_Allreduce(&l, &g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
       std::cout<< err <<std::endl;
-      if((all_err < 1e-4)||(it>50))
+      if((g < tol)||(it>maxit))
       {
         std::cout<< "优化完成!" <<std::endl;
         break;
