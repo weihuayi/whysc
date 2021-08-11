@@ -40,20 +40,43 @@ public:
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
+
+    Toplogy node2cell;
+    m_mesh->node_to_cell(node2cell);
+
     auto & gdof = m_mesh->get_node_int_data()["gdof"];
     auto & color2node = m_coloring_alg->get_color_to_node();
 
-    for(auto & idxs : color2node)//循环所有的颜色
+    int it = 1;
+    while(true)
     {
-      for(auto & i : idxs)//循环所有的点
-      {
-        if(gdof[i] > 0)//只优化当前颜色自由度大于0, 且是本网格的点
-        {
+      //优化
+      std::cout<< "正在优化第 " << it << " 次" <<std::endl;
+      it += 1;
 
-          m_node_patch_opt_alg->optimization(i);//优化节点
+      double err = 0.0;
+      double all_err = 0.0;
+      for(auto & idxs : color2node)//循环所有的颜色
+      {
+        for(auto & i : idxs)//循环所有的点
+        {
+          if(gdof[i] > 0)//只优化当前颜色自由度大于0, 且是本网格的点
+          {
+            auto patch = node2cell.adj_entities_with_local(i);
+            ObjectFunction objfun(m_mesh, &patch);
+            double err0 = m_node_patch_opt_alg->optimization(objfun);//优化节点
+            if(err < err0){ err = err0;}
+          }
         }
+        m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
       }
-      m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
+      MPI_Allreduce(&err, &all_err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+      std::cout<< err <<std::endl;
+      if((all_err < 1e-4)||(it>50))
+      {
+        std::cout<< "优化完成!" <<std::endl;
+        break;
+      }
     }
   }
 

@@ -18,6 +18,7 @@
 #include "mesh/ParallelMeshOptAlg.h"
 #include "mesh/TetRadiusRatioQuality.h"
 #include "mesh/SumNodePatchObjectFunction.h"
+#include "mesh/MaxNodePatchObjectFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
@@ -29,6 +30,7 @@ typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> CellQuality;
 typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
+//typedef WHYSC::Mesh::MaxNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshOptAlg<PMesh, ObjectFunction, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
@@ -91,13 +93,9 @@ int main(int argc, char * argv[])
   CellQuality mq(mesh);
   mq.quality_of_mesh(cellQualityInit);
 
-  std::cout<< "开始染色..." <<std::endl;
   PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
-  for(int i = 0; i < 10; i++)
-  {
-    std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
-    optAlg.optimization();//优化
-  }
+  optAlg.optimization();//优化
+
   mq.quality_of_mesh(cellQualityOpt);
 
   if(mesh->id() == 1)

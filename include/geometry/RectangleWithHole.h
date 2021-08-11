@@ -89,22 +89,28 @@ public:
     }
   }
 
-  void project_to_face(const int eid, Point & p)
-  {
-  }
+  void project_to_face(const int eid, Point & p) {}
 
-  void get_point_normal(const int fid, const Point p, Vector & n)
-  {
-    n[0] = 0;
-    n[1] = 0;
-    n[2] = 1;
-  }
+  void project_vector_to_face(const int fid, const Point p, Vector & v) {}
 
-  Vector get_point_normal(const int fid, const Point p)
+  void project_vector_to_edge(const int eid, const Point p, Vector & v) 
   {
-    return Vector(0, 0, 1);
+    if(eid<5)
+    {
+      auto & p0 = m_points[m_lines[eid][0]];
+      auto & p1 = m_points[m_lines[eid][1]];
+      Vector v0 = p1 - p0;
+      v = dot(v, v0)*v0/v0.squared_length();
+    }
+    else
+    {
+      int cirid = (eid-5)/4 + 5;
+      auto center = m_circles[cirid].center;
+      auto r = m_circles[cirid].radius;
+      auto v0 = p - center;
+      v = v - dot(v, v0)*v0/v0.squared_length();
+    }
   }
-
 
   std::map<int, Point> & get_points()
   {

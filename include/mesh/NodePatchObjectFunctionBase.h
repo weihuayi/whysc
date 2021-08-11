@@ -25,9 +25,11 @@ public:
   typedef typename Mesh::Toplogy::AdjEntitySetWithLoc Patch;
 
 public:
-  NodePatchObjectFunctionBase(std::shared_ptr<Mesh> mesh):m_mesh(mesh)
+  NodePatchObjectFunctionBase(std::shared_ptr<Mesh> mesh, 
+                              Patch * patch):
+    m_mesh(mesh), m_patch(patch)
   {
-    mesh->node_to_cell(m_n2c);
+    m_node = mesh->node(patch->id());
     m_cell_quality = std::make_shared<CellQuality>(mesh);
   }
 
@@ -41,15 +43,9 @@ public:
    * 计算当前 patch 的质量关于 patch 中心节点的梯度.
    */
 
-  void set_patch(int i) //设置要计算的 patch
-  {
-    m_node = m_mesh->node(i);
-    m_patch = m_n2c.adj_entities_with_local(i);
-  }
-
   Node & get_node() {return m_node;}
 
-  Patch & get_patch() {return m_patch;}
+  Patch * get_patch() {return m_patch;}
 
   std::shared_ptr<Mesh> get_mesh() {return m_mesh;}
 
@@ -63,15 +59,15 @@ public:
     auto & cell = mesh->cells();
     auto & node = mesh->nodes();
 
-    int NP = patch.number_of_adj_entities();
+    int NP = patch->number_of_adj_entities();
     int NNC = mesh->number_of_nodes_of_each_cell();
 
     double L = 100000.0;
 
     for(int i = 0; i < NP; i++)
     {
-      auto & cell = mesh->cell(patch.adj_entity(i));
-      auto j = patch.adj_local_index(i);
+      auto & cell = mesh->cell(patch->adj_entity(i));
+      auto j = patch->adj_local_index(i);
       auto & idx = mesh->m_num[j];
       for(int k = 1; k < NNC; k++)
       {
@@ -86,8 +82,7 @@ public:
 
 private:
   Node m_node;
-  Patch m_patch;
-  Toplogy m_n2c;
+  Patch * m_patch;
   std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<CellQuality> m_cell_quality;
 };

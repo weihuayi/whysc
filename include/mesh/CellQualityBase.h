@@ -15,7 +15,6 @@ public:
   typedef typename TMesh::Vector Vector;
 
 public:
-  // 计算第 i 个单元的质量
   CellQualityBase(std::shared_ptr<TMesh> mesh): m_mesh(mesh){} 
 
   virtual double quality(int i) = 0;

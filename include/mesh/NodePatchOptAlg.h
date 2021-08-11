@@ -25,30 +25,37 @@ public:
 
 public:
   NodePatchOptAlg(std::shared_ptr<Mesh> mesh, std::shared_ptr<Model> model):
-    m_mesh(mesh), m_model(model), m_objfun(std::make_shared<ObjectFunction>(mesh))
-  {}
+    m_mesh(mesh), m_model(model){}
 
-  void optimization(int i)
+  double optimization(ObjectFunction & objfun)
   {
+    int i = objfun.get_patch()->id();
     auto & node = m_mesh->node(i);
-    m_move = computerMoveVector(i);
-    preprocess(i, node);
-    node = node + m_move;
+    auto v = -1.0*objfun.gradient();
+    preprocess(i, node, v);
+
+    std::function<double(double)> F = [&objfun, v](double k){return objfun.value(k*v);}; 
+    auto k = OptimizationAlg::line_search(F);
+
+    node = node + k*v;
     proprocess(i, node);
+    return k*std::sqrt(v.squared_length()); 
   }
 
-  void preprocess(int i, const Node & node)
+  void preprocess(int i, const Node & node, Vector & v)
   {
+    auto l = std::sqrt(v.squared_length());
     auto tag = m_mesh->get_node_int_data()["gtag"][i];
     auto dof = m_mesh->get_node_int_data()["gdof"][i];
     if(dof==2)
     {
-      m_model->project_vector_to_face(tag, node, m_move);
+      m_model->project_vector_to_face(tag, node, v);
     }
     else if(dof==1)
     {
-      m_model->project_vector_to_edge(tag, node, m_move);
+      m_model->project_vector_to_edge(tag, node, v);
     }
+    v = l*v/std::sqrt(v.squared_length());
   }
 
   void proprocess(int i, Node & node)
@@ -65,78 +72,9 @@ public:
     }
   }
 
-  Vector computerMoveVector(int i)//给每个点一个方向, 求这个方向上质量的最小值
-  {
-    m_objfun->set_patch(i); //设置当前 patch
-    auto v = m_objfun->gradient();
-    std::function<double(double)> F = [this, v](double k){return m_objfun->value(k*v);}; 
-    auto k = OptimizationAlg::line_search(F);
-    return k*v;
-  }
-    /*
-    double a = 0;
-    double b = 1;
-    double c = a + (1 - 0.618)*(b-a);
-    double d = a + 0.618*(b-a);
-
-    double Qc = m_objfun->value(m_mesh->node(i)+c*v);
-    double Qd = m_objfun->value(m_mesh->node(i)+d*v);
-
-    while(abs(Qc-Qd)>0.0001)// 0.618法
-    {
-      if(Qc > Qd)
-      {
-        a = c;
-        c = d;
-        d = a + 0.618*(b-a);
-        Qc = Qd;
-        Qd = m_objfun->value(m_mesh->node(i)+d*v);
-      }
-      else
-      {
-        b = d;
-        d = c;
-        c = a + (1 - 0.618)*(b-a);
-        Qd = Qc;
-        Qc = m_objfun->value(m_mesh->node(i)+c*v);
-      }
-    }
-    return c*v;
-  }
-  */
-
-  template<typename Patch>
-  double min_len(Patch & patch)
-  {
-    auto & cell = m_mesh->cells();
-    auto & node = m_mesh->nodes();
-    int NP = patch.number_of_adj_entities();
-    double L = 100000.0;
-
-    for(int i = 0; i < NP; i++)
-    {
-      auto & cell = m_mesh->cell(patch.adj_entity(i));
-      auto j = patch.adj_local_index(i);
-      auto current = cell[j];
-
-      auto v1 = node[cell[(j+1)%4]] - node[current];
-      double L1 = std::sqrt(v1.squared_length());
-      if(L>L1)
-        L=L1;
-    }
-    return L;
-  }
-
-  std::shared_ptr<Mesh> get_mesh()
-  {
-    return m_mesh;
-  }
-  
 private:
-  Vector m_move;
   std::shared_ptr<Mesh> m_mesh;
   std::shared_ptr<Model> m_model;
-  std::shared_ptr<ObjectFunction> m_objfun;
 };
 
 } // end of namespace Mesh
