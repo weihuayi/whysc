@@ -60,6 +60,10 @@ public:
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;
 
+  static int m_localedge[3][2];
+  static int m_localface[3][2];
+  static int m_vtkidx[3];
+  static int m_num[3][3];
 
 public:
   TriangleMesh()
@@ -603,9 +607,6 @@ private:
   }
 
 private:
-  static int m_localedge[3][2];
-  static int m_localface[3][2];
-  static int m_vtkidx[3];
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
   std::vector<Node> m_node;
@@ -630,6 +631,11 @@ int TriangleMesh<GK, NODE, VECTOR>::m_localface[3][2] = {
 
 template<typename GK, typename NODE, typename VECTOR>
 int TriangleMesh<GK, NODE, VECTOR>::m_vtkidx[3] = {0, 1, 2};
+
+template<typename GK, typename NODE, typename VECTOR>
+int TriangleMesh<GK, NODE, VECTOR>::m_num[3][3] = {
+  {0, 1, 2}, {1, 2, 0}, {2, 0, 1}
+};
 
 } // end of namespace Mesh 
 

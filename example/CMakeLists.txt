@@ -69,6 +69,13 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(TriRadiusRatioQuality_test TriRadiusRatioQuality_test.cpp)
+    target_link_libraries(TriRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS TriRadiusRatioQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
     #add_executable(TetRadiusRatioQuality_test TetRadiusRatioQuality_test.cpp)
     #target_link_libraries(TetRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
     #vtk_module_autoinit(
@@ -181,19 +188,19 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    #add_executable(parallel_quadmesh_optimization parallel_quadmesh_optimization.cpp)
-    #target_link_libraries(parallel_quadmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
-    #vtk_module_autoinit(
-    #    TARGETS parallel_quadmesh_optimization 
-    #    MODULES ${VTK_LIBRARIES}
-    #)
+    add_executable(parallel_quadmesh_optimization parallel_quadmesh_optimization.cpp)
+    target_link_libraries(parallel_quadmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_quadmesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
 
-    #add_executable(parallel_trimesh_optimization parallel_trimesh_optimization.cpp)
-    #target_link_libraries(parallel_trimesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
-    #vtk_module_autoinit(
-    #    TARGETS parallel_trimesh_optimization 
-    #    MODULES ${VTK_LIBRARIES}
-    #)
+    add_executable(parallel_trimesh_optimization parallel_trimesh_optimization.cpp)
+    target_link_libraries(parallel_trimesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_trimesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     #add_executable(parallel_optimization parallel_optimization.cpp)
     #target_link_libraries(parallel_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})

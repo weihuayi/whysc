@@ -15,6 +15,7 @@
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
+
 typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
 typedef WHYSC::Mesh::VTKMeshWriter<QMesh> Writer;

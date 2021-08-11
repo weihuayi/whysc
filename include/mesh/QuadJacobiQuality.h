@@ -25,26 +25,35 @@ public:
   typedef typename QMesh::Vector Vector;
 
 public:
-  double quality(const std::vector<const Node*> & vertex);
+  using CellQualityBase<QMesh>::CellQualityBase;
+
+  double quality(int i);
   /*
-   * 以 `vertex` 为顶点的单元的质量
+   * 网格第 i 个单元的质量
    */
 
-  Vector nabla(const std::vector<const Node*> & vertex);
+  Vector gradient(int c, int i);
   /*
-   * 以 `vertex` 为顶点的单元的质量对第 0 个顶点的梯度
+   * 网格第 c 个单元的质量关于这个单元的第 i 个点的梯度
    */
 
 };
 
+
 template<typename QMesh>
-inline double QuadJacobiQuality<QMesh>::quality(const std::vector<const Node*> & vertex)
+inline double QuadJacobiQuality<QMesh>::quality(int i)
   {
+    auto mesh = this->get_mesh();
+    auto & cell = mesh->cells();
+    auto & node = mesh->nodes();
     double q = 0;
+
     for(int j = 0; j < 4; j++)
     {
-      auto v1 = *(vertex[(j+1)%4]) - *(vertex[j]);
-      auto v2 = *(vertex[(j+3)%4]) - *(vertex[j]);
+      auto current = cell[i][j];
+
+      auto v1 = node[cell[i][(j+1)%4]] - node[current];
+      auto v2 = node[cell[i][(j+3)%4]] - node[current];
 
       auto L1 = v1.squared_length();
       auto L2 = v2.squared_length();
@@ -53,16 +62,27 @@ inline double QuadJacobiQuality<QMesh>::quality(const std::vector<const Node*> &
       auto mu = 2.0*J/(L1+L2);
       q += std::pow(mu-2.0, 4);
     }
-    return q;
+    return q/4.0;
   }
 
 template<typename QMesh>
-inline typename QMesh::Vector QuadJacobiQuality<QMesh>::nabla(const std::vector<const Node*> & vertex)
+inline typename QMesh::Vector QuadJacobiQuality<QMesh>::gradient(int c, int i)
   {
-    auto v01 = *vertex[1] - *vertex[0];
-    auto v12 = *vertex[2] - *vertex[1];
-    auto v23 = *vertex[3] - *vertex[2];
-    auto v30 = *vertex[0] - *vertex[3];
+    auto mesh = this->get_mesh();
+    auto & node = mesh->nodes();
+    auto & cell = mesh->cell(c);
+
+    //四个顶点, n1, n2, n3 是逆时针
+    auto p0 = cell[i];
+    auto p1 = cell[(i+1)%4];
+    auto p2 = cell[(i+2)%4];
+    auto p3 = cell[(i+3)%4];
+
+    auto v01 = node[p1] - node[p0];
+    auto v12 = node[p2] - node[p1];
+    auto v23 = node[p3] - node[p2];
+    auto v30 = node[p0] - node[p3];
+
 
     //三条边的长度
     auto L1 = v01.squared_length();
@@ -100,7 +120,7 @@ inline typename QMesh::Vector QuadJacobiQuality<QMesh>::nabla(const std::vector<
     nabla_q = (2.0/(d*d))*(d*nabla_J - J*nabla_d);
     auto nabla_mu3 = 4.0*std::pow(q-2, 3)*nabla_q;
 
-    return -(nabla_mu0 + nabla_mu1 + nabla_mu3);
+    return nabla_mu0 + nabla_mu1 + nabla_mu3;
   }
 
 } // end of namespace Mesh

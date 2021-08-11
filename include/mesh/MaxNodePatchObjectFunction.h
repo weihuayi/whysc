@@ -1,5 +1,5 @@
-#ifndef SumNodePatchObjectFunction_h
-#define SumNodePatchObjectFunction_h
+#ifndef MaxNodePatchObjectFunction_h
+#define MaxNodePatchObjectFunction_h
 
 /*
  * 文件: 优化过程中函数对象的基类
@@ -15,7 +15,7 @@ namespace WHYSC{
 namespace Mesh{
 
 template<typename Mesh, typename CellQuality>
-class SumNodePatchObjectFunction: public NodePatchObjectFunctionBase<Mesh, CellQuality>
+class MaxNodePatchObjectFunction: public NodePatchObjectFunctionBase<Mesh, CellQuality>
 {
 public:
   typedef typename Mesh::Node Node;
@@ -37,7 +37,7 @@ public:
 
 
 template<typename Mesh, typename CellQuality>
-inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Vector v)
+inline double MaxNodePatchObjectFunction<Mesh, CellQuality>::value(Vector v)
 {
   auto mesh = this->get_mesh();
   auto patch = this->get_patch();
@@ -50,25 +50,36 @@ inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Vector v)
   int N = patch->number_of_adj_entities();
   for(int i = 0; i < N; i++)
   {
-    q += cell_quality->quality(patch->adj_entity(i)); 
+    auto q0 = cell_quality->quality(patch->adj_entity(i)); 
+    if(q0 > q)
+    {
+      q = q0;
+    }
   }
   mesh->node(pid) = this->get_node();
   return q;
 }
 
 template<typename Mesh, typename CellQuality>
-inline typename Mesh::Vector SumNodePatchObjectFunction<Mesh, CellQuality>::gradient() 
+inline typename Mesh::Vector MaxNodePatchObjectFunction<Mesh, CellQuality>::gradient() 
 {
   auto mesh = this->get_mesh();
   auto cell_quality = this->get_cell_quality();
   auto patch = this->get_patch();
 
   Vector v = {0};
+  double l = 0;
 
   int NP = patch->number_of_adj_entities();
   for(int i = 0; i < NP; i++)
   {
-    v = v + cell_quality->gradient(patch->adj_entity(i), patch->adj_local_index(i)); 
+    auto v0 = cell_quality->gradient(patch->adj_entity(i), patch->adj_local_index(i)); 
+    auto l0 = v0.squared_length();
+    if(l0 > l)
+    {
+      l = l0;
+      v = v0;
+    }
   }
   auto w = this->min_len();
   v = w*v/std::sqrt(v.squared_length());
@@ -79,4 +90,4 @@ inline typename Mesh::Vector SumNodePatchObjectFunction<Mesh, CellQuality>::grad
 };//end of Mesh
 };//end of WHYSC
 
-#endif // end of SumNodePatchObjectFunction_h
+#endif // end of MaxNodePatchObjectFunction_h

@@ -46,6 +46,8 @@ inline double OptimizationAlg::line_search(std::function<double(double)> F)
       Qd = Qc;
       Qc = F(c);
     }
+    if(abs(a-b)<0.0000000001)
+      break;
   }
   return c;
 }

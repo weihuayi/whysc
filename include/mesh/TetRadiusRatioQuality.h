@@ -26,7 +26,7 @@ public:
   typedef typename TMesh::Vector Vector;
 
 public:
-  TetRadiusRatioQuality(std::shared_ptr<TMesh> mesh):CellQualityBase<TMesh>(mesh){}
+  using CellQualityBase<TMesh>::CellQualityBase;
 
   double quality(int i);
   /*
@@ -122,7 +122,7 @@ inline typename TMesh::Vector TetRadiusRatioQuality<TMesh>::gradient(int c, int 
   auto w_s = ((v1-v2).squared_length()/S12 + (v2-v3).squared_length()/S23 + 
     (v3-v1).squared_length()/S31)/S/4.0;
 
-  auto v = Q*(nabla_Ld/Ld + nabla_s/S - 2.0*nabla_V/V);
+  auto v = -Q*(nabla_Ld/Ld + nabla_s/S - 2.0*nabla_V/V);
   //w = w_d+w_s;
   return v;
 }
