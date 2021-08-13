@@ -22,7 +22,7 @@ public:
   typedef typename PMesh::Node Node;
   typedef typename PMesh::Toplogy Toplogy;
   typedef GhostFillingAlg<PMesh> SetGhostAlg;
-  typedef NodePatchOptAlg<PMesh, ObjectFunction, Model> PatchOpt;
+  typedef NodePatchOptAlg<PMesh, Model> PatchOpt;
   typedef ParallelMeshColoringAlg<PMesh> PMeshColoring;
 
 public:
@@ -35,7 +35,7 @@ public:
     m_coloring_alg->coloring(true);
   }
 
-  void optimization(double tol=1e-4, int maxit=100)
+  void optimization(double tol=1e-3, int maxit=100)
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
@@ -72,7 +72,8 @@ public:
       double l = *std::max_element(ds.begin(), ds.end());
       double g = 0.0;
       MPI_Allreduce(&l, &g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-      std::cout<< err <<std::endl;
+      std::cout<< g <<std::endl;
+
       if((g < tol)||(it>maxit))
       {
         std::cout<< "优化完成!" <<std::endl;

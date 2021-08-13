@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <math.h>
+#include <limits.h>
 
 #include "CellQualityBase.h"
 
@@ -60,7 +61,14 @@ inline double TriRadiusRatioQuality<TMesh>::quality(int i)
   auto A = cross(v1, v2)/2;
   auto R = L1*L2*L12/A/4;
   auto r = 2*A/(L1+L2+L12);
-  return R/r/2;
+  if(A <= 0)
+  {
+    return LONG_MAX;
+  }
+  else
+  {
+    return R/r/2;
+  }
 }
 
 template<typename TMesh>

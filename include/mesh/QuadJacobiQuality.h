@@ -6,6 +6,8 @@
 #include <map>
 #include <memory>
 #include <math.h>
+#include <limits.h>
+
 #include "CellQualityBase.h"
 
 namespace WHYSC {
@@ -27,18 +29,17 @@ public:
 public:
   using CellQualityBase<QMesh>::CellQualityBase;
 
-  double quality(int i);
   /*
    * 网格第 i 个单元的质量
    */
+  double quality(int i);
 
-  Vector gradient(int c, int i);
   /*
    * 网格第 c 个单元的质量关于这个单元的第 i 个点的梯度
    */
+  Vector gradient(int c, int i);
 
 };
-
 
 template<typename QMesh>
 inline double QuadJacobiQuality<QMesh>::quality(int i)
@@ -48,6 +49,7 @@ inline double QuadJacobiQuality<QMesh>::quality(int i)
     auto & node = mesh->nodes();
     double q = 0;
 
+    int flag = 0;
     for(int j = 0; j < 4; j++)
     {
       auto current = cell[i][j];
@@ -61,8 +63,17 @@ inline double QuadJacobiQuality<QMesh>::quality(int i)
       auto J = cross(v1, v2);
       auto mu = 2.0*J/(L1+L2);
       q += std::pow(mu-2.0, 4);
+      if(J < 0){flag+=1;}
     }
-    return q/4.0;
+
+    if(flag >1)
+    {
+      return LONG_MAX;
+    }
+    else
+    {
+      return q/4.0;
+    }
   }
 
 template<typename QMesh>
