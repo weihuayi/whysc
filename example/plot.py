@@ -13,7 +13,7 @@ def Histogram_plot(b):
         s = 0
     plt.bar(A[:-1], B, 0.009)
     #plt.ylim(0, np.max(B)*1.05)
-    plt.ylim(0, 1)
+    plt.ylim(0, 0.4)
     plt.xlabel("cell quality")
     plt.ylabel("Proportion")
     plt.show()

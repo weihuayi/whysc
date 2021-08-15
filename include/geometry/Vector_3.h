@@ -133,6 +133,16 @@ inline F  dot(const Vector_3<F> & v, const Vector_3<F> & w)
 }
 
 template<typename F>
+inline Vector_3<F> operator - (const Vector_3<F> & v0)
+{
+    Vector_3<F> v;
+    for(int d = 0; d < 3; d++)
+        v[d] = -v0[d];
+    return v;
+}
+
+
+template<typename F>
 inline Vector_3<F> operator - (const Vector_3<F> & v0, const Vector_3<F> & v1)
 {
     Vector_3<F> v;

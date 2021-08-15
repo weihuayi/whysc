@@ -9,13 +9,11 @@
 #include <numeric>
 #include <functional>
 
-#include "OptimizationAlg.h"
-
 namespace WHYSC {
 namespace Mesh {
 
 
-template<typename Mesh, typename ObjectFunction, typename Model>
+template<typename Mesh, typename Model>
 class NodePatchOptAlg
 {
 public:
@@ -27,15 +25,15 @@ public:
   NodePatchOptAlg(std::shared_ptr<Mesh> mesh, std::shared_ptr<Model> model):
     m_mesh(mesh), m_model(model){}
 
+  template<typename ObjectFunction>
   double optimization(ObjectFunction & objfun)
   {
     int i = objfun.get_patch()->id();
     auto & node = m_mesh->node(i);
-    auto v = -1.0*objfun.gradient();
+    auto v = objfun.direction();
     preprocess(i, node, v);
 
-    std::function<double(double)> F = [&objfun, v](double alpha){return objfun.value(node + alpha*v);}; 
-    auto alpha = OptimizationAlg::line_search(F);
+    auto alpha = computer_step(objfun, node, v);
 
     node = node + alpha*v;
     proprocess(i, node);
@@ -44,7 +42,6 @@ public:
 
   void preprocess(int i, const Node & node, Vector & v)
   {
-    auto l = std::sqrt(v.squared_length());
     auto tag = m_mesh->get_node_int_data()["gtag"][i];
     auto dof = m_mesh->get_node_int_data()["gdof"][i];
     if(dof==2)
@@ -55,7 +52,6 @@ public:
     {
       m_model->project_vector_to_edge(tag, node, v);
     }
-    v = l*v/std::sqrt(v.squared_length());
   }
 
   void proprocess(int i, Node & node)
@@ -70,6 +66,41 @@ public:
     {
       m_model->project_to_edge(tag, node);
     }
+  }
+
+  template<typename ObjectFunction>
+  double computer_step(ObjectFunction objfun, Node & node, Vector & v)
+  {
+    double a = 0;
+    double b = 1;
+    double c = a + (1 - 0.618)*(b-a);
+    double d = a + 0.618*(b-a);
+
+    double Qc = objfun.value(node+c*v);
+    double Qd = objfun.value(node+d*v);
+    while(abs(Qc-Qd)>0.0001 || abs(a-b) > 1e-8)// 0.618法
+    {
+      if(Qc > Qd)
+      {
+        a = c;
+        c = d;
+        d = a + 0.618*(b-a);
+        Qc = Qd;
+        Qd = objfun.value(node+d*v);
+      }
+      else
+      {
+        b = d;
+        d = c;
+        c = a + (1 - 0.618)*(b-a);
+        Qd = Qc;
+        Qc = objfun.value(node+c*v);
+      }
+
+      if(abs(a-b)<1e-16)
+        break;
+    }
+    return c;
   }
 
 private:

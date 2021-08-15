@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <math.h>
+#include <limits.h>
 
 #include "CellQualityBase.h"
 
@@ -67,7 +68,15 @@ inline double TetRadiusRatioQuality<TMesh>::quality(int i)
   auto V = dot(cross(v1, v2), v3)/6;
   auto r = 3*V/S;
   auto R = Ld/V/12;
-  return R/r/3;
+
+  if(V < 0)
+  {
+    return LONG_MAX;
+  }
+  else
+  {
+    return R/r/3;
+  }
 }
 
 template<typename TMesh>

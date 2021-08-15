@@ -20,9 +20,19 @@ class SumNodePatchObjectFunction: public NodePatchObjectFunctionBase<Mesh, CellQ
 public:
   typedef typename Mesh::Node Node;
   typedef typename Mesh::Vector Vector;
+  typedef typename Mesh::Toplogy Toplogy;
+  typedef typename Mesh::Toplogy::AdjEntitySetWithLoc Patch;
+
 
 public:
   using NodePatchObjectFunctionBase<Mesh, CellQuality>::NodePatchObjectFunctionBase;
+
+  SumNodePatchObjectFunction(std::shared_ptr<Mesh> mesh, Patch * patch):
+    m_mesh(mesh), m_patch(patch)
+  {
+    m_node = mesh->node(patch->id());
+    m_cell_quality = std::make_shared<CellQuality>(mesh);
+  }
 
   /* 
    * 计算当 m_patch 中心为 node + Vector时, patch 的质量
@@ -33,48 +43,55 @@ public:
    * 计算当前 patch 的质量关于 patch 中心节点的梯度.
    */
   Vector gradient(); 
-};
 
+  Vector direction();
+
+  Patch * get_patch()
+  {
+    return m_patch;
+  }
+
+private:
+  Node m_node;
+  Patch * m_patch;
+  std::shared_ptr<Mesh> m_mesh;
+  std::shared_ptr<CellQuality> m_cell_quality;
+};
 
 template<typename Mesh, typename CellQuality>
 inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Node n)
 {
-  auto mesh = this->get_mesh();
-  auto patch = this->get_patch();
-  auto pid = patch->id();
-  auto cell_quality = this->get_cell_quality();
-
-  mesh->node(pid) = n;
+  auto pid = m_patch->id();
+  m_mesh->node(pid) = n;
 
   double q = 0;
-  int N = patch->number_of_adj_entities();
+  int N = m_patch->number_of_adj_entities();
   for(int i = 0; i < N; i++)
   {
-    q += cell_quality->quality(patch->adj_entity(i)); 
+    q += m_cell_quality->quality(m_patch->adj_entity(i)); 
   }
-  mesh->node(pid) = this->get_node();
+  m_mesh->node(pid) = m_node;
   return q;
 }
 
 template<typename Mesh, typename CellQuality>
 inline typename Mesh::Vector SumNodePatchObjectFunction<Mesh, CellQuality>::gradient() 
 {
-  auto mesh = this->get_mesh();
-  auto cell_quality = this->get_cell_quality();
-  auto patch = this->get_patch();
-
   Vector v = {0};
 
-  int NP = patch->number_of_adj_entities();
+  int NP = m_patch->number_of_adj_entities();
   for(int i = 0; i < NP; i++)
   {
-    v = v + cell_quality->gradient(patch->adj_entity(i), patch->adj_local_index(i)); 
+    v = v + m_cell_quality->gradient(m_patch->adj_entity(i), m_patch->adj_local_index(i)); 
   }
-  auto w = this->min_len();
-  v = w*v/std::sqrt(v.squared_length());
   return v;
 }
 
+template<typename Mesh, typename CellQuality>
+inline typename Mesh::Vector SumNodePatchObjectFunction<Mesh, CellQuality>::direction() 
+{
+  return -gradient();
+}
 
 };//end of Mesh
 };//end of WHYSC

@@ -95,7 +95,7 @@ int main(int argc, char * argv[])
   mq.quality_of_mesh(cellQualityInit);
 
   PMeshOpt optAlg(mesh, quad, MPI_COMM_WORLD);
-  optAlg.optimization();//优化
+  optAlg.optimization(1e-4, 30);//优化
 
   mq.quality_of_mesh(cellQualityOpt);
 
