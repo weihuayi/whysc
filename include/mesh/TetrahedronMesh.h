@@ -131,10 +131,16 @@ public:
       return 3;
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
   {
     return m_vtkidx;
   }
+
+  int* vtk_write_cell_index()
+  {
+    return m_vtkidx;
+  }
+
 
   I vtk_cell_type(I TD=3)
   {

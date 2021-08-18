@@ -69,6 +69,13 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(pmesh_hexmesh_generation pmesh_hexmesh_generation.cpp)
+    target_link_libraries(pmesh_hexmesh_generation PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS pmesh_hexmesh_generation 
+        MODULES ${VTK_LIBRARIES}
+    )
+
     add_executable(TriRadiusRatioQuality_test TriRadiusRatioQuality_test.cpp)
     target_link_libraries(TriRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
@@ -90,6 +97,12 @@ if(${VTK_FOUND})
     #    MODULES ${VTK_LIBRARIES}
     #)
 
+    add_executable(HexJacobiQuality_test HexJacobiQuality_test.cpp)
+    target_link_libraries(HexJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS HexJacobiQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
     target_link_libraries(halfedge_mesh_test PRIVATE ${VTK_LIBRARIES})
@@ -202,12 +215,12 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    #add_executable(parallel_optimization parallel_optimization.cpp)
-    #target_link_libraries(parallel_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
-    #vtk_module_autoinit(
-    #    TARGETS parallel_optimization 
-    #    MODULES ${VTK_LIBRARIES}
-    #)
+    add_executable(parallel_hexmesh_optimization parallel_hexmesh_optimization.cpp)
+    target_link_libraries(parallel_hexmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_hexmesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
 
 
 

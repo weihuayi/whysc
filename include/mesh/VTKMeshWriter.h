@@ -106,7 +106,7 @@ public:
             cellArray->InsertNextCell(nn);
             for(int i = 0; i < nn; i++)
             {
-                cellArray->InsertCellPoint(cell[m_mesh->vtk_cell_index()[i]]);
+                cellArray->InsertCellPoint(cell[m_mesh->vtk_write_cell_index()[i]]);
             }
         }
         //Toplogy top;

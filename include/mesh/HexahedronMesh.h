@@ -73,7 +73,8 @@ public:
   static int m_refine[8][8];
   static int m_index[12][4];
   static int m_num[8][8];
-  static int m_vtkidx[8];
+  static int m_vtk_read_idx[8];
+  static int m_vtk_write_idx[8];
 public:
 
   HexahedronMesh(){}
@@ -128,9 +129,14 @@ public:
       return 3;
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
   {
-    return m_vtkidx;
+    return m_vtk_read_idx;
+  }
+
+  int* vtk_write_cell_index()
+  {
+    return m_vtk_write_idx;
   }
 
   I vtk_cell_type(I TD=3)
@@ -712,12 +718,18 @@ public:
     }
 
     auto & nei = top.neighbors();
+    auto & locid = top.local_indices();
     nei.resize(loc[NN]);
+    locid.resize(loc[NN]);
     std::vector<I> start(loc);
     for(I i = 0; i < NC; i++)
     {
-      for(auto v : m_cell[i])
+      for(int j = 0; j < 8; j++)
+      {
+        auto v = m_cell[i][j];
+        locid[start[v]] = j;
         nei[start[v]++] = i;
+      }
     }
   }
 
@@ -840,7 +852,10 @@ int HexahedronMesh<GK, Node, Vector>::m_index[12][4] = {
 };
 
 template<typename GK, typename Node, typename Vector>
-int HexahedronMesh<GK, Node, Vector>::m_vtkidx[8] = {0, 4, 6, 2, 1, 5, 7, 3};
+int HexahedronMesh<GK, Node, Vector>::m_vtk_write_idx[8] = {0, 4, 6, 2, 1, 5, 7, 3};
+
+template<typename GK, typename Node, typename Vector>
+int HexahedronMesh<GK, Node, Vector>::m_vtk_read_idx[8] = {0, 4, 3, 7, 1, 5, 2, 6};
 
 template<typename GK, typename Node, typename Vector>
 int HexahedronMesh<GK, Node, Vector>::m_num[8][8] = {

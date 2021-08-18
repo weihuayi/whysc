@@ -7,35 +7,33 @@
 #include <mpi.h>
 #include <time.h>
 
-#include "geometry/Geometry_kernel.h"
-#include "geometry/CubeModel.h"
 #include "geometry/CubeWithSpheresModel.h"
-#include "geometry/RectangleWithHole.h"
-#include "mesh/TriangleMesh.h"
+#include "geometry/Geometry_kernel.h"
+#include "geometry/CubeWithSpheresModelHexMesh.h"
 #include "mesh/HexahedronMesh.h"
-#include "mesh/TetrahedronMesh.h"
 #include "mesh/ParallelMeshNew.h"
 #include "mesh/ParallelMesher.h"
 #include "mesh/VTKMeshReader.h"
 #include "mesh/VTKMeshWriter.h"
 #include "mesh/GhostFillingAlg.h"
-#include "mesh/ParallelMeshColoringAlg.h"
-#include "mesh/ParallelMeshOptimization.h"
-#include "mesh/HexJacobiQualityFunction.h"
+#include "mesh/ParallelMeshOptAlg.h"
+#include "mesh/HexJacobiQuality.h"
+#include "mesh/SumNodePatchObjectFunction.h"
+#include "mesh/MaxNodePatchObjectFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-//typedef WHYSC::GeometryModel::CubeModel<GK> Model;
-typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
-//typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
+typedef WHYSC::GeometryModel::CubeWithSpheresModelHexMesh<GK> Model;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
-typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> MeshQuality;
+typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
+typedef WHYSC::Mesh::HexJacobiQuality<PMesh> CellQuality;
+typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
+//typedef WHYSC::Mesh::MaxNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
-typedef WHYSC::Mesh::ParallelMeshColoringAlg<PMesh> PCA;
-typedef WHYSC::Mesh::ParallelMeshOptimization<PMesh, MeshQuality, Model> PMeshOpt;
+typedef WHYSC::Mesh::ParallelMeshOptAlg<PMesh, ObjectFunction, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 
@@ -87,34 +85,20 @@ int main(int argc, char * argv[])
 
   PMesher pmesher(argv[1], ".vtu", MPI_COMM_WORLD);
   auto mesh = pmesher.get_mesh();
-  auto cube = std::make_shared<Model>(2);
+
+  auto quad = std::make_shared<Model>();
 
   auto NC = mesh->number_of_cells();
   std::vector<double> cellQualityInit(NC);
   std::vector<double> cellQualityOpt(NC);
-  MeshQuality mq(mesh);
-  for(int i = 0; i < NC; i++)
-  {
-    cellQualityInit[i] = 4/mq.quality_of_cell(i);
-    std::cout<< cellQualityInit[i] <<std::endl;
-  }
 
-  std::cout<< "开始染色..." <<std::endl;
-  PCA colorAlg(mesh, MPI_COMM_WORLD);
-  colorAlg.coloring();//染色
-  colorAlg.color_test();//染色测试
+  CellQuality mq(mesh);
+  mq.quality_of_mesh(cellQualityInit);
 
-  PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
-  for(int i = 0; i < 1; i++)
-  {
-    std::cout<< "正在优化第 " << i+1 << " 次" <<std::endl;
-    optAlg.mesh_optimization();//优化
-  }
+  PMeshOpt optAlg(mesh, quad, MPI_COMM_WORLD);
+  optAlg.optimization(1e-4, 100);//优化
 
-  for(int i = 0; i < NC; i++)
-  {
-    cellQualityOpt[i] = 4/mq.quality_of_cell(i);
-  }
+  mq.quality_of_mesh(cellQualityOpt);
 
   if(mesh->id() == 1)
   {

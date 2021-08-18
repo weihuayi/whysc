@@ -1,5 +1,5 @@
-#ifndef HexJacobiQualityFunction_h
-#define HexJacobiQualityFunction_h
+#ifndef HexJacobiQuality_h
+#define HexJacobiQuality_h
 
 #include <vector>
 #include <array>
@@ -7,8 +7,9 @@
 #include <memory>
 #include <math.h>
 #include <algorithm>
+#include <limits.h>
 
-#include "BaseObjectFunction.h"
+#include "CellQualityBase.h"
 
 namespace WHYSC {
 namespace Mesh {
@@ -24,60 +25,37 @@ namespace Mesh {
  *
 */
 
-template<typename TMesh>
-class HexJacobiQualityFunction: public BaseObjectionFunction<TMesh> 
+template<typename Mesh>
+class HexJacobiQuality: public CellQualityBase<Mesh>
 {
 public:
-  typedef typename TMesh::Node Node;
-  typedef typename TMesh::Vector Vector;
-  typedef typename TMesh::Toplogy Toplogy;
+  typedef typename Mesh::Node Node;
+  typedef typename Mesh::Vector Vector;
 
 public:
-  // 计算第 i 个单元的质量
-  HexJacobiQualityFunction(std::shared_ptr<TMesh> mesh): 
-     BaseObjectionFunction<TMesh>(mesh)
-  {
-    mesh->node_to_cell(m_n2c);
-  }
+  using CellQualityBase<Mesh>::CellQualityBase;
 
-  double quality_of_cell(int i);
   /*
-   * 计算第 i 个单元的质量
+   * 网格第 i 个单元的质量
    */
+  double quality(int i);
 
-  double get_value(int i);
   /*
-   * 得到第 i 的节点周围单元的质量和
+   * 网格第 c 个单元的质量关于这个单元的第 i 个点的梯度
    */
+  Vector gradient(int c, int i);
 
-  void get_grad_value(int i, Vector & v);
-  /*
-   * 得到得到总质量的第 i 的节点的偏导
-   */
-
-  void nabla(int c, int i, Vector &v);
-  /*
-   * 得到第 c 个单元的质量对单元的第 i 个点求梯度
-   */
-
-  double min_len(int i);
-  /*
-   * 得到连接第 i 个点的最短边长度
-   */
-
-private:
-  Toplogy m_n2c;
 };
 
-
-template<typename TMesh>
-inline double HexJacobiQualityFunction<TMesh>::quality_of_cell(int i)
+template<typename Mesh>
+inline double HexJacobiQuality<Mesh>::quality(int i)
 {
   auto mesh = this->get_mesh();
   const auto & cell = mesh->cell(i);
   auto & node = mesh->nodes();
   auto & index = mesh->m_num;
 
+  double flag = 0;
   double mu = 0.0;
   for(auto & idx : index)
   {
@@ -91,51 +69,28 @@ inline double HexJacobiQualityFunction<TMesh>::quality_of_cell(int i)
     auto v3 = x1 - x0;
     
     auto l1 = std::sqrt(v1.squared_length());
-    auto l2 = std::sqrt(v1.squared_length());
-    auto l3 = std::sqrt(v1.squared_length());
+    auto l2 = std::sqrt(v2.squared_length());
+    auto l3 = std::sqrt(v3.squared_length());
 
     auto J = dot(cross(v1, v2), v3);
     auto d = l1*l1*l1 + l2*l2*l2 + l3*l3*l3;
-    auto q = 3*J/d;
+    auto q = 3.0*J/d;
     mu += std::pow((q-2), 4);
+    if(J<0){flag++;}
   }
-  return mu;
+
+  if(flag>1)
+  {
+    return LONG_MAX;
+  }
+  else
+  {
+    return mu/8.0;
+  }
 }
 
-template<typename TMesh>
-inline double HexJacobiQualityFunction<TMesh>::get_value(int i)
-{
-  double q = 0;
-  auto patch = m_n2c.adj_entities_with_local(i);
-
-  int N = patch.number_of_adj_entities();
-  for(int i = 0; i < N; i++)
-  {
-    q += quality_of_cell(patch.adj_entity(i));
-  }
-  return q;
-}
-
-template<typename TMesh>
-inline void HexJacobiQualityFunction<TMesh>::get_grad_value(int i, Vector & v)
-  {
-    auto patch = m_n2c.adj_entities_with_local(i);
-    int NP = patch.number_of_adj_entities();
-
-    Vector v0 = {0};
-    for(int k = 0; k < NP; k++)
-    {
-      Vector tmpVector;
-
-      nabla(patch.adj_entity(k), patch.adj_local_index(k), tmpVector);
-      v0 = v0 + tmpVector;
-    }
-    double w = min_len(i);
-    v = w*v0/std::sqrt(v0.squared_length()); //std::sqrt(v0.squared_length());
-  }
-
-template<typename TMesh>
-inline void HexJacobiQualityFunction<TMesh>::nabla(int c, int i,  Vector &v)
+template<typename Mesh>
+inline typename Mesh::Vector HexJacobiQuality<Mesh>::gradient(int c, int i)
   //第 c 个单元的质量对单元的第 i 个点求梯度
 {
   auto mesh = this->get_mesh();
@@ -181,67 +136,36 @@ inline void HexJacobiQualityFunction<TMesh>::nabla(int c, int i,  Vector &v)
   auto d2 = std::pow(l26, 3) + std::pow(l23, 3) + std::pow(l02, 3);
   auto d1 = std::pow(l13, 3) + std::pow(l01, 3) + std::pow(l15, 3);
 
-  auto q0 = 3*J0/d0;  
-  auto q4 = 3*J4/d4;  
-  auto q2 = 3*J2/d2;  
-  auto q1 = 3*J1/d1;  
+  auto q0 = 3.0*J0/d0;  
+  auto q4 = 3.0*J4/d4;  
+  auto q2 = 3.0*J2/d2;  
+  auto q1 = 3.0*J1/d1;  
 
-  auto nabla_J0 = corss(v04, v01) + cross(v02, v04) + cross(v01, v02);
+  auto nabla_J0 = cross(v04, v01) + cross(v02, v04) + cross(v01, v02);
   auto nabla_J4 = cross(v45, v46);
   auto nabla_J2 = cross(v26, v23);
   auto nabla_J1 = cross(v13, v15);
 
-  auto nabla_d0 = -3*(l04*v04 + l02*v02 + l01*v01);
-  auto nabla_d4 = 3*l04*v04;
-  auto nabla_d2 = 3*l02*v02;
-  auto nabla_d1 = 3*l01*v01;
+  auto nabla_d0 = -3.0*(l04*v04 + l02*v02 + l01*v01);
+  auto nabla_d4 = -3.0*l04*v04;
+  auto nabla_d2 = -3.0*l02*v02;
+  auto nabla_d1 = -3.0*l01*v01;
 
-  auto nabla_q0 = 3*(d0*nabla_J0 - J0*nabla_d0)/d0/d0;
-  auto nabla_q4 = 3*(d4*nabla_J4 - J4*nabla_d4)/d4/d4;
-  auto nabla_q2 = 3*(d2*nabla_J2 - J2*nabla_d2)/d2/d2;
-  auto nabla_q1 = 3*(d1*nabla_J1 - J1*nabla_d1)/d1/d1;
+  auto nabla_q0 = 3.0*(d0*nabla_J0 - J0*nabla_d0)/d0/d0;
+  auto nabla_q4 = 3.0*(d4*nabla_J4 - J4*nabla_d4)/d4/d4;
+  auto nabla_q2 = 3.0*(d2*nabla_J2 - J2*nabla_d2)/d2/d2;
+  auto nabla_q1 = 3.0*(d1*nabla_J1 - J1*nabla_d1)/d1/d1;
 
-  auto nabla_mu0 = 4*std::pow(q0 - 2, 3)*nabla_q0;
-  auto nabla_mu4 = 4*std::pow(q4 - 2, 3)*nabla_q4;
-  auto nabla_mu2 = 4*std::pow(q2 - 2, 3)*nabla_q2;
-  auto nabla_mu1 = 4*std::pow(q1 - 2, 3)*nabla_q1;
-  v = nabla_mu0 + nabla_mu4 + nabla_mu2 + nabla_mu1;
-}
-
-template<typename TMesh>
-inline double HexJacobiQualityFunction<TMesh>::min_len(int i)
-{
-  auto mesh = this->get_mesh();
-  auto patch = m_n2c.adj_entities_with_local(i);
-  auto & cell = mesh->cells();
-  auto & node = mesh->nodes();
-  int NP = patch.number_of_adj_entities();
-  double L = 100000.0;
-
-  for(int i = 0; i < NP; i++)
-  {
-    auto & cell = mesh->cell(patch.adj_entity(i));
-    auto j = patch.adj_local_index(i);
-    auto & idx = mesh->m_num[j];
-    auto x0 = node[cell[idx[0]]];
-    auto x4 = node[cell[idx[4]]];
-    auto x2 = node[cell[idx[2]]];
-    auto x1 = node[cell[idx[1]]];
-
-    double l[3];
-    l[0] = std::sqrt((x4-x0).squared_length());
-    l[1] = std::sqrt((x2-x0).squared_length());
-    l[2] = std::sqrt((x1-x0).squared_length());
-
-    double L1 = *std::min_element(l, l+3);
-    if(L>L1)
-      L=L1;
-  }
-  return L;
+  auto nabla_mu0 = 4.0*std::pow(q0 - 2, 3)*nabla_q0;
+  auto nabla_mu4 = 4.0*std::pow(q4 - 2, 3)*nabla_q4;
+  auto nabla_mu2 = 4.0*std::pow(q2 - 2, 3)*nabla_q2;
+  auto nabla_mu1 = 4.0*std::pow(q1 - 2, 3)*nabla_q1;
+  auto v = nabla_mu0 + nabla_mu4 + nabla_mu2 + nabla_mu1;
+  return v;
 }
 
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
 
-#endif // end of HexJacobiQualityFunction_h
+#endif // end of HexJacobiQuality_h
