@@ -68,7 +68,9 @@ inline double SumNodePatchObjectFunction<Mesh, CellQuality>::value(Node n)
   int N = m_patch->number_of_adj_entities();
   for(int i = 0; i < N; i++)
   {
-    q += m_cell_quality->quality(m_patch->adj_entity(i)); 
+    auto m = m_cell_quality->quality(m_patch->adj_entity(i)); 
+    q += m;
+    //std::cout<< m <<std::endl;
   }
   m_mesh->node(pid) = m_node;
   return q;

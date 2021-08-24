@@ -63,6 +63,7 @@ public:
           {
             auto patch = node2cell.adj_entities_with_local(i);
             ObjectFunction objfun(m_mesh, &patch);
+
             ds[i] = m_node_patch_opt_alg->optimization(objfun);//优化节点
           }
         }

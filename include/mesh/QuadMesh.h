@@ -132,7 +132,12 @@ public:
       return m_edge.size();
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
+  {
+    return m_vtkidx;
+  }
+
+  int* vtk_write_cell_index()
   {
     return m_vtkidx;
   }

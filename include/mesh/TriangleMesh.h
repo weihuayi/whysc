@@ -142,7 +142,12 @@ public:
         return 0;// VTK_EMPLTY_CELL = 0
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
+  {
+    return m_vtkidx;
+  }
+
+  int* vtk_write_cell_index()
   {
     return m_vtkidx;
   }
