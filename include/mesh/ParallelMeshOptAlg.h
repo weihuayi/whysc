@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
+#include <time.h>
 
 #include "NodePatchOptAlg.h"
 #include "ParallelMeshColoringAlg.h"
@@ -39,6 +40,7 @@ public:
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
+    auto NE = m_mesh->number_of_edges();
 
     std::vector<double> ds(NN, 0.0);
 
@@ -48,6 +50,8 @@ public:
     auto & gdof = m_mesh->get_node_int_data()["gdof"];
     auto & color2node = m_coloring_alg->get_color_to_node();
 
+    clock_t s, e, S, E;
+    S = clock();
     int it = 1;
     while(true)
     {
@@ -55,6 +59,7 @@ public:
       std::cout<< "正在优化第 " << it << " 次" <<std::endl;
       it += 1;
 
+      s = clock();
       for(auto & idxs : color2node)//循环所有的颜色
       {
         for(auto & i : idxs)//循环所有的点
@@ -64,7 +69,7 @@ public:
             auto patch = node2cell.adj_entities_with_local(i);
             ObjectFunction objfun(m_mesh, &patch);
 
-            ds[i] = m_node_patch_opt_alg->optimization(objfun);//优化节点
+            ds[i] = m_node_patch_opt_alg->optimization(objfun, ds[i]);//优化节点
           }
         }
         m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
@@ -74,6 +79,8 @@ public:
       double g = 0.0;
       MPI_Allreduce(&l, &g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
       std::cout<< g <<std::endl;
+      e = clock();
+      std::cout<< "运行时间:" << double (e-s)/CLOCKS_PER_SEC << std::endl;
 
       if((g < tol)||(it>maxit))
       {
@@ -81,6 +88,8 @@ public:
         break;
       }
     }
+    E = clock();
+    std::cout<< "总运行时间:" << double (E-S)/CLOCKS_PER_SEC << std::endl;
   }
 
 private:

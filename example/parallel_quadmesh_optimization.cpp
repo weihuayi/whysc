@@ -110,6 +110,7 @@ int main(int argc, char * argv[])
   Writer writer(mesh);
   writer.set_points();
   writer.set_cells();
+  writer.set_point_data(mesh->get_node_int_data()["nid"], 1, "nid");
   writer.write(ss.str());
 
   MPI_Finalize();

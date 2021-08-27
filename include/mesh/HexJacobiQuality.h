@@ -77,9 +77,9 @@ inline double HexJacobiQuality<Mesh>::quality(int i)
     auto q = 3.0*J/d;
     mu += std::pow((q-2), 4);
     if(J<0){flag++;}
+    if(flag>1){break;}
   }
-
-  if(flag>1)
+  if(flag>0)
   {
     return LONG_MAX;
   }

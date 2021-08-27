@@ -97,12 +97,12 @@ if(${VTK_FOUND})
     #    MODULES ${VTK_LIBRARIES}
     #)
 
-    add_executable(HexJacobiQuality_test HexJacobiQuality_test.cpp)
-    target_link_libraries(HexJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
-    vtk_module_autoinit(
-        TARGETS HexJacobiQuality_test 
-        MODULES ${VTK_LIBRARIES}
-    )
+    #add_executable(HexJacobiQuality_test HexJacobiQuality_test.cpp)
+    #target_link_libraries(HexJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    #vtk_module_autoinit(
+    #    TARGETS HexJacobiQuality_test 
+    #    MODULES ${VTK_LIBRARIES}
+    #)
 
     add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
     target_link_libraries(halfedge_mesh_test PRIVATE ${VTK_LIBRARIES})
@@ -187,12 +187,12 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
     #      MODULES ${VTK_LIBRARIES}
     #   )
 
-    #add_executable(parallel_coloring_test parallel_coloring_test.cpp)
-    #target_link_libraries(parallel_coloring_test PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
-    #vtk_module_autoinit(
-    #    TARGETS parallel_coloring_test 
-    #    MODULES ${VTK_LIBRARIES}
-    #)
+    add_executable(parallel_coloring_test parallel_coloring_test.cpp)
+    target_link_libraries(parallel_coloring_test PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_coloring_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(parallel_tetmesh_optimization parallel_tetmesh_optimization.cpp)
     target_link_libraries(parallel_tetmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})

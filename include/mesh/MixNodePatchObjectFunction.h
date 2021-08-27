@@ -1,5 +1,5 @@
-#ifndef MaxNodePatchObjectFunction_h
-#define MaxNodePatchObjectFunction_h
+#ifndef MixNodePatchObjectFunction_h
+#define MixNodePatchObjectFunction_h
 
 /*
  * 文件: 优化过程中函数对象的基类
@@ -15,7 +15,7 @@ namespace WHYSC{
 namespace Mesh{
 
 template<typename Mesh, typename CellQuality>
-class MaxNodePatchObjectFunction: public NodePatchObjectFunctionBase<Mesh, CellQuality>
+class MixNodePatchObjectFunction: public NodePatchObjectFunctionBase<Mesh, CellQuality>
 {
 public:
   typedef typename Mesh::Node Node;
@@ -27,7 +27,7 @@ public:
 public:
   using NodePatchObjectFunctionBase<Mesh, CellQuality>::NodePatchObjectFunctionBase;
 
-  MaxNodePatchObjectFunction(std::shared_ptr<Mesh> mesh, Patch * patch):
+  MixNodePatchObjectFunction(std::shared_ptr<Mesh> mesh, Patch * patch):
     m_mesh(mesh), m_patch(patch)
   {
     m_node = mesh->node(patch->id());
@@ -59,7 +59,7 @@ private:
 };
 
 template<typename Mesh, typename CellQuality>
-inline double MaxNodePatchObjectFunction<Mesh, CellQuality>::value(Node n)
+inline double MixNodePatchObjectFunction<Mesh, CellQuality>::value(Node n)
 {
   auto pid = m_patch->id();
   m_mesh->node(pid) = n;
@@ -79,27 +79,20 @@ inline double MaxNodePatchObjectFunction<Mesh, CellQuality>::value(Node n)
 }
 
 template<typename Mesh, typename CellQuality>
-inline typename Mesh::Vector MaxNodePatchObjectFunction<Mesh, CellQuality>::gradient() 
+inline typename Mesh::Vector MixNodePatchObjectFunction<Mesh, CellQuality>::gradient() 
 {
   Vector v = {0};
-  double l = 0;
 
   int NP = m_patch->number_of_adj_entities();
   for(int i = 0; i < NP; i++)
   {
-    auto v0 = m_cell_quality->gradient(m_patch->adj_entity(i), m_patch->adj_local_index(i)); 
-    auto l0 = v0.squared_length();
-    if(l0 > l)
-    {
-      l = l0;
-      v = v0;
-    }
+    v = v + m_cell_quality->gradient(m_patch->adj_entity(i), m_patch->adj_local_index(i)); 
   }
-  return v;
+  return v/NP;
 }
 
 template<typename Mesh, typename CellQuality>
-inline typename Mesh::Vector MaxNodePatchObjectFunction<Mesh, CellQuality>::direction() 
+inline typename Mesh::Vector MixNodePatchObjectFunction<Mesh, CellQuality>::direction() 
 {
   return -gradient();
 }
@@ -107,4 +100,4 @@ inline typename Mesh::Vector MaxNodePatchObjectFunction<Mesh, CellQuality>::dire
 };//end of Mesh
 };//end of WHYSC
 
-#endif // end of MaxNodePatchObjectFunction_h
+#endif // end of MixNodePatchObjectFunction_h

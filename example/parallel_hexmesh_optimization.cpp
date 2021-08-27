@@ -7,7 +7,8 @@
 #include <mpi.h>
 #include <time.h>
 
-#include "geometry/CubeWithSpheresModel.h"
+#include "geometry/C6H6.h"
+#include "geometry/C6.h"
 #include "geometry/Geometry_kernel.h"
 #include "geometry/CubeWithSpheresModelHexMesh.h"
 #include "mesh/HexahedronMesh.h"
@@ -20,11 +21,14 @@
 #include "mesh/HexJacobiQuality.h"
 #include "mesh/SumNodePatchObjectFunction.h"
 #include "mesh/MaxNodePatchObjectFunction.h"
+#include "mesh/MixNodePatchObjectFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef WHYSC::GeometryModel::CubeWithSpheresModelHexMesh<GK> Model;
+//typedef WHYSC::GeometryModel::C6H6<GK> Model;
+//typedef WHYSC::GeometryModel::C6<GK> Model;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
@@ -32,6 +36,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
 typedef WHYSC::Mesh::HexJacobiQuality<PMesh> CellQuality;
 typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 //typedef WHYSC::Mesh::MaxNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
+//typedef WHYSC::Mesh::MixNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshOptAlg<PMesh, ObjectFunction, Model> PMeshOpt;
 typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
@@ -108,9 +113,21 @@ int main(int argc, char * argv[])
   std::stringstream ss;
   ss << "opt_"<< mesh->id() << ".vtu";
 
+
+  std::vector<int> qInit(NC);
+  std::vector<int> qOpt(NC);
+  for(int i = 0; i < NC; i++)
+  {
+    qInit[i] = (int)(cellQualityInit[i]*1000);
+    qOpt[i] = (int)(cellQualityOpt[i]*1000);
+  }
+
   Writer writer(mesh);
   writer.set_points();
   writer.set_cells();
+  writer.set_point_data(mesh->get_node_int_data()["nid"], 1, "nid");
+  writer.set_cell_data(qOpt, 1, "q_opt");
+  writer.set_cell_data(qInit, 1, "q_init");
   writer.write(ss.str());
 
   MPI_Finalize();

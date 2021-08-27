@@ -28,12 +28,15 @@ typedef WHYSC::Mesh::MeshFactory MF;
 
 const double pi = acos(-1.0);
 
-int main() 
+int main(int argc, char * argv[])
 {
+
+  std::stringstream ss;
+  ss << argv[1] << ".vtu";
   //auto mesh = std::make_shared<PQMesh>();
   auto mesh = std::make_shared<PMesh>();
   Reader reader(mesh);
-  reader.read("hex.vtu");
+  reader.read(ss.str());
   auto & gtag = mesh->get_node_int_data()["gtag"];
   auto & gdof = mesh->get_node_int_data()["gdof"];
 
