@@ -8,29 +8,29 @@
 #include <time.h>
 
 #include "geometry/Geometry_kernel.h"
-#include "geometry/RectangleWithHole.h"
-#include "geometry/RectangleWithTwoHoles.h"
-#include "mesh/TriangleMesh.h"
+#include "geometry/CubeWithSpheresModel.h"
+#include "geometry/C6.h"
+#include "mesh/TetrahedronMesh.h"
 #include "mesh/ParallelMeshNew.h"
 #include "mesh/ParallelMesher.h"
 #include "mesh/VTKMeshReader.h"
 #include "mesh/VTKMeshWriter.h"
 #include "mesh/GhostFillingAlg.h"
 #include "mesh/ParallelMeshOptAlg.h"
-#include "mesh/TriRadiusRatioQuality.h"
+#include "mesh/TetRadiusRatioQuality.h"
 #include "mesh/SumNodePatchObjectFunction.h"
 #include "mesh/MaxNodePatchObjectFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
-//typedef WHYSC::GeometryModel::RectangleWithTwoHoles<GK> Model;
-typedef GK::Point_2 Node;
-typedef GK::Vector_2 Vector;
-typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
-typedef WHYSC::Mesh::TriRadiusRatioQuality<PMesh> CellQuality;
+//typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
+typedef WHYSC::GeometryModel::C6<GK> Model;
+typedef GK::Point_3 Node;
+typedef GK::Vector_3 Vector;
+typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
+typedef WHYSC::Mesh::TetRadiusRatioQuality<PMesh> CellQuality;
 typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 //typedef WHYSC::Mesh::MaxNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
@@ -87,18 +87,17 @@ int main(int argc, char * argv[])
   PMesher pmesher(argv[1], ".vtu", MPI_COMM_WORLD);
   auto mesh = pmesher.get_mesh();
 
-  auto quad = std::make_shared<Model>();
+  auto cube = std::make_shared<Model>();
 
   auto NC = mesh->number_of_cells();
   std::vector<double> cellQualityInit(NC);
   std::vector<double> cellQualityOpt(NC);
-
   CellQuality mq(mesh);
   mq.quality_of_mesh(cellQualityInit);
 
-  PMeshOpt optAlg(mesh, quad, MPI_COMM_WORLD);
+  PMeshOpt optAlg(mesh, cube, MPI_COMM_WORLD);
   clock_t S = clock();
-  optAlg.optimization(1e-4, 70);//优化
+  optAlg.optimization(1e-4, 100);//优化
   clock_t E = clock();
   double runtime = double (E-S)/CLOCKS_PER_SEC;
 
@@ -135,7 +134,7 @@ int main(int argc, char * argv[])
     std::cout<< "优化网格单元平均质量为: " << o_max_q <<std::endl; 
 
     std::ofstream wfile;
-    wfile.open("tri_test.txt", ios::app);
+    wfile.open("tet_test.txt", ios::app);
     wfile<< argv[1] << "\n\n";
     wfile<< "总运行时间为: " << runtime << "\n";
     wfile<< "单元数目为: " << NAC << "\n";

@@ -142,9 +142,7 @@ public:
   I vtk_cell_type(I TD=3)
   {
       if(TD == 3)
-          return 72; // VTK_TETRA = 10
-      else if(TD == 2)
-          return 70; // VTK_TRIANGLE = 5
+          return 12; // VTK_TETRA = 10
       else if(TD == 1)
           return 3; // VTK_LINE = 1
       else

@@ -237,7 +237,34 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    # 下面的是重复的测试
+    add_executable(parallel_tetmesh_optimization0 parallel_tetmesh_optimization0.cpp)
+    target_link_libraries(parallel_tetmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_tetmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
 
+    add_executable(parallel_quadmesh_optimization0 parallel_quadmesh_optimization0.cpp)
+    target_link_libraries(parallel_quadmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_quadmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_trimesh_optimization0 parallel_trimesh_optimization0.cpp)
+    target_link_libraries(parallel_trimesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_trimesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_hexmesh_optimization0 parallel_hexmesh_optimization0.cpp)
+    target_link_libraries(parallel_hexmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_hexmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
 
 endif()
 

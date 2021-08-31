@@ -298,7 +298,8 @@ public:
     std::vector<int> nid(nc);
     std::vector<int> cid(nn);
 
-    mesh_node_partition_metis(mesh, nparts, nid, cid);
+    if(nparts > 1)
+      mesh_node_partition_metis(mesh, nparts, nid, cid);
 
     submeshes.resize(nparts);
     mesh_node_partition(mesh, nparts, submeshes, nid, cid, fname);
