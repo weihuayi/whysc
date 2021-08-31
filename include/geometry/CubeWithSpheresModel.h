@@ -246,4 +246,4 @@ private:
 }
 
 
-#endif // end of CubeAndSphereModel_h
+#endif // end of CubeWithSphereModel_h

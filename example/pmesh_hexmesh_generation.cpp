@@ -28,17 +28,25 @@ typedef WHYSC::Mesh::MeshFactory MF;
 
 const double pi = acos(-1.0);
 
-int main() 
+int main(int argc, char * argv[])
 {
+
+  std::stringstream ss;
+  ss << argv[1] << ".vtu";
   //auto mesh = std::make_shared<PQMesh>();
   auto mesh = std::make_shared<PMesh>();
   Reader reader(mesh);
-  reader.read("hex.vtu");
+  reader.read(ss.str());
   auto & gtag = mesh->get_node_int_data()["gtag"];
   auto & gdof = mesh->get_node_int_data()["gdof"];
 
-  reader.get_node_data("dim", gdof);
-  reader.get_node_data("tag", gtag);
+  reader.get_node_data("gdof", gdof);
+  reader.get_node_data("gtag", gtag);
+
+  Writer writer(mesh);
+  writer.set_points();
+  writer.set_cells();
+  writer.write("init_hex_mesh.vtu");
 
   auto & node = mesh->nodes();
   auto & cell = mesh->cells();
@@ -49,12 +57,12 @@ int main()
 
   std::vector<PMesh> submeshes;
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
-  writer.write("init_mesh.vtu");
+  Writer writer0(mesh);
+  writer0.set_points();
+  writer0.set_cells();
+  writer0.write("init_mesh.vtu");
 
-  int nparts = 4;
+  int nparts = std::stoi(argv[2]);
   submeshes.resize(nparts);
 
   auto & nodes = mesh->nodes();

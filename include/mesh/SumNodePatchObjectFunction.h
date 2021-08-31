@@ -86,7 +86,7 @@ inline typename Mesh::Vector SumNodePatchObjectFunction<Mesh, CellQuality>::grad
   {
     v = v + m_cell_quality->gradient(m_patch->adj_entity(i), m_patch->adj_local_index(i)); 
   }
-  return v;
+  return v/NP;
 }
 
 template<typename Mesh, typename CellQuality>

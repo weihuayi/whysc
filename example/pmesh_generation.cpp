@@ -8,7 +8,6 @@
 #include <vtkIntArray.h>
 
 #include "geometry/Geometry_kernel.h"
-#include "mesh/TriangleMesh.h"
 #include "mesh/QuadMesh.h"
 #include "mesh/ParallelMesh.h"
 #include "mesh/MeshFactory.h"
@@ -18,39 +17,39 @@
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
-typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PTMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PQMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
 
-typedef WHYSC::Mesh::VTKMeshReader<PTMesh> TReader;
-typedef WHYSC::Mesh::VTKMeshWriter<PTMesh> TWriter;
-typedef WHYSC::Mesh::VTKMeshReader<PQMesh> QReader;
-typedef WHYSC::Mesh::VTKMeshWriter<PQMesh> QWriter;
+typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
+typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 const double pi = acos(-1.0);
 
-int main() 
+int main(int argc, char * argv[])
 {
-  //auto mesh = std::make_shared<PQMesh>();
-  auto mesh = std::make_shared<PQMesh>();
-  QReader reader(mesh);
-  reader.read("quad_with_quad.vtu");
+  std::stringstream ss;
+  ss << argv[1] << ".vtu";
+  auto mesh = std::make_shared<PMesh>();
+  Reader reader(mesh);
+  reader.read(ss.str());
+
   auto & gtag = mesh->get_node_int_data()["gtag"];
   auto & gdof = mesh->get_node_int_data()["gdof"];
 
+  std::cout<< "a" <<std::endl;
   reader.get_node_data("gdof", gdof);
+  std::cout<< "a" <<std::endl;
   reader.get_node_data("gtag", gtag);
 
-  std::vector<PQMesh> submeshes;
+  std::vector<PMesh> submeshes;
 
-  QWriter writer(mesh);
+  Writer writer(mesh);
   writer.set_points();
   writer.set_cells();
-  writer.write("init_mesh.vtu");
+  writer.write("init_quad_mesh.vtu");
 
-  int nparts = 4;
+  int nparts = std::stoi(argv[2]);
   submeshes.resize(nparts);
 
   auto & nodes = mesh->nodes();
@@ -76,5 +75,5 @@ int main()
         nid[k] = i;
     }
   }
-  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_quad_surface");
+  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_quad");
 }

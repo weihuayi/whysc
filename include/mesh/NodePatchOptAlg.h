@@ -7,6 +7,7 @@
 #include <mpi.h>
 #include <math.h>
 #include <numeric>
+#include <time.h>
 #include <functional>
 
 namespace WHYSC {
@@ -26,14 +27,16 @@ public:
     m_mesh(mesh), m_model(model){}
 
   template<typename ObjectFunction>
-  double optimization(ObjectFunction & objfun)
+  double optimization(ObjectFunction & objfun, double alpha)
   {
     int i = objfun.get_patch()->id();
     auto & node = m_mesh->node(i);
     auto v = objfun.direction();
     preprocess(i, node, v);
+    if(alpha>0)
+      v = 2*alpha*v/std::sqrt(v.squared_length());
 
-    auto alpha = computer_step(objfun, node, v);
+    alpha = computer_step(objfun, node, v);
 
     node = node + alpha*v;
     proprocess(i, node);
@@ -76,17 +79,30 @@ public:
     double c = a + (1 - 0.618)*(b-a);
     double d = a + 0.618*(b-a);
 
-    double Qc = objfun.value(node+c*v);
-    double Qd = objfun.value(node+d*v);
-    while(abs(Qc-Qd)>0.0001 || abs(a-b) > 1e-8)// 0.618法
+    Node tmpNode;
+    tmpNode = node+c*v;
+    double Qc = objfun.value(tmpNode);
+    tmpNode = node+d*v;
+    double Qd = objfun.value(tmpNode);
+    int it = 0;
+    while(abs(Qc-Qd)>=0.0001 || Qc >1000000)// 0.618法
     {
+      it++;
+      if((it > 100) & (Qc>1000))
+      {
+        c = 0;
+        break;
+      }
+
       if(Qc > Qd)
       {
         a = c;
         c = d;
         d = a + 0.618*(b-a);
         Qc = Qd;
-        Qd = objfun.value(node+d*v);
+
+        tmpNode = node+d*v;
+        Qd = objfun.value(tmpNode);
       }
       else
       {
@@ -94,11 +110,10 @@ public:
         d = c;
         c = a + (1 - 0.618)*(b-a);
         Qd = Qc;
-        Qc = objfun.value(node+c*v);
-      }
 
-      if(abs(a-b)<1e-16)
-        break;
+        tmpNode = node+c*v;
+        Qc = objfun.value(tmpNode);
+      }
     }
     return c;
   }

@@ -38,8 +38,8 @@ int main(int argc, char * argv[])
 {
   auto quad = std::make_shared<Model>();
   GMesher mesher(quad);
-  std::cout<< argv[1] <<std::endl;
-  mesher.mesher2d(0.01, argv[1]);
+  double cellsize = std::stof(argv[2]);
+  mesher.mesher2d(cellsize, argv[1]);
   auto mesh = mesher.get_mesh();
   auto & nodes = mesh->nodes();
 

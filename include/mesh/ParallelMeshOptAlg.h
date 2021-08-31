@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
+#include <time.h>
 
 #include "NodePatchOptAlg.h"
 #include "ParallelMeshColoringAlg.h"
@@ -39,6 +40,7 @@ public:
   {
     auto GD = m_mesh->geo_dimension();
     auto NN = m_mesh->number_of_nodes();
+    auto NE = m_mesh->number_of_edges();
 
     std::vector<double> ds(NN, 0.0);
 
@@ -64,7 +66,7 @@ public:
             auto patch = node2cell.adj_entities_with_local(i);
             ObjectFunction objfun(m_mesh, &patch);
 
-            ds[i] = m_node_patch_opt_alg->optimization(objfun);//优化节点
+            ds[i] = m_node_patch_opt_alg->optimization(objfun, ds[i]);//优化节点
           }
         }
         m_set_ghost_alg->fill(m_mesh->nodes(), GD); //通信重叠区节点位置
@@ -73,7 +75,6 @@ public:
       double l = *std::max_element(ds.begin(), ds.end());
       double g = 0.0;
       MPI_Allreduce(&l, &g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-      std::cout<< g <<std::endl;
 
       if((g < tol)||(it>maxit))
       {

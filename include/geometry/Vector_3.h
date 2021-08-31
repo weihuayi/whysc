@@ -169,8 +169,8 @@ inline Vector_3<F> operator * (const Vector_3<F> & v0, const F w)
     return v;
 }
 
-template<typename F>
-inline Vector_3<F> operator / (const Vector_3<F> & v0, const F w)
+template<typename F, typename I>
+inline Vector_3<F> operator / (const Vector_3<F> & v0, const I w)
 {
     Vector_3<F> v;
     for(int d = 0; d < 3; d++)
