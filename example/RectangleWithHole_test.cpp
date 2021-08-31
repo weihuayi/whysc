@@ -17,12 +17,14 @@ typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 
 typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<QMesh> Writer;
+typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TMesh;
+//typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, TMesh> PMesh;
+typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
 typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
-typedef WHYSC::Mesh::GMesher<GK, QMesh, Model> GMesher;
+typedef WHYSC::Mesh::GMesher<GK, PMesh, Model> GMesher;
 typedef WHYSC::Mesh::MeshFactory MF;
-typedef WHYSC::Mesh::VTKMeshReader<QMesh> Reader;
+typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 
 /*
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TMesh;

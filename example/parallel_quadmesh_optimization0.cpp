@@ -1,3 +1,4 @@
+#include <fstream>
 #include <string>
 #include <iostream>
 #include <list>
@@ -10,27 +11,29 @@
 #include "geometry/Geometry_kernel.h"
 #include "geometry/RectangleWithHole.h"
 #include "geometry/RectangleWithTwoHoles.h"
-#include "mesh/TriangleMesh.h"
+#include "mesh/QuadMesh.h"
 #include "mesh/ParallelMeshNew.h"
 #include "mesh/ParallelMesher.h"
 #include "mesh/VTKMeshReader.h"
 #include "mesh/VTKMeshWriter.h"
 #include "mesh/GhostFillingAlg.h"
 #include "mesh/ParallelMeshOptAlg.h"
-#include "mesh/TriRadiusRatioQuality.h"
+#include "mesh/QuadJacobiQuality.h"
+#include "mesh/QuadPositiveJacobiQuality.h"
 #include "mesh/SumNodePatchObjectFunction.h"
 #include "mesh/MaxNodePatchObjectFunction.h"
 #include "mesh/MeshFactory.h"
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
-//typedef WHYSC::GeometryModel::RectangleWithTwoHoles<GK> Model;
+//typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
+typedef WHYSC::GeometryModel::RectangleWithTwoHoles<GK> Model;
 typedef GK::Point_2 Node;
 typedef GK::Vector_2 Vector;
-typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
-typedef WHYSC::Mesh::TriRadiusRatioQuality<PMesh> CellQuality;
+typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
+//typedef WHYSC::Mesh::QuadJacobiQuality<PMesh> CellQuality;
+typedef WHYSC::Mesh::QuadPositiveJacobiQuality<PMesh> CellQuality;
 typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 //typedef WHYSC::Mesh::MaxNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
@@ -97,6 +100,7 @@ int main(int argc, char * argv[])
   mq.quality_of_mesh(cellQualityInit);
 
   PMeshOpt optAlg(mesh, quad, MPI_COMM_WORLD);
+
   clock_t S = clock();
   optAlg.optimization(1e-4, 70);//优化
   clock_t E = clock();
@@ -135,7 +139,7 @@ int main(int argc, char * argv[])
     std::cout<< "优化网格单元平均质量为: " << o_max_q <<std::endl; 
 
     std::ofstream wfile;
-    wfile.open("tri_test.txt", ios::app);
+    wfile.open("quad_test.txt", ios::app);
     wfile<< argv[1] << "\n\n";
     wfile<< "总运行时间为: " << runtime << "\n";
     wfile<< "单元数目为: " << NAC << "\n";

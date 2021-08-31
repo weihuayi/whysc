@@ -24,8 +24,8 @@
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-//typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
-typedef WHYSC::GeometryModel::C6<GK> Model;
+typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
+//typedef WHYSC::GeometryModel::C6<GK> Model;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
