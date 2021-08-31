@@ -50,8 +50,6 @@ public:
     auto & gdof = m_mesh->get_node_int_data()["gdof"];
     auto & color2node = m_coloring_alg->get_color_to_node();
 
-    clock_t s, e, S, E;
-    S = clock();
     int it = 1;
     while(true)
     {
@@ -59,7 +57,6 @@ public:
       std::cout<< "正在优化第 " << it << " 次" <<std::endl;
       it += 1;
 
-      s = clock();
       for(auto & idxs : color2node)//循环所有的颜色
       {
         for(auto & i : idxs)//循环所有的点
@@ -78,9 +75,6 @@ public:
       double l = *std::max_element(ds.begin(), ds.end());
       double g = 0.0;
       MPI_Allreduce(&l, &g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-      std::cout<< g <<std::endl;
-      e = clock();
-      std::cout<< "运行时间:" << double (e-s)/CLOCKS_PER_SEC << std::endl;
 
       if((g < tol)||(it>maxit))
       {
@@ -88,8 +82,6 @@ public:
         break;
       }
     }
-    E = clock();
-    std::cout<< "总运行时间:" << double (E-S)/CLOCKS_PER_SEC << std::endl;
   }
 
 private:

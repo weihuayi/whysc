@@ -90,19 +90,19 @@ if(${VTK_FOUND})
     #    MODULES ${VTK_LIBRARIES}
     #)
 
-    #add_executable(QuadJacobiQuality_test QuadJacobiQuality_test.cpp)
-    #target_link_libraries(QuadJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
-    #vtk_module_autoinit(
-    #    TARGETS QuadJacobiQuality_test 
-    #    MODULES ${VTK_LIBRARIES}
-    #)
+    add_executable(QuadJacobiQuality_test QuadJacobiQuality_test.cpp)
+    target_link_libraries(QuadJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS QuadJacobiQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
-    #add_executable(HexJacobiQuality_test HexJacobiQuality_test.cpp)
-    #target_link_libraries(HexJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
-    #vtk_module_autoinit(
-    #    TARGETS HexJacobiQuality_test 
-    #    MODULES ${VTK_LIBRARIES}
-    #)
+    add_executable(HexJacobiQuality_test HexJacobiQuality_test.cpp)
+    target_link_libraries(HexJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS HexJacobiQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
     target_link_libraries(halfedge_mesh_test PRIVATE ${VTK_LIBRARIES})
@@ -110,7 +110,6 @@ if(${VTK_FOUND})
         TARGETS halfedge_mesh_test 
         MODULES ${VTK_LIBRARIES}
     )
-
 
     add_executable(TriangleMesh_test TriangleMesh_test.cpp)
     target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
@@ -152,6 +151,22 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
     target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
+
+    add_executable(pmesh_tetmesh_generation pmesh_tetmesh_generation.cpp)
+    target_link_libraries(pmesh_tetmesh_generation PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    vtk_module_autoinit(
+        TARGETS pmesh_tetmesh_generation 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(pmesh_trimesh_generation pmesh_trimesh_generation.cpp)
+    target_link_libraries(pmesh_trimesh_generation PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    vtk_module_autoinit(
+        TARGETS pmesh_trimesh_generation 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(cgal_remesh_test cgal_remesh_test.cpp )
     message("${CGAL_LIBRARIES}")

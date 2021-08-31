@@ -26,40 +26,21 @@ int main()
   MF::one_quad_mesh(*mesh);
   //mesh->uniform_refine();
   auto & node = mesh->nodes();
-  auto & cell = mesh->cells();
   //node[3][2] = 10;
+  node[0] =Node(0.2, 0.2);
   for(auto n : node)
   {
     std::cout<< "n = " << n[0] << " " << n[1] <<std::endl;
   }
 
-  std::vector<const Node *> nodeArray;
-  for(int i = 0; i < 4; i++)
+  MeshQuality tmq(mesh);
+  int NC = mesh->number_of_cells();
+  for(int i = 0; i < NC; i++)
   {
-    nodeArray.push_back(&(node[cell[0][i]]));
-    std::cout<< "lx: " << *nodeArray.back() <<std::endl;
+    auto v = tmq.quality(i);
+    std::cout<< "v = " << v <<std::endl;
   }
-
-  MeshQuality tmq;
-  auto v = tmq.nabla(nodeArray);
-  auto qqq = tmq.quality(nodeArray);
-  std::cout<< "cell_q = " << qqq <<std::endl;
-  std::cout<< "v = " << v[0] << " " << v[1] <<std::endl;
-
-  auto & idx = mesh->m_num[3];
-  for(int j = 0; j < 4; j++)
-  {
-    nodeArray[j] = &(mesh->node(idx[j]));
-  }
-  v = tmq.nabla(nodeArray);
-  std::cout<< "v = " << v[0] << " " << v[1] <<std::endl;
-  /*
-  Toplogy n2c;
-  mesh->node_to_cell(n2c);
-  for(auto q0 : n2c.local_indices())
-    std::cout<< "q = " << q0 <<std::endl;
-  for(auto q0 : n2c.locations())
-    std::cout<< "loc = " << q0 <<std::endl;
-    */
+  auto qqq = tmq.gradient(0, 0);
+  std::cout<<  " gradient = " << qqq <<std::endl;
   return 0;
 }

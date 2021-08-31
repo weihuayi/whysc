@@ -1,5 +1,5 @@
-#ifndef HexJacobiQuality_h
-#define HexJacobiQuality_h
+#ifndef HexPositiveJacobiQuality_h
+#define HexPositiveJacobiQuality_h
 
 #include <vector>
 #include <array>
@@ -26,7 +26,7 @@ namespace Mesh {
 */
 
 template<typename Mesh>
-class HexJacobiQuality: public CellQualityBase<Mesh>
+class HexPositiveJacobiQuality: public CellQualityBase<Mesh>
 {
 public:
   typedef typename Mesh::Node Node;
@@ -48,7 +48,7 @@ public:
 };
 
 template<typename Mesh>
-inline double HexJacobiQuality<Mesh>::quality(int i)
+inline double HexPositiveJacobiQuality<Mesh>::quality(int i)
 {
   auto mesh = this->get_mesh();
   const auto & cell = mesh->cell(i);
@@ -56,7 +56,7 @@ inline double HexJacobiQuality<Mesh>::quality(int i)
   auto & index = mesh->m_num;
 
   double flag = 0;
-  double mu = 0.0;
+  double q = 0.0;
   for(auto & idx : index)
   {
     const auto & x0 = node[cell[idx[0]]];
@@ -74,9 +74,8 @@ inline double HexJacobiQuality<Mesh>::quality(int i)
 
     auto J = dot(cross(v1, v2), v3);
     auto d = l1*l1*l1 + l2*l2*l2 + l3*l3*l3;
-    auto q = 3.0*J/d;
-    mu += std::pow((q-2), 4);
-    std::cout<< mu << " q = "<< q <<std::endl;
+    auto q0 = d/3.0/J;
+    q += q0;
     if(J<0)
     {
       flag++;
@@ -89,12 +88,12 @@ inline double HexJacobiQuality<Mesh>::quality(int i)
   }
   else
   {
-    return mu/8.0;
+    return q/8;
   }
 }
 
 template<typename Mesh>
-inline typename Mesh::Vector HexJacobiQuality<Mesh>::gradient(int c, int i)
+inline typename Mesh::Vector HexPositiveJacobiQuality<Mesh>::gradient(int c, int i)
   //第 c 个单元的质量对单元的第 i 个点求梯度
 {
   auto mesh = this->get_mesh();
@@ -155,16 +154,12 @@ inline typename Mesh::Vector HexJacobiQuality<Mesh>::gradient(int c, int i)
   auto nabla_d2 = -3.0*l02*v02;
   auto nabla_d1 = -3.0*l01*v01;
 
-  auto nabla_q0 = 3.0*(d0*nabla_J0 - J0*nabla_d0)/d0/d0;
-  auto nabla_q4 = 3.0*(d4*nabla_J4 - J4*nabla_d4)/d4/d4;
-  auto nabla_q2 = 3.0*(d2*nabla_J2 - J2*nabla_d2)/d2/d2;
-  auto nabla_q1 = 3.0*(d1*nabla_J1 - J1*nabla_d1)/d1/d1;
+  auto nabla_q0 = 3.0*(-d0*nabla_J0 + J0*nabla_d0)/J0/J0;
+  auto nabla_q4 = 3.0*(-d4*nabla_J4 + J4*nabla_d4)/J4/J4;
+  auto nabla_q2 = 3.0*(-d2*nabla_J2 + J2*nabla_d2)/J2/J2;
+  auto nabla_q1 = 3.0*(-d1*nabla_J1 + J1*nabla_d1)/J1/J1;
 
-  auto nabla_mu0 = 4.0*std::pow(q0 - 2, 3)*nabla_q0;
-  auto nabla_mu4 = 4.0*std::pow(q4 - 2, 3)*nabla_q4;
-  auto nabla_mu2 = 4.0*std::pow(q2 - 2, 3)*nabla_q2;
-  auto nabla_mu1 = 4.0*std::pow(q1 - 2, 3)*nabla_q1;
-  auto v = nabla_mu0 + nabla_mu4 + nabla_mu2 + nabla_mu1;
+  auto v = nabla_q0 + nabla_q4 + nabla_q2 + nabla_q1;
   return v;
 }
 
@@ -172,4 +167,4 @@ inline typename Mesh::Vector HexJacobiQuality<Mesh>::gradient(int c, int i)
 
 } // end of namespace WHYSC
 
-#endif // end of HexJacobiQuality_h
+#endif // end of HexPositiveJacobiQuality_h

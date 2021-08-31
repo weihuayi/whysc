@@ -40,8 +40,13 @@ int main(int argc, char * argv[])
   auto & gtag = mesh->get_node_int_data()["gtag"];
   auto & gdof = mesh->get_node_int_data()["gdof"];
 
-  reader.get_node_data("dim", gdof);
-  reader.get_node_data("tag", gtag);
+  reader.get_node_data("gdof", gdof);
+  reader.get_node_data("gtag", gtag);
+
+  Writer writer(mesh);
+  writer.set_points();
+  writer.set_cells();
+  writer.write("init_hex_mesh.vtu");
 
   auto & node = mesh->nodes();
   auto & cell = mesh->cells();
@@ -52,12 +57,12 @@ int main(int argc, char * argv[])
 
   std::vector<PMesh> submeshes;
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
-  writer.write("init_mesh.vtu");
+  Writer writer0(mesh);
+  writer0.set_points();
+  writer0.set_cells();
+  writer0.write("init_mesh.vtu");
 
-  int nparts = 4;
+  int nparts = std::stoi(argv[2]);
   submeshes.resize(nparts);
 
   auto & nodes = mesh->nodes();
