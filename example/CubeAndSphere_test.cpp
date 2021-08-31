@@ -30,7 +30,11 @@ int main()
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
+<<<<<<< Updated upstream
   mesher.mesher3d(0.01);
+=======
+  mesher.mesher3d(0.1);
+>>>>>>> Stashed changes
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};
