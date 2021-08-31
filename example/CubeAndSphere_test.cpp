@@ -30,7 +30,7 @@ int main()
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
-  mesher.mesher3d(0.04);
+  mesher.mesher3d(0.01);
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};
@@ -47,6 +47,7 @@ int main()
   writer.set_cells();
 
   auto NC = mesh->number_of_cells();
+  std::cout<< "NC = " << NC <<std::endl;
   std::vector<double> z(NC);
   for(int i = 0; i < NC; i++)
   {
