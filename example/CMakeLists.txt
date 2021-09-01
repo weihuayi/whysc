@@ -111,6 +111,13 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(IntervalMesh_test IntervalMesh_test.cpp)
+    target_link_libraries(IntervalMesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS IntervalMesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
     add_executable(TriangleMesh_test TriangleMesh_test.cpp)
     target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
