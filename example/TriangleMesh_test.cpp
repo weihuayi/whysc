@@ -15,7 +15,7 @@ typedef GK::Vector_2 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef TriMesh::Cell Cell;
 typedef TriMesh::Edge Edge;
-typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 int main(int argc, char **argv)
@@ -25,9 +25,9 @@ int main(int argc, char **argv)
     mesh.uniform_refine(5);
 
     mesh.print();
-    Writer writer(&mesh);
-    writer.set_points();
-    writer.set_cells();
+    Writer writer;
+    writer.set_points(mesh);
+    writer.set_cells(mesh);
     writer.write("test_tri.vtu");
 
     return 0;

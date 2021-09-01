@@ -41,7 +41,7 @@ typedef WHYSC::Mesh::SumNodePatchObjectFunction<PMesh, CellQuality> ObjectFuncti
 //typedef WHYSC::Mesh::MixNodePatchObjectFunction<PMesh, CellQuality> ObjectFunction;
 typedef WHYSC::Mesh::ParallelMesher<PMesh> PMesher;
 typedef WHYSC::Mesh::ParallelMeshOptAlg<PMesh, ObjectFunction, Model> PMeshOpt;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 
 template<typename I>
@@ -170,9 +170,9 @@ int main(int argc, char * argv[])
     qOpt[i] = (int)(cellQualityOpt[i]*1000);
   }
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
   writer.set_point_data(mesh->get_node_int_data()["nid"], 1, "nid");
   writer.set_cell_data(qOpt, 1, "q_opt");
   writer.set_cell_data(qInit, 1, "q_init");

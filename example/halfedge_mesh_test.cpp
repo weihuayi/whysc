@@ -16,7 +16,6 @@ typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef WHYSC::Mesh::HalfEdgeMesh<GK, Node, Vector> HMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 int main(int argc, char **argv)

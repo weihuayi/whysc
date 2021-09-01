@@ -26,7 +26,7 @@ typedef GK::Vector_2 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef TriMesh::Cell Cell;
 typedef TriMesh::Edge Edge;
-typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 typedef TriMesh::Toplogy Toplogy;
 
@@ -98,10 +98,10 @@ int main(int argc, char **argv)
         nodedata.push_back((double)col[i]);
     }
 
-    Writer writer(&mesh);
-    writer.set_points();
+    Writer writer;
+    writer.set_points(mesh);
     writer.set_point_data(nodedata, 1, "color");
-    writer.set_cells();
+    writer.set_cells(mesh);
     writer.write("color_test.vtu");
 
     return 0;

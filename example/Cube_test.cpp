@@ -16,7 +16,7 @@ typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::GeometryModel::CubeModel<GK> Model;
 typedef WHYSC::Mesh::GMesher<GK, PMesh, Model> GMesher;
 typedef WHYSC::Mesh::MeshFactory MF;
@@ -39,9 +39,9 @@ int main(int argc, char * argv[])
   cube->project_to_edge(2, n0);
   std::cout<< n0[0] << " " << n0[1] << " " << n0[2] <<std::endl;
   
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
 
   writer.set_point_data(dim, 1, "gdof");
   writer.set_point_data(tag, 1, "gtag");

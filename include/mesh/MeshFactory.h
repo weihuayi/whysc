@@ -312,7 +312,7 @@ public:
       std::vector<int> & cid, std::string fname="")
   {
     typedef typename PMesh::Toplogy Toplogy;
-    typedef VTKMeshWriter<PMesh> Writer;
+    typedef VTKMeshWriter Writer;
 
     idx_t nn = mesh->number_of_nodes();
     auto & cells = mesh->cells();
@@ -394,9 +394,9 @@ public:
 
         std::stringstream ss;
         ss << fname <<"_"<< i << ".vtu";
-        Writer writer(&submeshes[i]);
-        writer.set_points();
-        writer.set_cells();
+        Writer writer;
+        writer.set_points(submeshes[i]);
+        writer.set_cells(submeshes[i]);
         writer.set_point_data(nids, 1, "nid");
         writer.set_point_data(gdof, 1, "gdof");
         writer.set_point_data(gtag, 1, "gtag");
