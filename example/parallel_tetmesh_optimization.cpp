@@ -126,27 +126,27 @@ int main(int argc, char * argv[])
       o_ave_q += cellQualityOpt[i]/NC;
     }
     std::cout<< "总运行时间:" << runtime << std::endl;
-    std::cout<< "初始网格单元最差质量为: " << i_ave_q <<std::endl; 
+    std::cout<< "初始网格单元最差质量为: " << i_max_q <<std::endl; 
     std::cout<< "初始网格单元最优质量为: " << i_min_q <<std::endl; 
-    std::cout<< "初始网格单元平均质量为: " << i_max_q <<std::endl; 
-    std::cout<< "优化网格单元最差质量为: " << o_ave_q <<std::endl; 
+    std::cout<< "初始网格单元平均质量为: " << i_ave_q <<std::endl; 
+    std::cout<< "优化网格单元最差质量为: " << o_max_q <<std::endl; 
     std::cout<< "优化网格单元最优质量为: " << o_min_q <<std::endl; 
-    std::cout<< "优化网格单元平均质量为: " << o_max_q <<std::endl; 
+    std::cout<< "优化网格单元平均质量为: " << o_ave_q <<std::endl; 
 
     std::ofstream wfile;
-    wfile.open("tet_test.txt", ios::app);
+    wfile.open("hex_test.txt", ios::app);
     wfile<< argv[1] << "\n\n";
     wfile<< "总运行时间为: " << runtime << "\n";
     wfile<< "单元数目为: " << NAC << "\n";
     wfile<< "进程数为: " << nprocs << "\n";
     wfile<< "\n";
-    wfile<< "初始网格单元最差质量为: " << i_ave_q << "\n";
+    wfile<< "初始网格单元最差质量为: " << i_max_q << "\n";
     wfile<< "初始网格单元最优质量为: " << i_min_q << "\n";
-    wfile<< "初始网格单元平均质量为: " << i_max_q << "\n";
+    wfile<< "初始网格单元平均质量为: " << i_ave_q << "\n";
     wfile<< "\n";
-    wfile<< "优化网格单元最差质量为: " << o_ave_q << "\n";
+    wfile<< "优化网格单元最差质量为: " << o_max_q << "\n";
     wfile<< "优化网格单元最优质量为: " << o_min_q << "\n";
-    wfile<< "优化网格单元平均质量为: " << o_max_q << "\n";
+    wfile<< "优化网格单元平均质量为: " << o_ave_q << "\n";
     wfile<< "\n\n\n\n";
     wfile.close();
   }
