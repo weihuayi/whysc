@@ -132,6 +132,8 @@ public:
         if(color[i]==color[nei[j]])
         {
           a++;
+          std::cout<< m_mesh->id() << " " << i << " 与 " << nei[j] << " 颜色相同 " <<std::endl;
+          break;
         }
       }
     }

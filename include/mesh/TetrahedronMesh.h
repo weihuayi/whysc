@@ -174,7 +174,7 @@ public:
       auto NC = number_of_cells();
       m_face2cell.reserve(2*NC); //TODO: 欧拉公式?
       m_cell2face.resize(NC);
-      std::map<I, I> idxmap;
+      std::map<long long, I> idxmap;
 
       I NF = 0;
       // 偏历所有单元
@@ -215,10 +215,12 @@ public:
       I NE = 0;
       for(I i = 0; i < NC; i++)
       {
+          auto & c = m_cell[i];
           for(I j = 0; j < 6; j++)
           { 
-              auto & c = m_cell[i];
               auto s = local_edge_index(i, j); 
+              if(c[0]==65539 && c[2]==62646 && j == 1)
+                std::cout<< "bingo " << s <<std::endl;
               auto it = idxmap.find(s);
               if(it == idxmap.end())
               {
@@ -787,9 +789,9 @@ private:
      * -----
      *  计算第 i 个 cell 的 j 条 edge 全局唯一整数编号
      */
-    I local_edge_index(I i, I j)
+    long long local_edge_index(I i, I j)
     {
-        I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
+        long long e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
         std::sort(e, e+2);
         return  e[0] + e[1]*(e[1]+1)/2;
     }
