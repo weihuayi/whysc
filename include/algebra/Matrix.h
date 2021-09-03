@@ -64,6 +64,19 @@ struct Matrix
         }
     }
 
+    void reshape(I nr, I nc)
+    {
+      assert(NULL==data);
+      shape[0] = nr;
+      shape[1] = nc;
+      data = new F*[shape[0]];
+      for(I i=0; i < shape[0]; i++)
+      {
+        data[i] = new F[shape[1]];
+        for(I j = 0; j < shape[1]; j++)
+          data[i][j] = 0.0;
+      }
+    }
 
     /*
      *
