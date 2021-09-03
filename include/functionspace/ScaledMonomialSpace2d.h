@@ -86,7 +86,7 @@ public:
     mesh->cell_size(m_cellsize);
   }
 
-  void basic(const std::vector<Node> & point, Matrix & phi, const std::vector<int> & index)
+  void basis(const std::vector<Node> & point, Matrix & phi, const std::vector<int> & index)
   {
     int ldof = m_dof->number_of_local_dofs();
     int NP = index.size();
@@ -117,7 +117,7 @@ public:
     }
   }
 
-  void basic(const std::vector<Node> & point, Matrix & phi)
+  void basis(const std::vector<Node> & point, Matrix & phi)
   {
     int ldof = m_dof->number_of_local_dofs();
     int NC = m_mesh->number_of_cells();
@@ -145,7 +145,7 @@ public:
     }
   }
 
-  void grad_basic(const std::vector<Node> & point, Matrix & phi_x, Matrix & phi_y, 
+  void grad_basis(const std::vector<Node> & point, Matrix & phi_x, Matrix & phi_y, 
       const std::vector<int> & index)
   {
     int ldof = m_dof->number_of_local_dofs();
@@ -184,7 +184,7 @@ public:
     }
   }
 
-  void grad_basic(const std::vector<Node> & point, Matrix & phi_x, Matrix & phi_y)
+  void grad_basis(const std::vector<Node> & point, Matrix & phi_x, Matrix & phi_y)
   {
     int ldof = m_dof->number_of_local_dofs();
     int NC = m_mesh->number_of_cells();
@@ -221,7 +221,7 @@ public:
     }
   }
 
-  void laplace_basic(const std::vector<Node> & point, Matrix & lphi)
+  void laplace_basis(const std::vector<Node> & point, Matrix & lphi)
   {
     int ldof = m_dof->number_of_local_dofs();
     int NC = m_mesh->number_of_cells();
