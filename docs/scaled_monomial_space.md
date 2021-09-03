@@ -42,7 +42,48 @@ $$
 $K$ 上的 $p$ 次多项式空间的基函数即为: 
 $m_0 \cup m_1 \cup ...\cup m_p$, 对于使用 $(1)$ 式可计算每个基函数.
 
+基函数导数计算公式:
 
+$$
+\frac{\partial \boldsymbol m_k}{\partial x}[:-2] = 
+[k, k-1, ..., 1]*\boldsymbol m_{k-1}, \quad 
+\frac{\partial \boldsymbol m_k}{\partial x}[-1] = 0
+$$
+
+$$
+\frac{\partial \boldsymbol m_k}{\partial y}[1:] = 
+[1, 2, ..., k]*\boldsymbol m_{k-1}, \quad
+\frac{\partial \boldsymbol m_k}{\partial x}[0] = 0
+$$
+
+二阶导计算公式:
+
+$$
+\frac{\partial^2 \boldsymbol m_k}{\partial x^2}[:-3] = 
+[k*(k-1), (k-1)(k-2), ..., 2*1]*\boldsymbol m_{k-1}, 
+$$
+
+$$
+\frac{\partial^2 \boldsymbol m_k}{\partial x^2}[-2:] = 0
+$$
+
+$$
+\frac{\partial^2 \boldsymbol m_k}{\partial y^2}[2:] = 
+[1*2, 2*3, ..., (k-1)*k]*\boldsymbol m_{k-1},
+$$
+
+$$
+\frac{\partial^2 \boldsymbol m_k}{\partial y^2}[:2] = 0
+$$
+
+$$
+\frac{\partial^2 \boldsymbol m_k}{\partial x \partial y}[1:-2] = 
+[1*(k-1), 2*(k-2), ..., (k-1)*1]*\boldsymbol m_{k-1},
+$$
+
+$$
+\frac{\partial^2 \boldsymbol m_k}{\partial x \partial y}[[0, -1]] = 0
+$$
 
 
 

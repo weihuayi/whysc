@@ -49,9 +49,19 @@ int main(int argc, char **argv)
   int p = std::stoi(argv[1]);
   auto space = std::make_shared<Space>(mesh, p);
 
-  Matrix val(2, (p+1)*(p+2)/2);
+  Matrix val;
   space->basic(point, val);
   std::cout<< val <<std::endl;
+
+  Matrix grad_xval;
+  Matrix grad_yval;
+  space->grad_basic(point, grad_xval, grad_yval);
+  std::cout<< grad_xval <<std::endl;
+  std::cout<< grad_yval <<std::endl;
+
+  Matrix lval;
+  space->laplace_basic(point, lval);
+  std::cout<< lval <<std::endl;
 }
 
 
