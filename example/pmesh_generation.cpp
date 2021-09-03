@@ -21,7 +21,7 @@ typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
 
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 const double pi = acos(-1.0);
@@ -44,9 +44,9 @@ int main(int argc, char * argv[])
 
   std::vector<PMesh> submeshes;
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
   writer.write("init_quad_mesh.vtu");
 
   int nparts = std::stoi(argv[2]);

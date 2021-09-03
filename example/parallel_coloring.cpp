@@ -21,7 +21,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PMesh;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 
 template<typename I>
 void communication(PMesh & mesh, std::vector<I> & data)
@@ -295,10 +295,10 @@ int main(int argc, char * argv[])
 
   std::stringstream sss;
   sss << "color_"<< rank << ".vtu";
-  Writer writer(&mesh);
-  writer.set_points();
+  Writer writer;
+  writer.set_points(mesh);
+  writer.set_cells(mesh);
   writer.set_point_data(nodedata, 1, "color");
-  writer.set_cells();
   writer.write(sss.str());
 
   MPI_Finalize();

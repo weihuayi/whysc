@@ -15,7 +15,7 @@ typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef WHYSC::Mesh::MeshFactory MF;
 
@@ -32,9 +32,9 @@ int main(int argc, char * argv[])
   reader.get_node_data("gdof", gdof);
   reader.get_node_data("gtag", gtag);
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
   writer.write("init_tet_mesh.vtu");
 
   //MF::cube_tetrahedron_mesh(mesh);

@@ -13,7 +13,7 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 int main(int argc, char **argv)
@@ -41,9 +41,9 @@ int main(int argc, char **argv)
         std::cout << max << ", " << min << std::endl;
     }
 
-    Writer writer(&mesh);
-    writer.set_points();
-    writer.set_cells();
+    Writer writer;
+    writer.set_points(mesh);
+    writer.set_cells(mesh);
     writer.write("test.vtu");
 
     return 0;

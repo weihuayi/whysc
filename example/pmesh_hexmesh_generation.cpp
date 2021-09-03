@@ -23,7 +23,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
 typedef WHYSC::Mesh::HexJacobiQuality<PMesh> MeshQuality;
 
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 const double pi = acos(-1.0);
@@ -43,32 +43,20 @@ int main(int argc, char * argv[])
   reader.get_node_data("gdof", gdof);
   reader.get_node_data("gtag", gtag);
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
   writer.write("init_hex_mesh.vtu");
 
-  auto & node = mesh->nodes();
-  auto & cell = mesh->cells();
-  for(auto & n : node)
-    std::cout<< n <<std::endl;
-  for(auto & c : cell)
-    std::cout<< c[0] <<" " <<  c[1] << " " << c[2] << " " << c[3] << " " << c[4] <<" " <<  c[5] << " " << c[6] << " " << c[7]  <<std::endl;
-
   std::vector<PMesh> submeshes;
-
-  Writer writer0(mesh);
-  writer0.set_points();
-  writer0.set_cells();
-  writer0.write("init_mesh.vtu");
 
   int nparts = std::stoi(argv[2]);
   submeshes.resize(nparts);
 
-  auto & nodes = mesh->nodes();
+  const auto & nodes = mesh->nodes();
   auto NN = mesh->number_of_nodes();
 
- //找到网格重心
+  //找到网格重心
   Node node_bar;
   for(auto & node : nodes)
   {

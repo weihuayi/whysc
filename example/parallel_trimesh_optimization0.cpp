@@ -24,8 +24,8 @@
 #include "Python.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
-typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
-//typedef WHYSC::GeometryModel::RectangleWithTwoHoles<GK> Model;
+//typedef WHYSC::GeometryModel::RectangleWithHole<GK> Model;
+typedef WHYSC::GeometryModel::RectangleWithTwoHoles<GK> Model;
 typedef GK::Point_2 Node;
 typedef GK::Vector_2 Vector;
 typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;

@@ -7,6 +7,7 @@ add_executable(dsolve_test dsolve_test.cpp)
 add_executable(ceshi ceshi.cpp)
 
 add_executable(masks masks.cpp)
+add_executable(scaled_monomial_space_2d scaled_monomial_space_2d.cpp)
 
 add_executable(CSRMatrix_test CSRMatrix_test.cpp)
 add_executable(laplace_test laplace_test.cpp)
@@ -111,6 +112,13 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(IntervalMesh_test IntervalMesh_test.cpp)
+    target_link_libraries(IntervalMesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS IntervalMesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
     add_executable(TriangleMesh_test TriangleMesh_test.cpp)
     target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
@@ -144,13 +152,13 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(color_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(cgal_surface_mesh_generation cgal_surface_mesh_generation.cpp )
-    target_link_libraries(cgal_surface_mesh_generation PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_surface_mesh_generation cgal_surface_mesh_generation.cpp )
+    #target_link_libraries(cgal_surface_mesh_generation PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
-    target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
+    #target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
     add_executable(pmesh_tetmesh_generation pmesh_tetmesh_generation.cpp)
     target_link_libraries(pmesh_tetmesh_generation PRIVATE ${CGAL_LIBRARIES}
@@ -168,10 +176,10 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    add_executable(cgal_remesh_test cgal_remesh_test.cpp )
-    message("${CGAL_LIBRARIES}")
-    target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_remesh_test cgal_remesh_test.cpp )
+    #message("${CGAL_LIBRARIES}")
+    #target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
     add_executable(PolyhedronModel_test PolyhedronModel_test.cpp )
     message("${CGAL_LIBRARIES}")
@@ -237,7 +245,34 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    # 下面的是重复的测试
+    add_executable(parallel_tetmesh_optimization0 parallel_tetmesh_optimization0.cpp)
+    target_link_libraries(parallel_tetmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_tetmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
 
+    add_executable(parallel_quadmesh_optimization0 parallel_quadmesh_optimization0.cpp)
+    target_link_libraries(parallel_quadmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_quadmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_trimesh_optimization0 parallel_trimesh_optimization0.cpp)
+    target_link_libraries(parallel_trimesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_trimesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_hexmesh_optimization0 parallel_hexmesh_optimization0.cpp)
+    target_link_libraries(parallel_hexmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_hexmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
 
 endif()
 

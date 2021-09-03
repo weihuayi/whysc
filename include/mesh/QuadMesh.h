@@ -475,6 +475,14 @@ public:
         measure[i] = cell_measure(i);
   }
 
+  void cell_size(std::vector<F> & cellsize)
+  {
+    auto NC = number_of_cells();
+    cellsize.resize(NC);
+    for(I i = 0; i < NC; i++)
+        cellsize[i] = std::sqrt(cell_measure(i));
+  }
+
   F angle_of_edges(int e0, int e1)
   {
     auto V0 = m_node[m_edge[e0][0]] - m_node[m_edge[e0][1]];
@@ -516,6 +524,14 @@ public:
     auto & c = m_cell[i];
     for(int i = 0; i < geo_dimension(); i++)
       node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i] + m_node[c[3]][i])/4.0;
+  }
+
+  void cell_barycenter(std::vector<Node> & cellbarycenter)
+  {
+    int NC = number_of_cells();
+    cellbarycenter.resize(NC);
+    for(int i = 0; i < NC; i++)
+      cell_barycenter(i, cellbarycenter[i]);
   }
 
   F edge_measure(const I i)

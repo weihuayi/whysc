@@ -19,7 +19,7 @@ typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 //typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, HexMesh> PMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::GeometryModel::CubeWithSpheresModel<GK> Model;
 typedef WHYSC::Mesh::GMesher<GK, PMesh, Model> GMesher;
 typedef WHYSC::Mesh::MeshFactory MF;
@@ -30,7 +30,7 @@ int main()
 {
   auto cube = std::make_shared<Model>(2);
   GMesher mesher(cube);
-  mesher.mesher3d(0.04);
+  mesher.mesher3d(0.1);
   auto mesh = mesher.get_mesh();
 
   Node n0{1, 2, 3};
@@ -42,11 +42,12 @@ int main()
   auto & dim = mesh->get_node_int_data()["gdof"];
   auto & tag = mesh->get_node_int_data()["gtag"];
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
 
   auto NC = mesh->number_of_cells();
+  std::cout<< "NC = " << NC <<std::endl;
   std::vector<double> z(NC);
   for(int i = 0; i < NC; i++)
   {

@@ -28,7 +28,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef WHYSC::Mesh::MeshFactory MF;
 

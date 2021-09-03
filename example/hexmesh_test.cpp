@@ -14,7 +14,7 @@ typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::HexahedronMesh<GK, Node, Vector> HexMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<HexMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 int main(int argc, char **argv)
@@ -34,9 +34,9 @@ int main(int argc, char **argv)
     {
       zdata[i] = mesh.cell_barycenter(i)[2]*10000;
     }
-    Writer writer(&mesh);
-    writer.set_points();
-    writer.set_cells();
+    Writer writer;
+    writer.set_points(mesh);
+    writer.set_cells(mesh);
     writer.set_cell_data(zdata, 1, "z");
     writer.write("hex_test.vtu");
     return 0;
