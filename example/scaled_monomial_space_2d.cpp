@@ -50,17 +50,17 @@ int main(int argc, char **argv)
   auto space = std::make_shared<Space>(mesh, p);
 
   Matrix val;
-  space->basic(point, val);
+  space->basis(point, val);
   std::cout<< val <<std::endl;
 
   Matrix grad_xval;
   Matrix grad_yval;
-  space->grad_basic(point, grad_xval, grad_yval);
+  space->grad_basis(point, grad_xval, grad_yval);
   std::cout<< grad_xval <<std::endl;
   std::cout<< grad_yval <<std::endl;
 
   Matrix lval;
-  space->laplace_basic(point, lval);
+  space->laplace_basis(point, lval);
   std::cout<< lval <<std::endl;
 }
 
