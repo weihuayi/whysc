@@ -7,13 +7,17 @@
 #include "mesh/TetrahedronMesh.h"
 #include "mesh/VTKMeshReader.h"
 #include "mesh/VTKMeshWriter.h"
+#include "mesh/MeshFactory.h"
+#include "mesh/ParallelMesh.h"
 
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
 typedef WHYSC::GeometryModel::PolyhedronModel<GK, TetMesh> PModel;
+typedef WHYSC::Mesh::MeshFactory MF;
 
 int main(int argc, char * argv[])
 {

@@ -86,6 +86,6 @@ int main()
 
   std::vector<PTMesh> submeshes;
 
-  MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");
+  //MF::mesh_node_partition(mesh, 4, submeshes, "test_surface");
 
 }

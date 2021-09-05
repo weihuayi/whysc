@@ -79,5 +79,5 @@ int main()
         nid[k] = i;
     }
   }
-  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_surface");
+  //MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_surface");
 }

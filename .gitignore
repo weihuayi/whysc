@@ -20,3 +20,4 @@ _minted*
 *.blg
 *.pyc
 __pycache__
+TestMacro.h

@@ -1,0 +1,84 @@
+#ifndef TEST_Macro_H
+#define TEST_Macro_H
+
+#cmakedefine CMAKE_SOURCE_DIR         "@CMAKE_SOURCE_DIR@"
+#cmakedefine CMAKE_CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@"
+#cmakedefine CMAKE_PROJECT_BINARY_DIR "@CMAKE_PROJECT_BINARY_DIR@"
+
+#cmakedefine CMAKE_MAJOR_VERSION      "@CMAKE_MAJOR_VERSION@"
+#cmakedefine CMAKE_MINOR_VERSION      "@CMAKE_MINOR_VERSION@"
+#cmakedefine CMAKE_PATCH_VERSION      "@CMAKE_PATCH_VERSION@"
+
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+namespace WHYSC 
+{
+
+#define ASSERT_EQUAL( x, y )                                  \
+{                                                                   \
+  if( ( x ) != ( y ) )                                              \
+  {                                                                 \
+    throw std::runtime_error(   std::string( __FILE__ )             \
+                              + std::string( ":" )                  \
+                              + std::to_string( __LINE__ )          \
+                              + std::string( " in " )               \
+                              + std::string( __PRETTY_FUNCTION__ )  \
+                              + std::string( ": " )                 \
+                              + std::to_string( ( x ) )             \
+                              + std::string( " != " )               \
+                              + std::to_string( ( y ) )             \
+    );                                                              \
+  }                                                                 \
+}
+
+
+#define ASSERT_THROW( condition )                             \
+{                                                                   \
+  if( !( condition ) )                                              \
+  {                                                                 \
+    throw std::runtime_error(   std::string( __FILE__ )             \
+                              + std::string( ":" )                  \
+                              + std::to_string( __LINE__ )          \
+                              + std::string( " in " )               \
+                              + std::string( __PRETTY_FUNCTION__ )  \
+    );                                                              \
+  }                                                                 \
+}
+
+#define EXPECT_EXCEPTION( expression, exception )             \
+{                                                                   \
+  try                                                               \
+  {                                                                 \
+    ( expression );                                                 \
+  }                                                                 \
+  catch( exception& e )                                             \
+  {                                                                 \
+  }                                                                 \
+  catch( ... )                                                      \
+  {                                                                 \
+    throw std::runtime_error(   std::string( __FILE__ )             \
+                              + std::string( ":" )                  \
+                              + std::to_string( __LINE__ )          \
+                              + std::string( " in " )               \
+                              + std::string( __PRETTY_FUNCTION__ )  \
+    );                                                              \
+  }                                                                 \
+}
+
+#define TEST_BEGIN( name )\
+{\
+  std::cerr << "-- Running test \"" << name << "\"...";\
+}
+
+#define TEST_END() \
+{\
+  std::cerr << "finished\n";\
+}
+
+
+} // end of namespace WHYSC
+
+#endif // end of TEST_Macro_H
+

@@ -1,33 +1,56 @@
-
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <iomanip>
-#include<time.h>
+#include <time.h>
+
+#include "TestMacro.h"
 
 #include "geometry/Geometry_kernel.h"
 #include "mesh/TriangleMesh.h"
 
-typedef WHYSC::Geometry_kernel<double, int> GK;
-typedef WHYSC::Mesh::TriangleMesh<GK> Mesh;
+using namespace WHYSC;
 
-int main(int argc, char **argv)
+typedef Geometry_kernel<double, int> GK;
+typedef GK::Point_2 Node;
+typedef GK::Vector_2 Vector;
+typedef Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
+typedef TriMesh::Cell Cell;
+typedef TriMesh::Edge Edge;
+
+/*
+void test_vector_construction()
 {
-    clock_t start, end;
-    start = clock();
     std::vector<double> nodes = {0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0};
     std::vector<int> cells = {1, 2, 0, 3, 0, 2};
 
+    TriMesh mesh(nodes, cells);
 
-    Mesh tri(nodes, cells);
-    for(int i=0; i<10; i++)
-    {
-        tri.uniform_refine();
-    }
-    end = clock();
-    std::cout<< "运行时间:" << double (end-start)/CLOCKS_PER_SEC << std::endl;
+    ASSERT_EQUAL(4, mesh.number_of_nodes());
+    ASSERT_EQUAL(2, mesh.number_of_cells());
+    ASSERT_EQUAL(5, mesh.number_of_edges());
+}
+*/
 
-    //tri.print();
-    return 0;
+void test_insert_construction()
+{
+    TriMesh mesh;
+
+    mesh.insert(Node{0.0, 0.0});
+    mesh.insert(Node{1.0, 0.0});
+    mesh.insert(Node{1.0, 1.0});
+    mesh.insert(Node{0.0, 1.0});
+
+    mesh.insert(Cell{1, 2, 0});
+    mesh.insert(Cell{3, 0, 2});
+    mesh.init_top();
+    
+    ASSERT_EQUAL(4, mesh.number_of_nodes());
+    ASSERT_EQUAL(2, mesh.number_of_cells());
+    ASSERT_EQUAL(5, mesh.number_of_edges());
 }
 
+int main(int argc, char **argv)
+{
+  test_insert_construction();
+}

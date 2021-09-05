@@ -6,6 +6,8 @@
 #include <array>
 #include <vector>
 #include <mpi.h>
+#include <map>
+#include <set>
 
 #include "VTKMeshReader.h"
 
@@ -40,9 +42,8 @@ public:
     auto & npid = m_pmesh->node_process_id();
     reader.get_node_data("nid", npid);
 
-    std::vector<int> fixednode(npid.size());
-    reader.get_node_data("gdof", m_pmesh->nodedata().gdof);
-
+    reader.get_node_data("gdof", m_pmesh->get_node_int_data()["gdof"]);
+    reader.get_node_data("gtag", m_pmesh->get_node_int_data()["gtag"]);
     build_mesh();
   }
 
@@ -94,39 +95,19 @@ public:
       auto & idxmap = map.second;
 
       int N = idxmap.size();
-      int data[N*2];
+      int mdata[N*2];
+      int odata[N*2];
       int j = 0;
       for(auto pair : idxmap)
       {
-        data[2*j] = pair.first;
-        data[2*j+1] = pair.second; //传输的数据是先全局后局部
+        mdata[2*j] = pair.first;
+        mdata[2*j+1] = pair.second; //传输的数据是先全局后局部
         j++;
       }
 
-      MPI_Send(data, N*2, MPI_INT, target, 1, m_comm);
-    }
+      MPI_Sendrecv(mdata, N*2, MPI_INT, target, 1, 
+          odata, N*2, MPI_INT, target, 1, m_comm, MPI_STATUS_IGNORE);
 
-    //接收重叠区的编号信息
-    for(auto map : g2l)
-    {
-      auto target  = map.first;
-      auto & idxmap = map.second;
-
-      int N = idxmap.size();
-      int data[N*2];
-    }
-
-    for(auto map : g2l)
-    {
-      auto target  = map.first;
-      auto & idxmap = map.second;
-
-      int N = idxmap.size();
-      int data[N*2];
-
-      MPI_Recv(data, N*2, MPI_INT, target, 1, m_comm, MPI_STATUS_IGNORE);
-
-      //把 data 中的数据和 idxmap 结合
       pds[target].init(3);
       auto & overlap0 = pds[target].entity_overlap(d);
       auto & locid = overlap0.loc_index();
@@ -137,8 +118,8 @@ public:
 
       for(int j = 0; j < N; j++)
       {
-        locid[j] = idxmap[data[2*j]];
-        adjid[j] = data[2*j+1];
+        locid[j] = idxmap[odata[2*j]];
+        adjid[j] = odata[2*j+1];
       }
     }
   }

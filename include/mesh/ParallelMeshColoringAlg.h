@@ -1,6 +1,8 @@
 #include <memory>
+#include <iostream>
 #include <vector>
 #include <mpi.h>
+#include <list>
 
 //#include "GhostFillingAlg.h"
 
@@ -25,12 +27,13 @@ public:
     m_comm = comm;
   }
 
-  int coloring(std::vector<int> & color)
+  int coloring()
   {
     auto mesh = get_mesh();
     auto NN = mesh->number_of_nodes();
     auto NE = mesh->number_of_edges();
-    auto & pds = mesh->parallel_data_structure();
+    auto & color = mesh->get_node_int_data()["color"];
+    color.resize(NN);
 
     auto & isGhostNode = m_set_ghost_alg->get_ghost_node();
 
@@ -104,14 +107,16 @@ public:
       int lnum = nColored.size();
       MPI_Allreduce(&lnum, &tnum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     }
-    return cmax;
+    //return cmax;
+    return 0;
   }
 
-  void color_test(std::vector<int> & color)
+  void color_test()
   {
     //检验染色是否成功
     int a=0;
     auto mesh = get_mesh();
+    auto & color = mesh->get_node_int_data()["color"];
     int NC = mesh->number_of_cells();
     int NE = mesh->number_of_edges();
     int NN = mesh->number_of_nodes();
@@ -133,11 +138,11 @@ public:
     }
     if(a==0)
     {
-      std::cout<< "染色成功  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<endl; 
+      std::cout<< "染色成功  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<std::endl; 
     }
     else
     {
-      std::cout<< "染色失败  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<endl; 
+      std::cout<< "染色失败  单元数 " << NC << " 节点数 " << NN << " 边数 " << NE <<std::endl; 
     }
   }
 

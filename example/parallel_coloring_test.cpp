@@ -48,8 +48,8 @@ int main(int argc, char * argv[])
   auto NN = mesh->number_of_nodes();
   std::vector<int> color(NN);
 
-  algorithm.coloring(color);
-  algorithm.color_test(color);
+  algorithm.coloring();
+  algorithm.color_test();
   
   MPI_Finalize();
   return 0;

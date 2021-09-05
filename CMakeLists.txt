@@ -1,6 +1,10 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0.0)
 
 project(WHYSC)
+
+set(WHYSC_VERSION_MAJOR 0)
+set(WHYSC_VERSION_MINOR 0)
+set(WHYSC_VERSION_PATCH 1)
 
 # 目前已经在 Ubuntu 20.04 系统中测试过该软件包
 
@@ -106,4 +110,6 @@ else()
     message("Found GMSH! ${GMSH_INCLUDE_DIR}")
 endif()
 
+enable_testing()
 add_subdirectory(test)
+add_subdirectory(example)

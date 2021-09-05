@@ -20,7 +20,7 @@ typedef WHYSC::Mesh::MeshFactory MF;
 typedef TetMesh::Vector Vector;
 typedef TetMesh::Toplogy Toplogy;
 
-int main(int argc, char * argv[])
+int main()
 {
   auto mesh = std::make_shared<TetMesh>();
   MF::one_tetrahedron_mesh(*mesh, "equ");
@@ -33,13 +33,9 @@ int main(int argc, char * argv[])
   }
 
   TetMeshQuality tmq(mesh);
-  std::vector<double> q;
-  tmq.mesh_quality(q);
   Vector v;
   double w;
   tmq.nabla_quality(0, 3, v, w);
-  for(auto q0 : q)
-    std::cout<< "q = " << q0 <<std::endl;
   std::cout<< "cell_q = " << mesh->cell_quality(0) <<std::endl;
   std::cout<< "v = " << v[0] << " " << v[1] << " " << v[2] <<std::endl;
   std::cout<< "w = " << w <<std::endl;

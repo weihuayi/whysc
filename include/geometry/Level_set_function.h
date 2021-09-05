@@ -49,6 +49,9 @@ public:
         return GK::sign(val);
     }
 
+    Point_2 center() { return _center;}
+    Float radius() { return _r;}
+
 private:
     Point_2 _center;
     Float _r;
@@ -137,6 +140,8 @@ public:
     {
         return GK::point_3(p);
     }
+    Point_3 center() { return _center;}
+    Float radius() { return _r;}
 
 private:
     Point_3 _center;
@@ -211,6 +216,7 @@ public:
         return GK::point_3(p);
     }
 };
+
 template<class GK>
 class Signed_distance_sphere_3
 {
