@@ -37,80 +37,78 @@ namespace Mesh {
 class VTKMeshWriter
 {
 public:
+
+
+public:
     VTKMeshWriter()
     {
-        m_points = vtkSmartPointer<vtkPoints>::New();
         m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
         m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
     }
 
-    /*
-    VTKMeshWriter(Mesh * mesh)
+    template<class Mesh>
+    void set_mesh(Mesh & mesh)
     {
-        m_mesh = mesh;
-        m_points = vtkSmartPointer<vtkPoints>::New();
-        m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-        m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
+      m_ugrid->Initialize(); //把网格清空
+      set_points(mesh);
+      set_cells(mesh);
     }
 
-    VTKMeshWriter(std::shared_ptr<Mesh> mesh)
-    {
-        m_mesh = &(*mesh);
-        m_points = vtkSmartPointer<vtkPoints>::New();
-        m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-        m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
-    }
-    */
 
-    template<typename Mesh>
+    template<class Mesh>
     void set_points(Mesh & mesh)
     {
-        auto NN = mesh.number_of_nodes();
-        m_points->Allocate(NN);
+      auto NN = mesh.number_of_nodes();
+      auto points = vtkSmartPointer<vtkPoints>::New();
+      points->Allocate(NN);
+      auto GD = mesh.geo_dimension();
 
-        auto GD = mesh.geo_dimension();
+      if(GD == 3)
+      {
 
-        if(GD == 3)
+        int i = 0;
+        for(auto it=mesh.node_begin(); it != mesh.node_end(); it++) 
         {
-            for(auto it=mesh.node_begin(); it != mesh.node_end(); it++) 
-            {
-              m_points->InsertNextPoint((*it)[0], (*it)[1], (*it)[2]); // (*it) 括号是必须的
-            }
+          std::cout << (*it)[0] << ", " << (*it)[1] << ", " << (*it)[2] << std::endl;
+          points->InsertNextPoint((*it)[0], (*it)[1], (*it)[2]); // (*it) 括号是必须的
+          i++;
         }
-        else if(GD == 2)
-        {
-            for(auto it=mesh.node_begin(); it != mesh.node_end(); it++) 
-            {
-              m_points->InsertNextPoint((*it)[0], (*it)[1], 0.0);
-            }
-        }
-        m_ugrid->SetPoints(m_points);
+      }
+      else if(GD == 2)
+      {
+          for(auto it=mesh.node_begin(); it != mesh.node_end(); it++) 
+          {
+            points->InsertNextPoint((*it)[0], (*it)[1], 0.0);
+          }
+      }
+      m_ugrid->SetPoints(points);
     }
 
 
-    template<typename Mesh>
+    template<class Mesh>
     void set_cells(Mesh & mesh)
     {
         auto NC = mesh.number_of_cells();
         auto nn = mesh.number_of_nodes_of_each_cell();
-        auto cellArray = vtkSmartPointer<vtkCellArray>::New();
-        cellArray->AllocateExact(NC, NC*nn); 
+
+        auto cells = vtkSmartPointer<vtkCellArray>::New();
+        cells->AllocateExact(NC, NC*nn); 
+
+        int * idx = mesh.vtk_write_cell_index();
         for(auto & cell : mesh.cells())
         {
-            cellArray->InsertNextCell(nn);
+            cells->InsertNextCell(nn);
             for(int i = 0; i < nn; i++)
             {
-                cellArray->InsertCellPoint(cell[mesh.vtk_write_cell_index()[i]]);
+                cells->InsertCellPoint(cell[idx[i]]);
             }
         }
-        //Toplogy top;
-        //mesh.cell_to_node(top);
-        m_ugrid->SetCells(mesh.vtk_cell_type(), cellArray);
+        m_ugrid->SetCells(mesh.vtk_cell_type(), cells);
     }
 
     void set_point_data(std::vector<int> & data, int ncomponents, const std::string name)
     {
-        int n = data.size()/ncomponents;
+        auto n = data.size()/ncomponents;
         auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
@@ -125,7 +123,7 @@ public:
 
     void set_cell_data(std::vector<int> & data, int ncomponents, const std::string name)
     {
-        int n = data.size()/ncomponents;
+        size_t n = data.size()/ncomponents;
         auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
@@ -140,7 +138,7 @@ public:
 
     void set_point_data(std::vector<double> & data, int ncomponents, const std::string name)
     {
-        int n = data.size()/ncomponents;
+        auto n = data.size()/ncomponents;
         auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
@@ -155,7 +153,7 @@ public:
 
     void set_cell_data(std::vector<double> & data, int ncomponents, const std::string name)
     {
-        int n = data.size()/ncomponents;
+        auto n = data.size()/ncomponents;
         auto vtkdata = vtkSmartPointer<vtkIntArray>::New();
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
@@ -177,9 +175,8 @@ public:
     }
 
 private:
-    vtkSmartPointer<vtkPoints> m_points;
-    vtkSmartPointer<vtkUnstructuredGrid> m_ugrid;
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter> m_writer;
+  vtkSmartPointer<vtkUnstructuredGrid> m_ugrid;
+  vtkSmartPointer<vtkXMLUnstructuredGridWriter> m_writer;
 };
 
 } // end of namespace Mesh

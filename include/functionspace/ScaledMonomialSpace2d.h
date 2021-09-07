@@ -16,10 +16,7 @@ public:
   typedef std::array<int, 2> Dof;
 
 public:
-  SMDof2d(std::shared_ptr<Mesh> mesh, int p): m_mesh(mesh), m_p(p)
-  {
-    build_dof();
-  }
+  SMDof2d(std::shared_ptr<Mesh> mesh, int p): m_mesh(mesh), m_p(p) {}
 
   int number_of_local_dofs()
   {
@@ -32,10 +29,11 @@ public:
     return NC*number_of_local_dofs();
   }
 
-  template<typename Container>
-  void cell_to_dof(int idx, Container & cell2dof)
+  void cell_to_dof(int idx, std::vector<int> & cell2dof)
   {
     int ldof = number_of_local_dofs();
+    cell2dof.resize(ldof);
+
     int N = idx*ldof;
     for(int i = 0; i < ldof; i++)
     {
@@ -43,29 +41,12 @@ public:
     }
   }
 
-  void build_dof()
-  {
-    int ldof = number_of_local_dofs(); 
-    m_multiIndex.resize(ldof);
-    int idx = 0;
-    for(int i = 0; i < m_p+1; i++)
-    {
-      for(int j = 0; j < i+1; j++)
-      {
-        m_multiIndex[idx][1] = j; 
-        m_multiIndex[idx][0] = i-j; 
-        idx++;
-      }
-    }
-  }
-
 private:
   int m_p;
   std::shared_ptr<Mesh> m_mesh;
-  std::vector<Dof> m_multiIndex;
 };// end of SMDof2d
 
-template<typename Mesh, typename AK>
+template<typename Mesh>
 class ScaledMonomialSpace2d
 {
 public:
@@ -74,9 +55,7 @@ public:
   typedef typename Mesh::F F;
   typedef typename Mesh::I I;
   typedef typename Mesh::Node Node;
-
-  typedef typename AK::Matrix Matrix;
-  typedef typename AK::CSRMatrix CSRMatrix;
+  typedef typename Mesh::Vector Vector;
 
 public:
   ScaledMonomialSpace2d(std::shared_ptr<Mesh> mesh, int p): m_mesh(mesh), m_p(p)
@@ -86,175 +65,94 @@ public:
     mesh->cell_size(m_cellsize);
   }
 
-  void basis(const std::vector<Node> & point, Matrix & phi, const std::vector<int> & index)
+  void basis(int cidx, const Node & point, std::vector<double> & phi)
   {
     int ldof = m_dof->number_of_local_dofs();
-    int NP = index.size();
-    phi.reshape(NP, ldof);
-    for(int i = 0; i < NP; i++)
-    {
-      int idx = index[i];
-      const auto & cellbar = m_cellbarycenter[idx];
-      auto & h = m_cellsize[idx];
-      auto xbar = (point[i] - cellbar)/h;
+    phi.resize(ldof);
 
-      phi[i][0] = 1; // 0 次基函数
-      if(m_p>0)
+    const auto & cellbar = m_cellbarycenter[cidx];
+    const auto & h = m_cellsize[cidx];
+    auto xbar = (point - cellbar)/h;
+
+    phi[0] = 1; // 0 次基函数
+    if(m_p>0)
+    {
+      phi[1] = xbar[0];
+      phi[2] = xbar[1];// 1 次基函数
+      int start = 3; // 第 0 个 j 次基函数的编号
+      for(int j = 2; j < m_p+1; j++)
       {
-        phi[i][1] = xbar[0];
-        phi[i][2] = xbar[1];// 1 次基函数
-        int start = 3; // 第 0 个 j 次基函数的编号
-        for(int j = 2; j < m_p+1; j++)
+        for(int k = start; k < start+j; k++)
         {
-          for(int k = start; k < start+j; k++)
-          {
-            phi[i][k] = xbar[0]*phi[i][k-j]; 
-          }
-          phi[i][start+j] = xbar[1]*phi[i][start-1];
-          start += j+1;
+          phi[k] = xbar[0]*phi[k-j]; 
         }
+        phi[start+j] = xbar[1]*phi[start-1];
+        start += j+1;
       }
     }
   }
 
-  void basis(const std::vector<Node> & point, Matrix & phi)
+  void grad_basis(int cidx, const Node & point, std::vector<Vector> & nphi)
   {
     int ldof = m_dof->number_of_local_dofs();
-    int NC = m_mesh->number_of_cells();
-    phi.reshape(NC, ldof);
-    for(int i = 0; i < NC; i++)
-    {
-      const auto & cellbar = m_cellbarycenter[i];
-      auto & h = m_cellsize[i];
-      auto xbar = (point[i] - cellbar)/h;
+    nphi.resize(ldof);
 
-      phi[i][0] = 1; // 0 次基函数
-      if(m_p>0)
+    const auto & cellbar = m_cellbarycenter[cidx];
+    const auto & h = m_cellsize[cidx];
+    auto xbar = (point - cellbar)/h;
+
+    std::vector<double> phi; //基函数 
+    basis(cidx, point, phi);
+
+    nphi[0][0] = 0.0;
+    nphi[0][1] = 0.0; // 0 次基函数的偏导
+    if(m_p>0)
+    {
+      int start = 1; // 第 0 个 j 次基函数的编号
+      for(int j = 1; j < m_p+1; j++)
       {
-        int start = 1; // 第 0 个 j 次基函数的编号
-        for(int j = 1; j < m_p+1; j++)
+        nphi[start][1] = 0.0; // phi[-1]
+        for(int k = start; k < start+j; k++)
         {
-          for(int k = start; k < start+j; k++)
-          {
-            phi[i][k] = xbar[0]*phi[i][k-j]; //phi[:-2]
-          }
-          phi[i][start+j] = xbar[1]*phi[i][start-1]; // phi[-1]
-          start += j+1; //更新 start
+          int c = k - start;
+          nphi[k][0] = (j-c)*phi[k-j];
+          nphi[k+1][1] = (c+1)*phi[k-j];
         }
+        nphi[start+j][0] = 0.0;
+        start += j+1; //更新 start
       }
     }
   }
 
-  void grad_basis(const std::vector<Node> & point, Matrix & phi_x, Matrix & phi_y, 
-      const std::vector<int> & index)
+  void laplace_basis(int cidx, const Node & point, std::vector<double> & lphi)
   {
     int ldof = m_dof->number_of_local_dofs();
-    int NP = index.size();
-    phi_x.reshape(NP, ldof);
-    phi_y.reshape(NP, ldof);
-    for(int i = 0; i < NP; i++)
+    lphi.resize(ldof);
+
+    const auto & cellbar = m_cellbarycenter[cidx];
+    const auto & h = m_cellsize[cidx];
+    auto xbar = (point - cellbar)/h;
+
+    std::vector<double> phi; //基函数 
+    basis(cidx, point, phi);
+
+    lphi[0] = 0.0; // 0 次基函数的偏导
+    if(m_p>0)
     {
-      int idx = index[i];
-      const auto & cellbar = m_cellbarycenter[idx];
-      auto & h = m_cellsize[idx];
-      auto xbar = (point[i] - cellbar)/h;
-      double phi[ldof]; // j-1 次基函数
-
-      phi[0] = 1.0;
-      phi_x[i][0] = 0.0;
-      phi_y[i][0] = 0.0; // 0 次基函数的偏导
-      if(m_p>0)
+      lphi[1] = 0.0;
+      lphi[2] = 0.0;
+      phi[1] = xbar[0];
+      phi[2] = xbar[1];
+      int start = 3; // 第 0 个 j 次基函数的编号
+      for(int j = 2; j < m_p+1; j++)
       {
-        int start = 1; // 第 0 个 j 次基函数的编号
-        for(int j = 1; j < m_p+1; j++)
+        for(int k = start; k < start+j-1; k++)
         {
-          phi_y[i][start] = 0.0; // phi[-1]
-          for(int k = start; k < start+j; k++)
-          {
-            int c = k - start;                 //phi_y[0]
-            phi_x[i][k] = (j-c)*phi[k-j];      //phi_x[:-2]
-            phi_y[i][k+1] = (c+1)*phi[k-j];    //phi_y[1:]
-            phi[k] = xbar[0]*phi[k-j];         //phi[:-2]
-          }
-          phi_x[i][start+j] = 0.0;               //phi_x[-1] 
-          phi[start+j] = xbar[1]*phi[start-1]; //phi[-1]
-          start += j+1; //更新 start
+          int c = k - start;
+          lphi[k] += (j-c)*(j-c-1)*phi[k-j-j+1];
+          lphi[k+2] += (c+2)*(c+1)*phi[k-j-j+1];
         }
-      }
-    }
-  }
-
-  void grad_basis(const std::vector<Node> & point, Matrix & phi_x, Matrix & phi_y)
-  {
-    int ldof = m_dof->number_of_local_dofs();
-    int NC = m_mesh->number_of_cells();
-    phi_x.reshape(NC, ldof);
-    phi_y.reshape(NC, ldof);
-    for(int i = 0; i < NC; i++)
-    {
-      const auto & cellbar = m_cellbarycenter[i];
-      auto & h = m_cellsize[i];
-      auto xbar = (point[i] - cellbar)/h;
-      double phi[ldof]; // j-1 次基函数
-
-      phi[0] = 1.0;
-      phi_x[i][0] = 0.0;
-      phi_y[i][0] = 0.0; // 0 次基函数的偏导
-      if(m_p>0)
-      {
-        int start = 1; // 第 0 个 j 次基函数的编号
-        for(int j = 1; j < m_p+1; j++)
-        {
-          phi_y[i][start] = 0; // phi[-1]
-          for(int k = start; k < start+j; k++)
-          {
-            int c = k - start;                 //phi_y[0]
-            phi_x[i][k] = (j-c)*phi[k-j];      //phi_x[:-2]
-            phi_y[i][k+1] = (c+1)*phi[k-j];    //phi_y[1:]
-            phi[k] = xbar[0]*phi[k-j];         //phi[:-2]
-          }
-          phi_x[i][start+j] = 0;               //phi_x[-1] 
-          phi[start+j] = xbar[1]*phi[start-1]; //phi[-1]
-          start += j+1; //更新 start
-        }
-      }
-    }
-  }
-
-  void laplace_basis(const std::vector<Node> & point, Matrix & lphi)
-  {
-    int ldof = m_dof->number_of_local_dofs();
-    int NC = m_mesh->number_of_cells();
-    lphi.reshape(NC, ldof);
-    for(int i = 0; i < NC; i++)
-    {
-      const auto & cellbar = m_cellbarycenter[i];
-      auto & h = m_cellsize[i];
-      auto xbar = (point[i] - cellbar)/h;
-      double phi[ldof]; // j-1 次基函数
-
-      phi[0] = 1.0;
-      lphi[i][0] = 0.0; // 0 次基函数的偏导
-      if(m_p>0)
-      {
-        lphi[i][1] = 0.0;
-        lphi[i][2] = 0.0;
-        phi[1] = xbar[0];
-        phi[2] = xbar[1];
-        int start = 3; // 第 0 个 j 次基函数的编号
-        for(int j = 2; j < m_p+1; j++)
-        {
-          for(int k = start; k < start+j-1; k++)
-          {
-            int c = k - start;
-            lphi[i][k] += (j-c)*(j-c-1)*phi[k-j-j+1];
-            lphi[i][k+2] += (c+2)*(c+1)*phi[k-j-j+1];
-            phi[k] = xbar[0]*phi[k-j];
-          }
-          phi[start+j-1] = xbar[1]*phi[start-2];
-          phi[start+j] = xbar[1]*phi[start-1];
-          start += j+1; //更新 start
-        }
+        start += j+1; //更新 start
       }
     }
   }

@@ -187,7 +187,7 @@ public:
              if(it == idxmap.end())
              {
                 m_cell2face[i][j] = NF;
-                idxmap.insert(std::pair<I, I>(s, NF));
+                idxmap.insert(std::pair<long long, I>(s, NF));
                 m_face2cell.push_back(Face2cell{i, i, j, j});
                 NF++;
              }
@@ -219,13 +219,82 @@ public:
           for(I j = 0; j < 6; j++)
           { 
               auto s = local_edge_index(i, j); 
-              if(c[0]==65539 && c[2]==62646 && j == 1)
-                std::cout<< "bingo " << s <<std::endl;
               auto it = idxmap.find(s);
               if(it == idxmap.end())
               {
                   m_cell2edge[i][j] = NE;
-                  idxmap.insert(std::pair<I, I>(s, NE));
+                  idxmap.insert(std::pair<long long, I>(s, NE));
+                  m_edge.push_back(Edge{c[m_localedge[j][0]], c[m_localedge[j][1]]});
+                  NE++; 
+              }
+             else
+             {
+                m_cell2edge[i][j] = it->second;
+             }
+          }
+      }
+  }
+
+  void init_top0()
+  {
+      m_face2cell.clear();
+      m_cell2face.clear();
+
+      auto NN = number_of_nodes();
+      auto NC = number_of_cells();
+      m_face2cell.reserve(2*NC); //TODO: 欧拉公式?
+      m_cell2face.resize(NC);
+      std::map<std::array<int, 3>, I> fidxmap;
+      std::map<std::array<int, 2>, I> eidxmap;
+
+      I NF = 0;
+      // 偏历所有单元
+      for(I i = 0; i < NC; i++)
+      {
+          for(I j = 0; j < 4; j++)
+          {
+             auto s = local_face_index0(i, j);
+             auto it = fidxmap.find(s);
+             if(it == fidxmap.end())
+             {
+                m_cell2face[i][j] = NF;
+                fidxmap.insert(std::pair<std::array<int, 3>, I>(s, NF));
+                m_face2cell.push_back(Face2cell{i, i, j, j});
+                NF++;
+             }
+             else
+             {
+                m_cell2face[i][j] = it->second;
+                m_face2cell[it->second][1] = i;
+                m_face2cell[it->second][3] = j;
+             }
+          }
+      }
+      fidxmap.clear();
+
+      m_face.resize(NF);
+      for(I i = 0; i < NF; i++)
+      {
+          auto & c = m_cell[m_face2cell[i][0]];
+          auto j = m_face2cell[i][2];
+          m_face[i][0] = c[m_localface[j][0]];
+          m_face[i][1] = c[m_localface[j][1]];
+          m_face[i][2] = c[m_localface[j][2]];
+      }
+
+      m_cell2edge.resize(NC);
+      I NE = 0;
+      for(I i = 0; i < NC; i++)
+      {
+          auto & c = m_cell[i];
+          for(I j = 0; j < 6; j++)
+          { 
+              auto s = local_edge_index0(i, j); 
+              auto it = eidxmap.find(s);
+              if(it == eidxmap.end())
+              {
+                  m_cell2edge[i][j] = NE;
+                  eidxmap.insert(std::pair<std::array<int, 2>, I>(s, NF));
                   m_edge.push_back(Edge{c[m_localedge[j][0]], c[m_localedge[j][1]]});
                   NE++; 
               }
@@ -772,7 +841,18 @@ private:
      * -----
      *  计算第 i 个 cell 的第 j 个 face 的全局唯一整数编号
      */
-    I local_face_index(I i, I j)
+    long long local_face_index(I i, I j)
+    {
+        long long f[3] = {
+            m_cell[i][m_localface[j][0]], 
+            m_cell[i][m_localface[j][1]], 
+            m_cell[i][m_localface[j][2]]
+        };
+        std::sort(f, f+3);
+        return  f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2]+1)*(f[2]+2)/6;
+    }
+
+    std::array<int, 3> local_face_index0(I i, I j)
     {
         I f[3] = {
             m_cell[i][m_localface[j][0]], 
@@ -780,7 +860,7 @@ private:
             m_cell[i][m_localface[j][2]]
         };
         std::sort(f, f+3);
-        return  f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2]+1)*(f[2]+2)/6;
+        return  std::array<int, 3>({f[0], f[1], f[2]});
     }
 
     /*
@@ -794,6 +874,13 @@ private:
         long long e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
         std::sort(e, e+2);
         return  e[0] + e[1]*(e[1]+1)/2;
+    }
+
+    std::array<int, 2> local_edge_index0(I i, I j)
+    {
+        int e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
+        std::sort(e, e+2);
+        return  std::array<int, 2>({e[0], e[1]});
     }
 
 private:

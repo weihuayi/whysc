@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <math.h>
 
 #include "MeshToplogy.h"
 #include "NodeData.h"
@@ -473,6 +474,11 @@ public:
     measure.resize(NC);
     for(I i = 0; i < NC; i++)
         measure[i] = cell_measure(i);
+  }
+
+  F cell_size(I cidx)
+  {
+    return std::sqrt(cell_measure(cidx));
   }
 
   void cell_size(std::vector<F> & cellsize)
