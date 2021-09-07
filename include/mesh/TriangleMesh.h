@@ -5,6 +5,7 @@
 #include <array>
 #include <map>
 #include <math.h>
+#include <algorithm>
 
 #include "MeshToplogy.h"
 #include "NodeData.h"
@@ -218,6 +219,48 @@ public:
           m_edge[i][0] = c[m_localedge[j][0]];
           m_edge[i][1] = c[m_localedge[j][1]];
       }
+  }
+
+  void init_top0()
+  {
+      auto NN = number_of_nodes();
+      auto NC = number_of_cells();
+      m_cell2edge.resize(m_cell.size());
+      m_edge2cell.clear();
+      // 在知道网格代表曲面的洞和亏格的个数后, 可以准确计算边的个数
+      m_edge2cell.reserve(NN + NC + m_holes + 2*m_genus - 2);
+
+      // 偏历所有单元
+      m_edge.resize(3*NC);
+      for(I i = 0; i < m_cell.size(); i++)
+      {
+          for(I j = 0; j < 3; j++)
+          {
+            m_edge[3*i+j] = local_edge_index0(i, j);
+          }
+      }
+      auto com = [this](const Node & p0, const Node & p1){return node_com(p0, p1);};
+      std::sort(m_edge.begin(), m_edge.end(), com);
+  }
+
+  bool node_com(const Node & p0, const Node & p1)
+  {
+    /*
+    int idx0[2], idx1[2];
+    idx0[0] = 0;
+    idx1[1] = 0;
+    idx0[1] = 1;
+    idx1[1] = 1;
+    std::sort(idx0, idx0+2, )
+    */
+    if(p1[1]>p0[1])
+      return true;
+    else if(p1[1]<p0[1])
+      return false;
+    else if(p1[0] >= p0[0]) 
+      return true;
+    else
+      return false;
   }
 
   void is_boundary_edge(std::vector<bool> & isBdEdge)
@@ -459,6 +502,10 @@ public:
         cellsize[i] = std::sqrt(cell_measure(i));
   }
 
+  F cell_size(I cidx)
+  {
+    return std::sqrt(cell_measure(cidx));
+  }
 
   Node edge_barycenter(const I i)
   {
@@ -627,6 +674,13 @@ private:
       I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
       std::sort(e, e+2);
       return  e[0] + e[1]*(e[1]+1)/2;
+  }
+
+  Edge local_edge_index0(I i, I j)
+  {
+      I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
+      std::sort(e, e+2);
+      return Edge({e[0], e[1]});
   }
 
 private:

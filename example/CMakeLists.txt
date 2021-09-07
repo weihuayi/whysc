@@ -7,7 +7,6 @@ add_executable(dsolve_test dsolve_test.cpp)
 add_executable(ceshi ceshi.cpp)
 
 add_executable(masks masks.cpp)
-add_executable(scaled_monomial_space_2d scaled_monomial_space_2d.cpp)
 
 add_executable(CSRMatrix_test CSRMatrix_test.cpp)
 add_executable(laplace_test laplace_test.cpp)
@@ -62,6 +61,13 @@ if(${VTK_FOUND})
     #    TARGETS TetrahedronMesh_test 
     #    MODULES ${VTK_LIBRARIES}
     #)
+
+    add_executable(map_test map_test.cpp)
+    target_link_libraries(map_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS map_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(hexmesh_test hexmesh_test.cpp)
     target_link_libraries(hexmesh_test PRIVATE ${VTK_LIBRARIES})
