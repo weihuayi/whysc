@@ -21,7 +21,7 @@ typedef TriMesh::Edge Edge;
 void test_insert_construction()
 {
     TriMesh mesh;
-    int N = 1000000;
+    int N = 100;
     auto & nodes = mesh.nodes();
     auto & cells = mesh.cells();
 
