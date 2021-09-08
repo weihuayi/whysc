@@ -4,6 +4,9 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <math.h>
+#include <iostream>
+#include <algorithm>
 
 #include "MeshToplogy.h"
 #include "NodeData.h"
@@ -64,11 +67,17 @@ public:
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;
 
+  static int m_localedge[12][2];
+  static int m_localface[6][6];
+  static int m_localface2edge[6][4];
+  static int m_refine[8][8];
+  static int m_index[12][4];
+  static int m_num[8][8];
+  static int m_vtk_read_idx[8];
+  static int m_vtk_write_idx[8];
 public:
 
-  HexahedronMesh()
-  {
-  }
+  HexahedronMesh(){}
 
   void insert(const Node & node)
   {
@@ -120,17 +129,20 @@ public:
       return 3;
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
   {
-    return m_vtkidx;
+    return m_vtk_read_idx;
+  }
+
+  int* vtk_write_cell_index()
+  {
+    return m_vtk_write_idx;
   }
 
   I vtk_cell_type(I TD=3)
   {
       if(TD == 3)
-          return 72; // VTK_TETRA = 10
-      else if(TD == 2)
-          return 70; // VTK_TRIANGLE = 5
+          return 12; // VTK_TETRA = 10
       else if(TD == 1)
           return 3; // VTK_LINE = 1
       else
@@ -704,12 +716,18 @@ public:
     }
 
     auto & nei = top.neighbors();
+    auto & locid = top.local_indices();
     nei.resize(loc[NN]);
+    locid.resize(loc[NN]);
     std::vector<I> start(loc);
     for(I i = 0; i < NC; i++)
     {
-      for(auto v : m_cell[i])
+      for(int j = 0; j < 8; j++)
+      {
+        auto v = m_cell[i][j];
+        locid[start[v]] = j;
         nei[start[v]++] = i;
+      }
     }
   }
 
@@ -785,12 +803,6 @@ private:
     }
 
 private:
-    static int m_localedge[12][2];
-    static int m_localface[6][6];
-    static int m_localface2edge[6][4];
-    static int m_refine[8][8];
-    static int m_index[12][4];
-    static int m_vtkidx[8];
     std::vector<Node> m_node;
     std::vector<Cell> m_cell; 
     std::vector<Edge> m_edge;
@@ -838,7 +850,18 @@ int HexahedronMesh<GK, Node, Vector>::m_index[12][4] = {
 };
 
 template<typename GK, typename Node, typename Vector>
-int HexahedronMesh<GK, Node, Vector>::m_vtkidx[8] = {0, 4, 6, 2, 1, 5, 7, 3};
+int HexahedronMesh<GK, Node, Vector>::m_vtk_write_idx[8] = {0, 4, 6, 2, 1, 5, 7, 3};
+
+template<typename GK, typename Node, typename Vector>
+int HexahedronMesh<GK, Node, Vector>::m_vtk_read_idx[8] = {0, 4, 3, 7, 1, 5, 2, 6};
+
+template<typename GK, typename Node, typename Vector>
+int HexahedronMesh<GK, Node, Vector>::m_num[8][8] = {
+    {0, 1, 2, 3 ,4 ,5 ,6 ,7}, {1, 0, 5, 4, 3, 2, 7, 6},
+    {2, 3 ,6, 7, 0, 1, 4 ,5}, {3, 2, 1, 0, 7, 6, 5, 4}, 
+    {4, 5, 0, 1, 6, 7, 2, 3}, {5, 4, 7, 6, 1, 0, 3, 2},
+    {6, 7, 4, 5, 2, 3, 0, 1}, {7, 6, 3, 2, 5, 4, 1, 0}
+};
 
 } // end of namespace Mesh 
 

@@ -28,7 +28,7 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
 //typedef WHYSC::Mesh::ParallelMesh<GK, QMesh> PMesh;
 typedef PMesh::Cell Cell;
 typedef PMesh::Toplogy Toplogy;
-typedef WHYSC::Mesh::VTKMeshWriter<PMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
 typedef WHYSC::Mesh::MeshFactory MF;
 
@@ -72,7 +72,7 @@ int main()
     //PMesh mesh(1);
     //MF::cgal_c3t3_to_tetmesh(c3t3, mesh);
 
-    auto mesh = std::make_shared<PMesh>(1);
+    auto mesh = std::make_shared<PMesh>();
     Reader reader(mesh);
     reader.read("cube.vtu");
     auto & gtag = mesh->get_node_int_data()["gtag"];

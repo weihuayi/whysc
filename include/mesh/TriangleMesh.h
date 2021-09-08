@@ -4,6 +4,8 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <math.h>
+#include <algorithm>
 
 #include "MeshToplogy.h"
 #include "NodeData.h"
@@ -60,6 +62,10 @@ public:
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;
 
+  static int m_localedge[3][2];
+  static int m_localface[3][2];
+  static int m_vtkidx[3];
+  static int m_num[3][3];
 
 public:
   TriangleMesh()
@@ -138,7 +144,12 @@ public:
         return 0;// VTK_EMPLTY_CELL = 0
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
+  {
+    return m_vtkidx;
+  }
+
+  int* vtk_write_cell_index()
   {
     return m_vtkidx;
   }
@@ -208,6 +219,48 @@ public:
           m_edge[i][0] = c[m_localedge[j][0]];
           m_edge[i][1] = c[m_localedge[j][1]];
       }
+  }
+
+  void init_top0()
+  {
+      auto NN = number_of_nodes();
+      auto NC = number_of_cells();
+      m_cell2edge.resize(m_cell.size());
+      m_edge2cell.clear();
+      // 在知道网格代表曲面的洞和亏格的个数后, 可以准确计算边的个数
+      m_edge2cell.reserve(NN + NC + m_holes + 2*m_genus - 2);
+
+      // 偏历所有单元
+      m_edge.resize(3*NC);
+      for(I i = 0; i < m_cell.size(); i++)
+      {
+          for(I j = 0; j < 3; j++)
+          {
+            m_edge[3*i+j] = local_edge_index0(i, j);
+          }
+      }
+      auto com = [this](const Node & p0, const Node & p1){return node_com(p0, p1);};
+      std::sort(m_edge.begin(), m_edge.end(), com);
+  }
+
+  bool node_com(const Node & p0, const Node & p1)
+  {
+    /*
+    int idx0[2], idx1[2];
+    idx0[0] = 0;
+    idx1[1] = 0;
+    idx0[1] = 1;
+    idx1[1] = 1;
+    std::sort(idx0, idx0+2, )
+    */
+    if(p1[1]>p0[1])
+      return true;
+    else if(p1[1]<p0[1])
+      return false;
+    else if(p1[0] >= p0[0]) 
+      return true;
+    else
+      return false;
   }
 
   void is_boundary_edge(std::vector<bool> & isBdEdge)
@@ -314,12 +367,18 @@ public:
     }
 
     auto & nei = top.neighbors();
+    auto & locid = top.local_indices();
     nei.resize(loc[NN]);
+    locid.resize(loc[NN]);
     std::vector<I> start(loc);
     for(I i = 0; i < NC; i++)
     {
-      for(auto v : m_cell[i])
+      for(int j = 0; j < 3; j++)
+      {
+        auto v = m_cell[i][j];
+        locid[start[v]] = j;
         nei[start[v]++] = i;
+      }
     }
   }
 
@@ -435,6 +494,19 @@ public:
         measure[i] = cell_measure(i);
   }
 
+  void cell_size(std::vector<F> & cellsize)
+  {
+    auto NC = number_of_cells();
+    cellsize.resize(NC);
+    for(I i = 0; i < NC; i++)
+        cellsize[i] = std::sqrt(cell_measure(i));
+  }
+
+  F cell_size(I cidx)
+  {
+    return std::sqrt(cell_measure(cidx));
+  }
+
   Node edge_barycenter(const I i)
   {
     auto & e = m_edge[i];
@@ -455,6 +527,14 @@ public:
     auto & c = m_cell[i];
     for(int i = 0; i < geo_dimension(); i++)
       node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i])/3.0;
+  }
+
+  void cell_barycenter(std::vector<Node> & cellbarycenter)
+  {
+    int NC = number_of_cells();
+    cellbarycenter.resize(NC);
+    for(int i = 0; i < NC; i++)
+      cell_barycenter(i, cellbarycenter[i]);
   }
 
   F edge_measure(const I i)
@@ -596,10 +676,14 @@ private:
       return  e[0] + e[1]*(e[1]+1)/2;
   }
 
+  Edge local_edge_index0(I i, I j)
+  {
+      I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
+      std::sort(e, e+2);
+      return Edge({e[0], e[1]});
+  }
+
 private:
-  static int m_localedge[3][2];
-  static int m_localface[3][2];
-  static int m_vtkidx[3];
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
   std::vector<Node> m_node;
@@ -624,6 +708,11 @@ int TriangleMesh<GK, NODE, VECTOR>::m_localface[3][2] = {
 
 template<typename GK, typename NODE, typename VECTOR>
 int TriangleMesh<GK, NODE, VECTOR>::m_vtkidx[3] = {0, 1, 2};
+
+template<typename GK, typename NODE, typename VECTOR>
+int TriangleMesh<GK, NODE, VECTOR>::m_num[3][3] = {
+  {0, 1, 2}, {1, 2, 0}, {2, 0, 1}
+};
 
 } // end of namespace Mesh 
 

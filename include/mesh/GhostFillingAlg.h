@@ -1,3 +1,6 @@
+#ifndef GhostFillingAlg_h
+#define GhostFillingAlg_h
+
 #include <memory>
 #include <iostream>
 #include <mpi.h>
@@ -178,6 +181,9 @@ private:
   std::map<int, std::array<std::vector<int>*, 2> > m_dataid;
   std::vector<bool> m_isGhostNode;
 };
+
 } // end of namespace Mesh
 
 } // end of namespace WHYSC
+
+#endif // end of GhostFillingAlg_h

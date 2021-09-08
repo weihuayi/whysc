@@ -42,8 +42,10 @@ public:
     auto & npid = m_pmesh->node_process_id();
     reader.get_node_data("nid", npid);
 
-    reader.get_node_data("gdof", m_pmesh->get_node_int_data()["gdof"]);
-    reader.get_node_data("gtag", m_pmesh->get_node_int_data()["gtag"]);
+    auto & nodeIntData = m_pmesh->get_node_int_data();
+    reader.get_node_data("gdof", nodeIntData["gdof"]);
+    reader.get_node_data("gtag", nodeIntData["gtag"]);
+    nodeIntData["nid"] = npid;
     build_mesh();
   }
 

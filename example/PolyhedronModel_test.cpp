@@ -15,7 +15,7 @@ typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, TetMesh> PMesh;
-typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::GeometryModel::PolyhedronModel<GK, TetMesh> PModel;
 typedef WHYSC::Mesh::MeshFactory MF;
 
@@ -57,9 +57,9 @@ int main(int argc, char * argv[])
   poly.mesher(dim, tag);
   auto mesh = poly.get_mesh();
 
-  Writer writer(mesh);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
 
   writer.set_point_data(dim, 1, "dim");
   writer.set_point_data(tag, 1, "tag");

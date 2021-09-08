@@ -50,7 +50,7 @@ typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef TriMesh::Cell Cell;
 typedef TriMesh::Toplogy Toplogy;
 typedef WHYSC::Mesh::VTKMeshReader<TriMesh> Reader;
-typedef WHYSC::Mesh::VTKMeshWriter<TriMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -216,9 +216,9 @@ int main(int argc, char* argv[])
   std::cout<< "here" <<std::endl;
   MF::cgal_surface_mesh_to_triangle_mesh<Mesh, TriMesh>(mesh, mesh0);
 
-  Writer writer(&mesh0);
-  writer.set_points();
-  writer.set_cells();
+  Writer writer;
+  writer.set_points(mesh0);
+  writer.set_cells(mesh0);
   writer.write("file.vtu");
  
   /*

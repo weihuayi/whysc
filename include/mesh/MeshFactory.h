@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <set>
+#include <map>
 #include <memory>
 
 #include <metis.h>
@@ -266,7 +267,8 @@ public:
 
   //根据 metis 将网格分块, 参数为要分块的网格和要分的块数, 输出网格节点与单元的 '块号'.
   template<typename Mesh>
-  static void mesh_node_partition_metis(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
+  static void mesh_node_partition_metis(std::shared_ptr<Mesh> mesh, 
+      idx_t nparts, std::vector<int> & nid, std::vector<int> & cid)
   {
     typedef typename Mesh::Toplogy Toplogy;
 
@@ -286,9 +288,9 @@ public:
   }
 
   //TODO 将网格分块程序做成参数
-  template<typename Mesh>
-  static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, std::vector<Mesh> & submeshes, 
-      std::string fname="")
+  template<typename Mesh, typename PMesh>
+  static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, 
+      std::vector<PMesh> & submeshes, std::string fname="")
   {
     idx_t nc = mesh->number_of_cells();
     idx_t nn = mesh->number_of_nodes();
@@ -296,20 +298,21 @@ public:
     std::vector<int> nid(nc);
     std::vector<int> cid(nn);
 
-    mesh_node_partition_metis(mesh, nparts, nid, cid);
+    if(nparts > 1)
+      mesh_node_partition_metis(mesh, nparts, nid, cid);
 
     submeshes.resize(nparts);
     mesh_node_partition(mesh, nparts, submeshes, nid, cid, fname);
   }
 
   //根据被给的网格以及节点块号将网格分成多个小网格
-  template<typename Mesh>
+  template<typename Mesh, typename PMesh>
   static void mesh_node_partition(std::shared_ptr<Mesh> mesh, idx_t nparts, 
-      std::vector<Mesh> & submeshes, std::vector<int> & nid,  
+      std::vector<PMesh> & submeshes, std::vector<int> & nid,  
       std::vector<int> & cid, std::string fname="")
   {
-    typedef typename Mesh::Toplogy Toplogy;
-    typedef VTKMeshWriter<Mesh> Writer;
+    typedef typename PMesh::Toplogy Toplogy;
+    typedef VTKMeshWriter Writer;
 
     idx_t nn = mesh->number_of_nodes();
     auto & cells = mesh->cells();
@@ -331,19 +334,22 @@ public:
     }
 
     std::vector<int> nums(nparts, 0);
+    std::vector<std::map<int, int> > ng2ls(nparts);
+    std::vector<std::vector<int> > submeshesNgids(nparts);
+
     for(int gid = 0; gid < nn; gid++)
     {
       submeshes[nid[gid]].nodes().push_back(nodes[gid]); // 做映射
-      submeshes[nid[gid]].node_global_id().push_back(gid);
+      submeshesNgids[nid[gid]].push_back(gid);
 
-      submeshes[nid[gid]].node_global_to_local_id().insert(std::pair<int, int>(gid, nums[nid[gid]]));
+      ng2ls[nid[gid]].insert(std::pair<int, int>(gid, nums[nid[gid]]));
       nums[nid[gid]] += 1;
     }
 
     for(int i = 0; i < nparts; i++)
     {
-      auto & pds = submeshes[i].parallel_data_structure();
-      auto & ng2l = submeshes[i].node_global_to_local_id();
+      auto & ngid = submeshesNgids[i];
+      auto & ng2l = ng2ls[i];
 
       for(auto & cell: submeshes[i].cells())
       {
@@ -353,9 +359,8 @@ public:
           if(it == ng2l.end())
           {
             submeshes[i].nodes().push_back(nodes[v]);
-            submeshes[i].node_global_id().push_back(v);
+            ngid.push_back(v);
             ng2l.insert(std::pair<int, int>(v, nums[i]));
-            pds[nid[v]].insert(nums[i]);
             v = nums[i];
             nums[i] += 1;
           }
@@ -372,7 +377,7 @@ public:
       for(int i = 0; i < nparts; i++)
       {
         int NN = submeshes[i].number_of_nodes();
-        auto & gid = submeshes[i].node_global_id();
+        auto & gid = submeshesNgids[i];
 
         std::vector<int> nids(NN);//设置 nids
         auto & nodeIntData = submeshes[i].get_node_int_data();
@@ -389,9 +394,9 @@ public:
 
         std::stringstream ss;
         ss << fname <<"_"<< i << ".vtu";
-        Writer writer(&submeshes[i]);
-        writer.set_points();
-        writer.set_cells();
+        Writer writer;
+        writer.set_points(submeshes[i]);
+        writer.set_cells(submeshes[i]);
         writer.set_point_data(nids, 1, "nid");
         writer.set_point_data(gdof, 1, "gdof");
         writer.set_point_data(gtag, 1, "gtag");

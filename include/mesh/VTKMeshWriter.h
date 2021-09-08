@@ -34,84 +34,76 @@
 namespace WHYSC {
 namespace Mesh {
 
-template<typename Mesh>
 class VTKMeshWriter
 {
 public:
-    typedef typename Mesh::I I;
-    typedef typename Mesh::F F;
-    typedef typename Mesh::Toplogy Toplogy;
-    typedef typename Mesh::NodeIterator NodeIterator;
-    typedef typename Mesh::CellIterator CellIterator;
 
 
 public:
     VTKMeshWriter()
     {
-        m_mesh = NULL;
-        m_points = vtkSmartPointer<vtkPoints>::New();
         m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
         m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
     }
 
-    VTKMeshWriter(Mesh * mesh)
+    template<class Mesh>
+    void set_mesh(Mesh & mesh)
     {
-        m_mesh = mesh;
-        m_points = vtkSmartPointer<vtkPoints>::New();
-        m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-        m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
+      m_ugrid->Initialize(); //把网格清空
+      set_points(mesh);
+      set_cells(mesh);
     }
 
-    VTKMeshWriter(std::shared_ptr<Mesh> mesh)
+
+    template<class Mesh>
+    void set_points(Mesh & mesh)
     {
-        m_mesh = &(*mesh);
-        m_points = vtkSmartPointer<vtkPoints>::New();
-        m_ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-        m_writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
-    }
+      auto NN = mesh.number_of_nodes();
+      auto points = vtkSmartPointer<vtkPoints>::New();
+      points->Allocate(NN);
+      auto GD = mesh.geo_dimension();
 
-    void set_points()
-    {
-        auto NN = m_mesh->number_of_nodes();
-        m_points->Allocate(NN);
+      if(GD == 3)
+      {
 
-        auto GD = m_mesh->geo_dimension();
-
-        if(GD == 3)
+        int i = 0;
+        for(auto it=mesh.node_begin(); it != mesh.node_end(); it++) 
         {
-            for(auto it=m_mesh->node_begin(); it != m_mesh->node_end(); it++) 
-            {
-              m_points->InsertNextPoint((*it)[0], (*it)[1], (*it)[2]); // (*it) 括号是必须的
-            }
+          std::cout << (*it)[0] << ", " << (*it)[1] << ", " << (*it)[2] << std::endl;
+          points->InsertNextPoint((*it)[0], (*it)[1], (*it)[2]); // (*it) 括号是必须的
+          i++;
         }
-        else if(GD == 2)
-        {
-            for(auto it=m_mesh->node_begin(); it != m_mesh->node_end(); it++) 
-            {
-              m_points->InsertNextPoint((*it)[0], (*it)[1], 0.0);
-            }
-        }
-        m_ugrid->SetPoints(m_points);
+      }
+      else if(GD == 2)
+      {
+          for(auto it=mesh.node_begin(); it != mesh.node_end(); it++) 
+          {
+            points->InsertNextPoint((*it)[0], (*it)[1], 0.0);
+          }
+      }
+      m_ugrid->SetPoints(points);
     }
 
 
-    void set_cells()
+    template<class Mesh>
+    void set_cells(Mesh & mesh)
     {
-        auto NC = m_mesh->number_of_cells();
-        auto nn = m_mesh->number_of_nodes_of_each_cell();
-        auto cellArray = vtkSmartPointer<vtkCellArray>::New();
-        cellArray->AllocateExact(NC, NC*nn); 
-        for(auto & cell : m_mesh->cells())
+        auto NC = mesh.number_of_cells();
+        auto nn = mesh.number_of_nodes_of_each_cell();
+
+        auto cells = vtkSmartPointer<vtkCellArray>::New();
+        cells->AllocateExact(NC, NC*nn); 
+
+        int * idx = mesh.vtk_write_cell_index();
+        for(auto & cell : mesh.cells())
         {
-            cellArray->InsertNextCell(nn);
+            cells->InsertNextCell(nn);
             for(int i = 0; i < nn; i++)
             {
-                cellArray->InsertCellPoint(cell[m_mesh->vtk_cell_index()[i]]);
+                cells->InsertCellPoint(cell[idx[i]]);
             }
         }
-        //Toplogy top;
-        //m_mesh->cell_to_node(top);
-        m_ugrid->SetCells(m_mesh->vtk_cell_type(), cellArray);
+        m_ugrid->SetCells(mesh.vtk_cell_type(), cells);
     }
 
     void set_point_data(std::vector<int> & data, int ncomponents, const std::string name)
@@ -121,9 +113,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(I i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
         {
-            for(I j = 0; j < ncomponents; j ++)
+            for(int j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetPointData()->AddArray(vtkdata);
@@ -136,9 +128,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(I i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
         {
-            for(I j = 0; j < ncomponents; j ++)
+            for(int j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetCellData()->AddArray(vtkdata);
@@ -151,9 +143,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(I i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
         {
-            for(I j = 0; j < ncomponents; j ++)
+            for(int j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetPointData()->AddArray(vtkdata);
@@ -166,9 +158,9 @@ public:
         vtkdata->SetNumberOfComponents(ncomponents);
         vtkdata->SetNumberOfTuples(n);
         vtkdata->SetName(name.c_str());
-        for(I i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
         {
-            for(I j = 0; j < ncomponents; j ++)
+            for(int j = 0; j < ncomponents; j ++)
                 vtkdata->SetComponent(i, j, data[i*ncomponents + j]);
         }
         m_ugrid->GetCellData()->AddArray(vtkdata);
@@ -183,10 +175,8 @@ public:
     }
 
 private:
-    Mesh *m_mesh;
-    vtkSmartPointer<vtkPoints> m_points;
-    vtkSmartPointer<vtkUnstructuredGrid> m_ugrid;
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter> m_writer;
+  vtkSmartPointer<vtkUnstructuredGrid> m_ugrid;
+  vtkSmartPointer<vtkXMLUnstructuredGridWriter> m_writer;
 };
 
 } // end of namespace Mesh

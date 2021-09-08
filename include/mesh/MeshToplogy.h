@@ -19,9 +19,10 @@ public:
   class AdjEntitySet 
   {
     public:
-      AdjEntitySet(I num, I * adj)
+      AdjEntitySet(I num, I len, I * adj)
       {
         m_num = num;
+        m_len = len;
         m_adj = adj;
       }
 
@@ -42,23 +43,28 @@ public:
 
       I number_of_adj_entities()
       {
+        return m_len;
+      }
+
+      I id()
+      {
         return m_num;
       }
       
     private:
       I m_num;
+      I m_len;
       I * m_adj;
   };
 
   class AdjEntitySetWithLoc
   {
     public:
-      AdjEntitySetWithLoc(I num, I * adj, I * loc)
-      {
-        m_num = num;
-        m_adj = adj;
-        m_loc = loc;
-      }
+      AdjEntitySetWithLoc():
+        m_num(0), m_len(0), m_adj(0), m_loc(0) {}
+
+      AdjEntitySetWithLoc(I num, I len, I * adj, I * loc):
+        m_num(num), m_len(len), m_adj(adj), m_loc(loc) {}
 
       I adj_entity(const int i)
       {
@@ -72,11 +78,17 @@ public:
 
       I number_of_adj_entities()
       {
-        return m_num;
+        return m_len;
       }
 
+      I id()
+      {
+        return m_num;
+      }
+      
     private:
       I m_num;
+      I m_len;
       I * m_adj;
       I * m_loc;
   };
@@ -150,12 +162,12 @@ public: // new interface
 
     AdjEntitySet adj_entities(const I i)
     {
-      return AdjEntitySet(number_of_adj_entities(i), &m_adj[m_offset[i]]);
+      return AdjEntitySet(i, number_of_adj_entities(i), &m_adj[m_offset[i]]);
     }
 
     AdjEntitySetWithLoc adj_entities_with_local(const I i)
     {
-      return AdjEntitySetWithLoc(number_of_adj_entities(i), &m_adj[m_offset[i]], &m_loc[m_offset[i]]);
+      return AdjEntitySetWithLoc(i, number_of_adj_entities(i), &m_adj[m_offset[i]], &m_loc[m_offset[i]]);
     }
 
 public: // deprecated interface

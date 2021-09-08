@@ -8,7 +8,6 @@
 #include <vtkIntArray.h>
 
 #include "geometry/Geometry_kernel.h"
-#include "mesh/TriangleMesh.h"
 #include "mesh/QuadMesh.h"
 #include "mesh/ParallelMesh.h"
 #include "mesh/MeshFactory.h"
@@ -18,46 +17,43 @@
 typedef WHYSC::Geometry_kernel<double, int> GK;
 typedef GK::Point_3 Node;
 typedef GK::Vector_3 Vector;
-typedef WHYSC::Mesh::TriangleMesh<GK, Node, Vector> TriMesh;
 typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PTMesh;
-typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PQMesh;
+typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PMesh;
 
-typedef WHYSC::Mesh::VTKMeshReader<PTMesh> TReader;
-typedef WHYSC::Mesh::VTKMeshWriter<PTMesh> TWriter;
-typedef WHYSC::Mesh::VTKMeshReader<PQMesh> QReader;
-typedef WHYSC::Mesh::VTKMeshWriter<PQMesh> QWriter;
+typedef WHYSC::Mesh::VTKMeshReader<PMesh> Reader;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 const double pi = acos(-1.0);
 
-int main() 
+int main(int argc, char * argv[])
 {
-  /*
-  PTMesh mesh(1);
-  MF::one_triangle_mesh(mesh);
-  mesh.uniform_refine(9);
+  std::stringstream ss;
+  ss << argv[1] << ".vtu";
+  auto mesh = std::make_shared<PMesh>();
+  Reader reader(mesh);
+  reader.read(ss.str());
 
-  std::vector<PTMesh> submeshes;
-  */
+  auto & gtag = mesh->get_node_int_data()["gtag"];
+  auto & gdof = mesh->get_node_int_data()["gdof"];
 
-  PQMesh mesh(1);
+  std::cout<< "a" <<std::endl;
+  reader.get_node_data("gdof", gdof);
+  std::cout<< "a" <<std::endl;
+  reader.get_node_data("gtag", gtag);
 
-  MF::three_quad_mesh(mesh);
-  mesh.uniform_refine(4);
-  std::vector<PQMesh> submeshes;
+  std::vector<PMesh> submeshes;
 
-  QWriter writer(&mesh);
-  writer.set_points();
-  writer.set_cells();
-  writer.write("init_mesh.vtu");
+  Writer writer;
+  writer.set_points(*mesh);
+  writer.set_cells(*mesh);
+  writer.write("init_quad_mesh.vtu");
 
-  int nparts = 4;
+  int nparts = std::stoi(argv[2]);
   submeshes.resize(nparts);
 
-  auto & cells = mesh.cells();
-  auto & nodes = mesh.nodes();
-  auto NN = mesh.number_of_nodes();
+  auto & nodes = mesh->nodes();
+  auto NN = mesh->number_of_nodes();
 
  //找到网格重心
   Node node_bar;
@@ -79,5 +75,5 @@ int main()
         nid[k] = i;
     }
   }
-  //MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_surface");
+  MF::mesh_node_partition(mesh, nparts, submeshes, nid, cid, "test_quad");
 }

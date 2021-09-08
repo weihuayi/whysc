@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <math.h>
 
 #include "MeshToplogy.h"
 #include "NodeData.h"
@@ -59,6 +60,11 @@ public:
 
   typedef typename CellArray::iterator CellIterator;
   typedef typename CellArray::const_iterator ConstCellIterator;
+
+  static int m_localedge[4][2];
+  static int m_localface[4][2];
+  static int m_vtkidx[4];
+  static int m_num[4][4];
 
 public:
   QuadMesh()
@@ -127,7 +133,12 @@ public:
       return m_edge.size();
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
+  {
+    return m_vtkidx;
+  }
+
+  int* vtk_write_cell_index()
   {
     return m_vtkidx;
   }
@@ -284,12 +295,18 @@ public:
     }
 
     auto & nei = top.neighbors();
+    auto & locid = top.local_indices();
     nei.resize(loc[NN]);
+    locid.resize(loc[NN]);
     std::vector<I> start(loc);
     for(I i = 0; i < NC; i++)
     {
-      for(auto v : m_cell[i])
+      for(int j = 0; j < 4; j++)
+      {
+        auto v = m_cell[i][j];
+        locid[start[v]] = j;
         nei[start[v]++] = i;
+      }
     }
   }
 
@@ -459,6 +476,19 @@ public:
         measure[i] = cell_measure(i);
   }
 
+  F cell_size(I cidx)
+  {
+    return std::sqrt(cell_measure(cidx));
+  }
+
+  void cell_size(std::vector<F> & cellsize)
+  {
+    auto NC = number_of_cells();
+    cellsize.resize(NC);
+    for(I i = 0; i < NC; i++)
+        cellsize[i] = std::sqrt(cell_measure(i));
+  }
+
   F angle_of_edges(int e0, int e1)
   {
     auto V0 = m_node[m_edge[e0][0]] - m_node[m_edge[e0][1]];
@@ -500,6 +530,14 @@ public:
     auto & c = m_cell[i];
     for(int i = 0; i < geo_dimension(); i++)
       node[i] = (m_node[c[0]][i] + m_node[c[1]][i] + m_node[c[2]][i] + m_node[c[3]][i])/4.0;
+  }
+
+  void cell_barycenter(std::vector<Node> & cellbarycenter)
+  {
+    int NC = number_of_cells();
+    cellbarycenter.resize(NC);
+    for(int i = 0; i < NC; i++)
+      cell_barycenter(i, cellbarycenter[i]);
   }
 
   F edge_measure(const I i)
@@ -628,9 +666,6 @@ private:
   }
 
 private:
-  static int m_localedge[4][2];
-  static int m_localface[4][2];
-  static int m_vtkidx[4];
   int m_holes; // 网格中洞的个数
   int m_genus; // 网格表示曲面的亏格数
   std::vector<Node> m_node;
@@ -656,6 +691,10 @@ int QuadMesh<GK, NODE, VECTOR>::m_localface[4][2] = {
 template<typename GK, typename NODE, typename VECTOR>
 int QuadMesh<GK, NODE, VECTOR>::m_vtkidx[4] = {0, 1, 2, 3};
 
+template<typename GK, typename NODE, typename VECTOR>
+int QuadMesh<GK, NODE, VECTOR>::m_num[4][4] = {
+  {0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1}, {3, 0, 1, 2}
+};
 } // end of namespace Mesh
 
 } // end of namespace WHYSC

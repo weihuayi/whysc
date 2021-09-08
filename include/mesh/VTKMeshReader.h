@@ -91,13 +91,14 @@ public:
           auto NC = m_ugrid->GetNumberOfCells();
           auto & cells = m_mesh->cells();
           cells.resize(NC);
+          auto index = m_mesh->vtk_read_cell_index();
           for(int i = 0; i < NC; i++)
           {
             auto c = m_ugrid->GetCell(i);
             int N = c->GetNumberOfPoints();
             for(int j = 0; j < N; j++)
             {
-              cells[i][j] = c->GetPointId(j);
+              cells[i][j] = c->GetPointId(index[j]);
             }
           }
         }

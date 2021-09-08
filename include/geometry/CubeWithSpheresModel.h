@@ -161,35 +161,55 @@ public:
     }
   }
 
-  void get_point_normal(const int fid, const Point p, Vector & n)
+  void project_vector_to_face(const int fid, const Point p, Vector & v)
   {
-    Point p0, p1, p2;
-    if(m_faces[fid][0] > 0)
-      p0 = m_points[m_lines[m_faces[fid][0]][0]];
-    else
-      p0 = m_points[m_lines[-m_faces[fid][0]][1]];
+    if(fid<7)
+    {
+      Point p0, p1, p2;
+      if(m_faces[fid][0] > 0)
+        p0 = m_points[m_lines[m_faces[fid][0]][0]];
+      else
+        p0 = m_points[m_lines[-m_faces[fid][0]][1]];
 
-    if(m_faces[fid][1] > 0)
-      p1 = m_points[m_lines[m_faces[fid][1]][0]];
-    else
-      p1 = m_points[m_lines[-m_faces[fid][1]][1]];
+      if(m_faces[fid][1] > 0)
+        p1 = m_points[m_lines[m_faces[fid][1]][0]];
+      else
+        p1 = m_points[m_lines[-m_faces[fid][1]][1]];
 
-    if(m_faces[fid][2] > 0)
-      p2 = m_points[m_lines[m_faces[fid][2]][0]];
-    else
-      p2 = m_points[m_lines[-m_faces[fid][2]][1]];
+      if(m_faces[fid][2] > 0)
+        p2 = m_points[m_lines[m_faces[fid][2]][0]];
+      else
+        p2 = m_points[m_lines[-m_faces[fid][2]][1]];
 
-    auto v0 = p1 - p0;
-    auto v1 = p2 - p1;
-    n = cross(v0, v1);
+      auto v0 = p1 - p0;
+      auto v1 = p2 - p1;
+      auto n = cross(v0, v1);
+      v = v - dot(v, n)*n/n.squared_length();
+    }
+    else
+    {
+      auto sphere = m_spheres[7+8*((fid-7)/8)];
+      auto center = sphere.center();
+      auto n = p - center;
+      v = v - dot(v, n)*n/n.squared_length();
+    }
   }
 
-  void get_point_tangent(const int eid, const Point p, Vector & t)
+  void project_vector_to_edge(const int eid, const Point p, Vector & v)
   {
-    auto & p0 = m_points[m_lines[eid][0]];
-    auto & p1 = m_points[m_lines[eid][1]];
-    t = p1 - p0;
+    if(eid<13)
+    {
+      auto & p0 = m_points[m_lines[eid][0]];
+      auto & p1 = m_points[m_lines[eid][1]];
+      auto t = p1 - p0;
+      v = dot(v, t)*t/t.squared_length();
+    }
+    else
+    {
+      project_vector_to_face(7+8*((eid-13)/12), p, v);
+    }
   }
+
   std::map<int, Point> & get_points()
   {
     return m_points;
@@ -226,4 +246,4 @@ private:
 }
 
 
-#endif // end of CubeAndSphereModel_h
+#endif // end of CubeWithSphereModel_h

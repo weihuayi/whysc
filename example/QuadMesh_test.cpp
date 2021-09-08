@@ -15,7 +15,7 @@ typedef GK::Vector_2 Vector;
 typedef WHYSC::Mesh::QuadMesh<GK, Node, Vector> QuadMesh;
 typedef QuadMesh::Cell Cell;
 typedef QuadMesh::Edge Edge;
-typedef WHYSC::Mesh::VTKMeshWriter<QuadMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 int main(int argc, char **argv)
@@ -23,9 +23,10 @@ int main(int argc, char **argv)
     QuadMesh mesh;
     MF::one_quad_mesh(mesh);
     mesh.print();
-    Writer writer(&mesh);
-    writer.set_points();
-    writer.set_cells();
+
+    Writer writer;
+    writer.set_points(mesh);
+    writer.set_cells(mesh);
     writer.write("test.vtu");
 
     return 0;

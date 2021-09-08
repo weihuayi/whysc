@@ -20,7 +20,7 @@ typedef GK::Vector_3 Vector;
 typedef WHYSC::Mesh::TetrahedronMesh<GK, Node, Vector> TetMesh;
 typedef TetMesh::Cell Cell;
 typedef TetMesh::Toplogy Toplogy;
-typedef WHYSC::Mesh::VTKMeshWriter<TetMesh> Writer;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
@@ -90,9 +90,9 @@ int main()
     //                  idx_t *vwgt, idx_t *vsize, idx_t *nparts, real_t *tpwgts, 
     //                 idx_t *options, idx_t *objval, idx_t *epart, idx_t *npart);
 
-    Writer writer(&mesh);
-    writer.set_points();
-    writer.set_cells();
+    Writer writer;
+    writer.set_points(mesh);
+    writer.set_cells(mesh);
     writer.set_cell_data(epart, 1, "CID");
     writer.set_point_data(npart, 1, "NID");
     writer.write("test.vtu");

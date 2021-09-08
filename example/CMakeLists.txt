@@ -55,10 +55,17 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    add_executable(TetrahedronMesh_test TetrahedronMesh_test.cpp)
-    target_link_libraries(TetrahedronMesh_test PRIVATE ${VTK_LIBRARIES})
+    #add_executable(TetrahedronMesh_test TetrahedronMesh_test.cpp)
+    #target_link_libraries(TetrahedronMesh_test PRIVATE ${VTK_LIBRARIES})
+    #vtk_module_autoinit(
+    #    TARGETS TetrahedronMesh_test 
+    #    MODULES ${VTK_LIBRARIES}
+    #)
+
+    add_executable(map_test map_test.cpp)
+    target_link_libraries(map_test PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
-        TARGETS TetrahedronMesh_test 
+        TARGETS map_test 
         MODULES ${VTK_LIBRARIES}
     )
 
@@ -69,13 +76,40 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    add_executable(TetRadiusRatioQuality_test TetRadiusRatioQuality_test.cpp)
-    target_link_libraries(TetRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
+    add_executable(pmesh_hexmesh_generation pmesh_hexmesh_generation.cpp)
+    target_link_libraries(pmesh_hexmesh_generation PRIVATE ${VTK_LIBRARIES})
     vtk_module_autoinit(
-        TARGETS TetRadiusRatioQuality_test 
+        TARGETS pmesh_hexmesh_generation 
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(TriRadiusRatioQuality_test TriRadiusRatioQuality_test.cpp)
+    target_link_libraries(TriRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS TriRadiusRatioQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    #add_executable(TetRadiusRatioQuality_test TetRadiusRatioQuality_test.cpp)
+    #target_link_libraries(TetRadiusRatioQuality_test PRIVATE ${VTK_LIBRARIES})
+    #vtk_module_autoinit(
+    #    TARGETS TetRadiusRatioQuality_test 
+    #    MODULES ${VTK_LIBRARIES}
+    #)
+
+    add_executable(QuadJacobiQuality_test QuadJacobiQuality_test.cpp)
+    target_link_libraries(QuadJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS QuadJacobiQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(HexJacobiQuality_test HexJacobiQuality_test.cpp)
+    target_link_libraries(HexJacobiQuality_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS HexJacobiQuality_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(halfedge_mesh_test halfedge_mesh_test.cpp)
     target_link_libraries(halfedge_mesh_test PRIVATE ${VTK_LIBRARIES})
@@ -84,6 +118,12 @@ if(${VTK_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
+    add_executable(IntervalMesh_test IntervalMesh_test.cpp)
+    target_link_libraries(IntervalMesh_test PRIVATE ${VTK_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS IntervalMesh_test 
+        MODULES ${VTK_LIBRARIES}
+    )
 
     add_executable(TriangleMesh_test TriangleMesh_test.cpp)
     target_link_libraries(TriangleMesh_test PRIVATE ${VTK_LIBRARIES})
@@ -118,18 +158,34 @@ if(${CGAL_FOUND} AND ${VTK_FOUND})
     target_link_libraries(color_test PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(cgal_surface_mesh_generation cgal_surface_mesh_generation.cpp )
-    target_link_libraries(cgal_surface_mesh_generation PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_surface_mesh_generation cgal_surface_mesh_generation.cpp )
+    #target_link_libraries(cgal_surface_mesh_generation PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
-    target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
-        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    #add_executable(cgal_volume_mesh_generation cgal_volume_mesh_generation.cpp )
+    #target_link_libraries(cgal_volume_mesh_generation PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
-    add_executable(cgal_remesh_test cgal_remesh_test.cpp )
-    message("${CGAL_LIBRARIES}")
-    target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
+    add_executable(pmesh_tetmesh_generation pmesh_tetmesh_generation.cpp)
+    target_link_libraries(pmesh_tetmesh_generation PRIVATE ${CGAL_LIBRARIES}
         ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    vtk_module_autoinit(
+        TARGETS pmesh_tetmesh_generation 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(pmesh_trimesh_generation pmesh_trimesh_generation.cpp)
+    target_link_libraries(pmesh_trimesh_generation PRIVATE ${CGAL_LIBRARIES}
+        ${VTK_LIBRARIES} ${METIS_LIBRARY})
+    vtk_module_autoinit(
+        TARGETS pmesh_trimesh_generation 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    #add_executable(cgal_remesh_test cgal_remesh_test.cpp )
+    #message("${CGAL_LIBRARIES}")
+    #target_link_libraries(cgal_remesh_test PRIVATE ${CGAL_LIBRARIES}
+    #    ${VTK_LIBRARIES} ${METIS_LIBRARY})
 
     add_executable(PolyhedronModel_test PolyhedronModel_test.cpp )
     message("${CGAL_LIBRARIES}")
@@ -167,10 +223,60 @@ if(${VTK_FOUND} AND ${MPI_FOUND})
         MODULES ${VTK_LIBRARIES}
     )
 
-    add_executable(parallel_optimization parallel_optimization.cpp)
-    target_link_libraries(parallel_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    add_executable(parallel_tetmesh_optimization parallel_tetmesh_optimization.cpp)
+    target_link_libraries(parallel_tetmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
     vtk_module_autoinit(
-        TARGETS parallel_optimization 
+        TARGETS parallel_tetmesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_quadmesh_optimization parallel_quadmesh_optimization.cpp)
+    target_link_libraries(parallel_quadmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_quadmesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_trimesh_optimization parallel_trimesh_optimization.cpp)
+    target_link_libraries(parallel_trimesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_trimesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_hexmesh_optimization parallel_hexmesh_optimization.cpp)
+    target_link_libraries(parallel_hexmesh_optimization PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_hexmesh_optimization 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    # 下面的是重复的测试
+    add_executable(parallel_tetmesh_optimization0 parallel_tetmesh_optimization0.cpp)
+    target_link_libraries(parallel_tetmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_tetmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_quadmesh_optimization0 parallel_quadmesh_optimization0.cpp)
+    target_link_libraries(parallel_quadmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_quadmesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_trimesh_optimization0 parallel_trimesh_optimization0.cpp)
+    target_link_libraries(parallel_trimesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_trimesh_optimization0 
+        MODULES ${VTK_LIBRARIES}
+    )
+
+    add_executable(parallel_hexmesh_optimization0 parallel_hexmesh_optimization0.cpp)
+    target_link_libraries(parallel_hexmesh_optimization0 PRIVATE ${VTK_LIBRARIES} ${MPI_LIBRARIES})
+    vtk_module_autoinit(
+        TARGETS parallel_hexmesh_optimization0 
         MODULES ${VTK_LIBRARIES}
     )
 

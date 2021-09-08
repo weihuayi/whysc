@@ -73,6 +73,7 @@ public:
   static int m_refine[3][6];
   static int m_index[12][4];
   static int m_vtkidx[4];
+  static int m_num[4][4];
 
 public:
 
@@ -130,10 +131,16 @@ public:
       return 3;
   }
 
-  int* vtk_cell_index()
+  int* vtk_read_cell_index()
   {
     return m_vtkidx;
   }
+
+  int* vtk_write_cell_index()
+  {
+    return m_vtkidx;
+  }
+
 
   I vtk_cell_type(I TD=3)
   {
@@ -167,7 +174,7 @@ public:
       auto NC = number_of_cells();
       m_face2cell.reserve(2*NC); //TODO: 欧拉公式?
       m_cell2face.resize(NC);
-      std::map<I, I> idxmap;
+      std::map<long long, I> idxmap;
 
       I NF = 0;
       // 偏历所有单元
@@ -180,7 +187,7 @@ public:
              if(it == idxmap.end())
              {
                 m_cell2face[i][j] = NF;
-                idxmap.insert(std::pair<I, I>(s, NF));
+                idxmap.insert(std::pair<long long, I>(s, NF));
                 m_face2cell.push_back(Face2cell{i, i, j, j});
                 NF++;
              }
@@ -208,15 +215,86 @@ public:
       I NE = 0;
       for(I i = 0; i < NC; i++)
       {
+          auto & c = m_cell[i];
           for(I j = 0; j < 6; j++)
           { 
-              auto & c = m_cell[i];
               auto s = local_edge_index(i, j); 
               auto it = idxmap.find(s);
               if(it == idxmap.end())
               {
                   m_cell2edge[i][j] = NE;
-                  idxmap.insert(std::pair<I, I>(s, NE));
+                  idxmap.insert(std::pair<long long, I>(s, NE));
+                  m_edge.push_back(Edge{c[m_localedge[j][0]], c[m_localedge[j][1]]});
+                  NE++; 
+              }
+             else
+             {
+                m_cell2edge[i][j] = it->second;
+             }
+          }
+      }
+  }
+
+  void init_top0()
+  {
+      m_face2cell.clear();
+      m_cell2face.clear();
+
+      auto NN = number_of_nodes();
+      auto NC = number_of_cells();
+      m_face2cell.reserve(2*NC); //TODO: 欧拉公式?
+      m_cell2face.resize(NC);
+      std::map<std::array<int, 3>, I> fidxmap;
+      std::map<std::array<int, 2>, I> eidxmap;
+
+      I NF = 0;
+      // 偏历所有单元
+      for(I i = 0; i < NC; i++)
+      {
+          for(I j = 0; j < 4; j++)
+          {
+             auto s = local_face_index0(i, j);
+             auto it = fidxmap.find(s);
+             if(it == fidxmap.end())
+             {
+                m_cell2face[i][j] = NF;
+                fidxmap.insert(std::pair<std::array<int, 3>, I>(s, NF));
+                m_face2cell.push_back(Face2cell{i, i, j, j});
+                NF++;
+             }
+             else
+             {
+                m_cell2face[i][j] = it->second;
+                m_face2cell[it->second][1] = i;
+                m_face2cell[it->second][3] = j;
+             }
+          }
+      }
+      fidxmap.clear();
+
+      m_face.resize(NF);
+      for(I i = 0; i < NF; i++)
+      {
+          auto & c = m_cell[m_face2cell[i][0]];
+          auto j = m_face2cell[i][2];
+          m_face[i][0] = c[m_localface[j][0]];
+          m_face[i][1] = c[m_localface[j][1]];
+          m_face[i][2] = c[m_localface[j][2]];
+      }
+
+      m_cell2edge.resize(NC);
+      I NE = 0;
+      for(I i = 0; i < NC; i++)
+      {
+          auto & c = m_cell[i];
+          for(I j = 0; j < 6; j++)
+          { 
+              auto s = local_edge_index0(i, j); 
+              auto it = eidxmap.find(s);
+              if(it == eidxmap.end())
+              {
+                  m_cell2edge[i][j] = NE;
+                  eidxmap.insert(std::pair<std::array<int, 2>, I>(s, NF));
                   m_edge.push_back(Edge{c[m_localedge[j][0]], c[m_localedge[j][1]]});
                   NE++; 
               }
@@ -763,9 +841,9 @@ private:
      * -----
      *  计算第 i 个 cell 的第 j 个 face 的全局唯一整数编号
      */
-    I local_face_index(I i, I j)
+    long long local_face_index(I i, I j)
     {
-        I f[3] = {
+        long long f[3] = {
             m_cell[i][m_localface[j][0]], 
             m_cell[i][m_localface[j][1]], 
             m_cell[i][m_localface[j][2]]
@@ -774,17 +852,35 @@ private:
         return  f[0] + f[1]*(f[1]+1)/2 + f[2]*(f[2]+1)*(f[2]+2)/6;
     }
 
+    std::array<int, 3> local_face_index0(I i, I j)
+    {
+        I f[3] = {
+            m_cell[i][m_localface[j][0]], 
+            m_cell[i][m_localface[j][1]], 
+            m_cell[i][m_localface[j][2]]
+        };
+        std::sort(f, f+3);
+        return  std::array<int, 3>({f[0], f[1], f[2]});
+    }
+
     /*
      *
      * Notes
      * -----
      *  计算第 i 个 cell 的 j 条 edge 全局唯一整数编号
      */
-    I local_edge_index(I i, I j)
+    long long local_edge_index(I i, I j)
     {
-        I e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
+        long long e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
         std::sort(e, e+2);
         return  e[0] + e[1]*(e[1]+1)/2;
+    }
+
+    std::array<int, 2> local_edge_index0(I i, I j)
+    {
+        int e[2] = {m_cell[i][m_localedge[j][0]], m_cell[i][m_localedge[j][1]]};
+        std::sort(e, e+2);
+        return  std::array<int, 2>({e[0], e[1]});
     }
 
 private:
@@ -829,6 +925,11 @@ int TetrahedronMesh<GK, Node, Vector>::m_index[12][4] = {
 
 template<typename GK, typename Node, typename Vector>
 int TetrahedronMesh<GK, Node, Vector>::m_vtkidx[4] = {0, 1, 2, 3};
+
+template<typename GK, typename Node, typename Vector>
+int TetrahedronMesh<GK, Node, Vector>::m_num[4][4] = {
+    {0, 1, 2, 3}, {1, 0, 3, 2}, {2, 0, 1, 3}, {3, 0, 2, 1}
+};
 
 } // end of namespace Mesh 
 

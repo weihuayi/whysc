@@ -41,9 +41,8 @@ typedef WHYSC::Mesh::ParallelMesh<GK, TriMesh> PTMesh;
 typedef WHYSC::Mesh::ParallelMesh<GK, QuadMesh> PQMesh;
 
 typedef WHYSC::Mesh::VTKMeshReader<PTMesh> TReader;
-typedef WHYSC::Mesh::VTKMeshWriter<PTMesh> TWriter;
+typedef WHYSC::Mesh::VTKMeshWriter Writer;
 typedef WHYSC::Mesh::VTKMeshReader<PQMesh> QReader;
-typedef WHYSC::Mesh::VTKMeshWriter<PQMesh> QWriter;
 typedef WHYSC::Mesh::MeshFactory MF;
 
 FT sphere_function (Point_3 p) 
@@ -59,7 +58,6 @@ FT test_function (Point_3 p)
     double z = p.z();
     return pow(x*x+9*y*y/4+z*z-1, 3) - x*x*z*z*z-9*y*y*z*z*z/80;
 }
-
 
 int main() 
 {
