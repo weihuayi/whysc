@@ -19,3 +19,9 @@ add_test(vector test_vector)
 
 add_executable(test_TriangleQuadrature test_TriangleQuadrature.cpp)
 add_test(TriangleQuadrature test_TriangleQuadrature)
+
+add_executable(test_TetrahedronQuadrature test_TetrahedronQuadrature.cpp)
+add_test(TetrahedronQuadrature test_TetrahedronQuadrature)
+
+add_executable(test_GaussLegendreQuadrature test_GaussLegendreQuadrature.cpp)
+add_test(GaussLegendreQuadrature test_GaussLegendreQuadrature)
