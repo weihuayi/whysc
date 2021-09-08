@@ -23,6 +23,8 @@ public:
   PolygonMeshIntegralAlg(std::shared_ptr<Mesh> mesh, int q): m_mesh(mesh), m_q(q) {}
 
 
+
+
 private:
   int m_q;
   std::shared_ptr<Mesh> m_mesh;
