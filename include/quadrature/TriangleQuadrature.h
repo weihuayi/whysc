@@ -6,10 +6,13 @@
 #include "QuadratureBase.h"
 
 const double TriangleQuadratureData[286][4] = {
+    /**< */
     {0.3333333333333330,	0.3333333333333330, 0.3333333333333330,	1.0000000000000000},
+
     {0.6666666666666670,	0.1666666666666670, 0.1666666666666670,	0.3333333333333330},
     {0.1666666666666670,	0.6666666666666670, 0.1666666666666670,	0.3333333333333330},
     {0.1666666666666670,	0.1666666666666670, 0.6666666666666670,	0.3333333333333330},
+
     {0.8168475729804400,	0.0915762135097800,	0.0915762135097800,	0.1099517436553330},
     {0.0915762135097800,	0.8168475729804400,	0.0915762135097800,	0.1099517436553330},
     {0.0915762135097800,	0.0915762135097800,	0.8168475729804400,	0.1099517436553330},
@@ -300,31 +303,48 @@ namespace Quadrature{
 class TriangleQuadrature
 {
 public:
-  typedef std::array<double, 3> QuadraturePoint;
-
-  std::vector<double> weight;
-  std::vector<QuadraturePoint> quadrature_point;
-
+  typedef std::array<double, 3> RNode;
 public:
   TriangleQuadrature(int q): m_q(q) 
   {
     int N = number_of_quadrature_points();
-    weight.resize(N);
-    quadrature_point.resize(N);
+    m_weight.resize(N);
+    m_qpoint.resize(N);
     
     int s = (q*(q-1)+q*(q-1)*(2*q-1)/3)/4;
     for(int i = 0; i < N; i++)
     {
-      weight[i] = TriangleQuadratureData[i+s][3];
-      quadrature_point[i][0] = TriangleQuadratureData[i+s][0];
-      quadrature_point[i][1] = TriangleQuadratureData[i+s][1];
-      quadrature_point[i][2] = TriangleQuadratureData[i+s][2];
+      m_weight[i] = TriangleQuadratureData[i+s][3];
+      m_qpoint[i][0] = TriangleQuadratureData[i+s][0];
+      m_qpoint[i][1] = TriangleQuadratureData[i+s][1];
+      m_qpoint[i][2] = TriangleQuadratureData[i+s][2];
     }
   }
 
-  int number_of_quadrature_points() {return (m_q+1)*m_q/2;}
+  int number_of_quadrature_points() 
+  {
+    return (m_q+1)*m_q/2;
+  }
+
+  const RNode & quadrature_point(int i)
+  {
+    return m_qpoint[i];
+  }
+
+  double quadrature_weight(int i)
+  {
+    return m_weight[i];
+  }
+
+  std::vector<RNode> & quadrature_points()
+  {
+    return m_qpoint;
+  }
+
 private:
   int m_q;
+  std::vector<double> m_weight;
+  std::vector<RNode>  m_qpoint;
 };
 
 };
