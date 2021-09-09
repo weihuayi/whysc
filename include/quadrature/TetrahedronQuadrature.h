@@ -1,53 +1,55 @@
 
 /**
- * \file TriangleQuadrature.h
+ * \file TetrahedronQuadrature.h
  * \author Huayi Wei, Chunyu Chen
  *
  * \date 2021.09.08
  *
- * \brief 三角形单元上的积分公式
+ * \brief 四面体单元上的积分公式
  *
  */
-#ifndef TriangleQuadrature_h
-#define TriangleQuadrature_h
+#ifndef TetrahedronQuadrature_h
+#define TetrahedronQuadrature_h
 #include <array>
 #include <vector>
 
-#include "TriangleQuadratureData.h"
+#include "TetrahedronQuadratureData.h"
 
 namespace WHYSC{
 namespace Quadrature{
 /**
- * \brief 三角形单元上的积分类
+ * \brief 四面体单元上的积分类
  *
- * \note 这里用 std::array<double, 3> 数组代表积分点.
+ * \note 这里用 std::array<double, 4> 数组代表积分点.
  *
  */
-class TriangleQuadrature
+class TetrahedronQuadrature
 {
 public:
-  typedef std::array<double, 3> RNode;
+  typedef std::array<double, 4> RNode;
 public:
 
   /**
    * \brief 生成积分点和权重
    *
-   * \param q 积分的代数精度阶数
+   * \param q 是积分的代数精度阶数
    *
    */
-  TriangleQuadrature(int q): m_q(q) 
+  TetrahedronQuadrature(int q): m_q(q) 
   {
     int N = number_of_quadrature_points();
     m_weight.resize(N);
     m_qpoint.resize(N);
     
-    int s = (q*(q-1)+q*(q-1)*(2*q-1)/3)/4;
+    int idx[7] = {0, 1, 5, 15, 35, 70, 126};
+    int s = idx[q-1];
     for(int i = 0; i < N; i++)
     {
-      m_weight[i] = TriangleQuadratureData[i+s][3];
-      m_qpoint[i][0] = TriangleQuadratureData[i+s][0];
-      m_qpoint[i][1] = TriangleQuadratureData[i+s][1];
-      m_qpoint[i][2] = TriangleQuadratureData[i+s][2];
+      m_weight[i] = TetrahedronQuadratureData[i+s][4];
+      m_qpoint[i][0] = TetrahedronQuadratureData[i+s][0];
+      m_qpoint[i][1] = TetrahedronQuadratureData[i+s][1];
+      m_qpoint[i][2] = TetrahedronQuadratureData[i+s][2];
+      m_qpoint[i][3] = TetrahedronQuadratureData[i+s][3];
     }
   }
 
@@ -56,7 +58,7 @@ public:
    */
   int number_of_quadrature_points() 
   {
-    return (m_q+1)*m_q/2;
+    return (m_q*(m_q+1)+m_q*(m_q+1)*(2*m_q+1)/3)/4;;
   }
 
   /**
@@ -99,4 +101,4 @@ private:
 
 };
 };
-#endif // end of TriangleQuadrature_h
+#endif // end of TetrahedronQuadrature_h
